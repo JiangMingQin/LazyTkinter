@@ -7,10 +7,14 @@
 ---
 
 **LazyTkinter** 是一个基于 CustomTkinter 的 Python 界面库，旨在通过声明式编程简化 Tkinter 的布局和开发流程。它去除了传统的 grid 和 pack 方法，引入了 Row 和 Column 容器，仿照 HTML 的设计理念，增加了 padding 和 margin，使布局更加直观。
+> LazyTkinter is a Python UI library built on CustomTkinter, designed to simplify Tkinter layout and development workflows via Declarative Programming. 
+It replaces traditional grid and pack methods with Row and Column containers, adopting HTML-like design concepts (adding padding and margin) to make layouts more intuitive.
 
 **目标受众**：适合希望快速开发简单 GUI 应用的开发者，尤其是对命令式编程感到繁琐，但又不想使用 PySide 或 QT 等大型框架的用户。
+> Ideal for developers looking to quickly build simple GUI applications — especially those who find Imperative Programming cumbersome, but don’t want to use heavyweight frameworks like PySide or QT.
 
 **未来计划**：如果项目有后续更新，会先修复其中的一些bug，比如宽高的设置，然后会增加锚点功能，使得布局更加灵活。最后就是增加更多组件等。
+> If the project receives further updates, we will first fix existing bugs (e.g., width/height configuration), then add Anchor Functionality to make layouts more flexible, and finally expand the library with additional widgets.
 
 ![light](assets/gruvbox-light.png)
 
@@ -21,7 +25,7 @@
 **这是一个实验性项目。** 
 **This is an experimental project.**
 
-作为我个人开发的第一个开源项目，LazyTkinter 主要用于探索声明式 UI 在 Python 中的实现。
+这是我个人开发的第一个开源项目，LazyTkinter 主要用于探索声明式 UI 在 Python 中的实现。
 
 - ❌ **不保证** 长期维护或更新。
 - ❌ **不建议** 在生产环境中使用。
