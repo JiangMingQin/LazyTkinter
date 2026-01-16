@@ -121,12 +121,12 @@ LazyTkinter 内置了以下社区热门主题，无需下载 JSON 文件即可�
 
 ```Plaintext
 lazytkinter/
-├── __init__.py      # 统一导出接口
-├── app.py           # Application & Window 封装
-├── widgets.py       # 基础组件封装
-├── containers.py    # 布局容器封装
-├── utils.py         # 工具类 (Image, StringVar)
-└── themes/          # 内置 JSON 主题文件
+├── __init__.py      # Unified export interface
+├── app.py           # Application & Window wrapper
+├── widgets.py       # Basic widget wrapper
+├── containers.py    # Layout container wrapper
+├── utils.py         # Utility classes (Image, StringVar)
+└── themes/          # Built-in JSON theme files
 ```
 
 ---
