@@ -132,6 +132,64 @@ LazyTkinter 内置了以下社区热门主题，无需下载 JSON 文件即可�
 
 ---
 
+## 📖 布局 API 速查 / Layout API Quick Reference
+
+**尺寸策略 / Size Policy** — `width` / `height` 接受 `int`（固定像素）、`"fit"`（包裹内容）或 `"fill"`（撑满父容器）：
+
+```python
+ltk.Button().width(120)           # 固定像素
+ltk.Button().width("fill")        # 字符串形式
+ltk.Button().width().fill()       # 链式形式（IDE 补全友好）
+ltk.Button().fill(weight=2)       # 撑满并按 2 份参与主轴空间分配
+```
+
+默认：控件 `fit`；Column 宽度 `fill`；ZStack / Scroll 宽高 `fill`。
+
+**间距 / Spacing** — 全部为整数像素：
+
+```python
+ltk.Column().gap(12).padding(16)  # 子元素间距 / 内边距
+app.gap(8).padding(20)            # 窗口根布局的间距 / 内边距
+```
+
+**对齐 / Alignment**：
+
+```python
+ltk.Column().align("center")      # 交叉轴：Column 管左右（left/center/right）
+ltk.Row().align("center")         # 交叉轴：Row 管上下（top/center/bottom）
+ltk.Row().justify("center")       # 主轴：Row 管左右（start/center/end）
+ltk.Column().center()             # = justify("center") + align("center")
+app.center().column(...)          # 窗口根布局同样支持
+```
+
+**布局原语 / Layout Primitives**：
+
+```python
+ltk.Row(ltk.Button(), ltk.Label())        # 构造参数直接传子元素
+ltk.Column().add(a).add(b)                # 或追加
+ltk.ZStack().add(bg, fg.align("top-right"))  # 重叠 + 锚点
+ltk.Spacer().weight(2)                    # 弹性弹簧（吃剩余空间）
+ltk.Scroll(ltk.Column().add(*items))      # 滚动包装（v1 仅垂直）
+ltk.Empty().width(10)                     # 固定尺寸占位
+```
+
+**外观 / Appearance**：
+
+```python
+ltk.Column().fg_color("#313244").radius(10)  # 背景色 + 圆角（默认主题色）
+ltk.Column().transparent()                  # 显式透明
+ltk.Label().font(family="Arial", size=20, weight="bold")  # 字体关键字形式
+```
+
+**窗口 / Window**：
+
+```python
+app.size("large").window_title("App").padding(10).gap(5).center().column(...)
+# size: "fill" / "large" / "medium" / "small" / (w, h)
+```
+
+---
+
 ## 📂 项目结构
 
 ```Plaintext

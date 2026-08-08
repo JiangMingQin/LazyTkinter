@@ -79,7 +79,8 @@ class Renderer:
 
 ### 新布局 API
 
-- **尺寸策略**：所有控件与容器的 `width` / `height` 接受 `int`（固定像素）、`'fit'`（包裹内容）或 `'fill'`（撑满父容器）。默认 `'fit'`，例外：Column 宽度默认 `'fill'`，ZStack / Scroll 宽度与高度默认 `'fill'`。支持链式写法 `.width().fill()` / `.height().fit()`（无轴前缀的 `.fill()` / `.fit()` 作用于双轴），与字符串写法等价，便于 IDE 自动补全发现。`fill(weight=n)` 让多个 fill 子元素按 `n` 的比例分配主轴剩余空间（默认等分 1:1）；weight 仅对 Row/Column 主轴 fill 生效。
+- **尺寸策略**：所有控件与容器的 `width` / `height` 接受 `int`（固定像素）、`'fit'`（包裹内容）或 `'fill'`（撑满父容器）。默认 `'fit'`，例外：Column 宽度默认 `'fill'`，ZStack / Scroll 宽度与高度默认 `'fill'`。支持链式写法 `.width().fill()` / `.height().fit()`（无轴前缀的 `.fill()` / `.fit()` 作用于双轴），与字符串写法等价，便于 IDE 自动补全发现。`fill(weight=n)` 让多个 fill 子元素按 `n` 的比例分配主轴**剩余空间**（默认等分 1:1；控件的自然尺寸是最小值，所以比例会趋近 `n` 而非精确切分）；weight 仅对 Row/Column 主轴 fill 生效。
+- **字体**：`font(family=..., size=..., weight=..., slant=..., underline=..., overstrike=...)` 关键字/字典形式（支持 `font({"family": ..., "size": ...})`），旧元组写法兼容；非法键或非法值抛 `ValueError`。
 - **间距**：容器 `gap`（子元素之间）与 `padding`（内边距）只接受整数像素。
 - **对齐**：Column 交叉轴 `align`（`left`/`center`/`right`，默认 `left`），Row 交叉轴 `align`（`top`/`center`/`bottom`，默认 `top`），ZStack 锚点 `align`（`center`/`top-left`/... 默认 `center`）。子元素可自带 `align` 覆盖容器默认。主轴分布用 `justify`（`start`/`center`/`end`，默认 `start`；`center`/`end` 会自动把主轴转为 `fill`）；`.center()` = `justify("center") + align("center")`。
 - **外观**：容器默认使用主题色背景（自带可见圆角），需要透明时显式调用 `transparent()`；背景色由 `fg_color()` 自定义（映射到 frame 填充色），圆角由 `radius()` 设置（映射到 `corner_radius`）。
@@ -90,7 +91,7 @@ class Renderer:
 
 容器把每个子元素解析为 grid 布局槽（纯函数，可单测）：
 
-- fit → 槽 weight 0；fill → weight 1，多个 fill 平分剩余空间；容器内存在 Spacer 时，fill 在主轴上降为自然尺寸，Spacer 独占剩余空间。
+- fit → 槽 weight 0；fill → 槽 weight = `fill(weight=n)`（默认 1），多个 fill 按比例分配剩余空间；容器内存在 Spacer 时，fill 在主轴上降为自然尺寸，Spacer 独占剩余空间。
 - sticky = 交叉轴 align 映射 + 主轴/交叉轴 fill 拉伸；fill 与 align 同轴时 fill 优先。
 - ZStack 全部子元素 grid 到同一格，锚点由子元素 `align`（缺省用容器默认）决定。
 - `justify="center"` 在主轴两端各插入一个 weight=1 的隐式弹性槽，`justify="end"` 只在起始端插入；隐式弹性槽与显式 `Spacer` 同样触发“fill 降级”规则。
