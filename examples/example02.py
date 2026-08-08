@@ -61,21 +61,26 @@ class App:
                 ltk.Column().gap(10).padding(10).height().fill().width().fill().transparent().add(
                     # Top Content
                     ltk.Row().height(130).width().fill().gap(10).add(
-                        # Checkbox
-                        ltk.Column().width(60).gap(5).add(
-                            ltk.CheckBox().height(20).radius(8),
-                            ltk.CheckBox().height(20).radius(8),
-                            ltk.CheckBox().height(20).radius(8),
-                            ltk.CheckBox().height(20).radius(8),
+                        # Selection block: checkbox + radio take 1 part (1:2 vs textbox)
+                        ltk.Column().width().fill(weight=1).gap(10).transparent().add(
+                            ltk.Row().width().fill().gap(10).transparent().add(
+                                # Checkbox
+                                ltk.Column().width(60).gap(5).add(
+                                    ltk.CheckBox().height(20).radius(8),
+                                    ltk.CheckBox().height(20).radius(8),
+                                    ltk.CheckBox().height(20).radius(8),
+                                    ltk.CheckBox().height(20).radius(8),
+                                ),
+                                # RadioButton
+                                ltk.Column().width(60).gap(5).add(
+                                    ltk.RadioButton().height(20),
+                                    ltk.RadioButton().height(20),
+                                    ltk.RadioButton().height(20),
+                                ),
+                            ),
                         ),
-                        # RadioButton
-                        ltk.Column().width(60).gap(5).add(
-                            ltk.RadioButton().height(20),
-                            ltk.RadioButton().height(20),
-                            ltk.RadioButton().height(20),
-                        ),
-                        # Textbox
-                        ltk.Textbox().width().fill().height().fill().radius(8),
+                        # Textbox takes 2 parts
+                        ltk.Textbox().width().fill(weight=2).height().fill().radius(8),
                     ),
                     # Slider
                     ltk.Slider().height(20).width().fill(),
