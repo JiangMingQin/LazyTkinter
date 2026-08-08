@@ -62,9 +62,9 @@ class Renderer:
 
 ## 测试策略
 
-- `tests/test_logic.py`：纯逻辑单测（margin/padding 解析、溢出裁剪、参数过滤、构造子组件、单根布局守卫），不创建窗口。
+- `tests/test_logic.py`：纯逻辑单测（尺寸策略解析、align 校验与 sticky 映射、布局槽解析、ZStack 锚点、Window size 预设、Spacer/Scroll 校验），不创建窗口。
 - `tests/test_renderer.py`：用 FakeRenderer 注入验证 build 流程与参数收集，不创建窗口。
-- 手动验收：三个示例在隐藏窗口下构建并自动关闭；ScrollableColumn 传 font/text_color 不再报错。
+- `tests/test_smoke_gui.py`：隐藏窗口冒烟用例（三个示例 + ZStack/Spacer/Scroll 场景），无显示环境自动跳过。
 
 ## 后续路线图（不在本分支）
 
@@ -72,6 +72,30 @@ class Renderer:
 2. 控件引用：`.id("name")` + `app.get("name")`，支持运行时更新。
 3. 语义化主题 token 层。
 4. 打包与工程化：`pyproject.toml`、CI。
+
+## 布局引擎 v2（破坏性重构）
+
+布局 v2 在 `feat/layout-v2` 分支上把公开布局 API 从 grid 概念（`weight` / `sticky` / `row_span` / `col_span` / `margin` / `spacing` / `ScrollableColumn`）替换为声明式原语，`main` 上的旧 API 不再保留。
+
+### 新布局 API
+
+- **尺寸策略**：所有控件的 `width` / `height` 接受 `int`（固定像素）、`'fit'`（包裹内容）或 `'fill'`（撑满父容器）。默认 `'fit'`，例外：Column 宽度默认 `'fill'`，ZStack / Scroll 宽度与高度默认 `'fill'`。
+- **间距**：容器 `gap`（子元素之间）与 `padding`（内边距）只接受整数像素。
+- **对齐**：Column 交叉轴 `align`（`left`/`center`/`right`，默认 `left`），Row 交叉轴 `align`（`top`/`center`/`bottom`，默认 `top`），ZStack 锚点 `align`（`center`/`top-left`/... 默认 `center`）。子元素可自带 `align` 覆盖容器默认。
+- **新原语**：`Spacer`（弹性弹簧，`weight` 正整数，默认 1）、`ZStack`（同格重叠）、`Scroll`（包装单个子元素，v1 仅 `direction='vertical'`）、`Empty` 保留为固定尺寸占位。
+- **Window**：`size('fill' | 'large' | 'medium' | 'small' | (w, h))`，`padding` 仅整数。
+
+### 布局槽解析规则
+
+容器把每个子元素解析为 grid 布局槽（纯函数，可单测）：
+
+- fit → 槽 weight 0；fill → weight 1，多个 fill 平分剩余空间；容器内存在 Spacer 时，fill 在主轴上降为自然尺寸，Spacer 独占剩余空间。
+- sticky = 交叉轴 align 映射 + 主轴/交叉轴 fill 拉伸；fill 与 align 同轴时 fill 优先。
+- ZStack 全部子元素 grid 到同一格，锚点由子元素 `align`（缺省用容器默认）决定。
+
+### 渲染层
+
+布局 v2 不改动 Renderer 协议本身，只更新容器种类映射（`Column` / `Row` / `ZStack` / `Empty` / `Spacer` / `Scroll` / `RootFrame`），移除 `ScrollableColumn`。
 
 ## 分支流程
 
