@@ -53,17 +53,26 @@ class BaseWidget(Generic[T]):
         self._margin_x = 0
         self._margin_y = 0
         self._sticky = "nsew"  # Default fill
+        self._padx = 0
+        self._pady = 0
 
-    def _inject_base_args(self, kwargs: dict[str, Any]) -> None:
+    def _inject_base_args(
+        self, kwargs: dict[str, Any], *, width=None, height=None
+    ) -> None:
         """Inject non-null common properties into kwargs dictionary.
 
         Used for widget constructors (CTkButton, CTkFrame, etc.).
 
         Args:
             kwargs (dict[str, Any]): Target dictionary to be injected with properties.
+            width: Optional build-time width override (used by containers to clamp
+                child sizes without mutating the child configuration).
+            height: Optional build-time height override (same purpose as width).
         """
-        if self._width is not None: kwargs['width'] = self._width
-        if self._height is not None: kwargs['height'] = self._height
+        effective_width = width if width is not None else self._width
+        effective_height = height if height is not None else self._height
+        if effective_width is not None: kwargs['width'] = effective_width
+        if effective_height is not None: kwargs['height'] = effective_height
         if self._radius is not None: kwargs['corner_radius'] = self._radius
         
         if self._fg_color is not None: kwargs['fg_color'] = self._fg_color
@@ -291,10 +300,12 @@ class BaseWidget(Generic[T]):
             self._padx, self._pady = pad[0], pad[1]
         return self # type: ignore
 
-    def build(self, parent):
+    def build(self, parent, *, width=None, height=None):
         """Build the widget (to be implemented in subclasses).
 
         Args:
             parent: Parent widget.
+            width: Optional build-time width override (internal use).
+            height: Optional build-time height override (internal use).
         """
         ...

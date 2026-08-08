@@ -1,20 +1,14 @@
-import customtkinter as ctk
 from tkinter import filedialog
 
-# Variables
-StringVar = ctk.StringVar
-IntVar = ctk.IntVar
-DoubleVar = ctk.DoubleVar
-BooleanVar = ctk.BooleanVar
-
-# Resources
-Image = ctk.CTkImage 
-Font = ctk.CTkFont
-
-# Toplevel Window
-# Toplevel = ctk.CTkToplevel
+from .renderer import (
+    BooleanVar,
+    DoubleVar,
+    Font,
+    Image,
+    IntVar,
+    StringVar,
+)
 
 # FileDialog
-from tkinter import filedialog
 def select_file(**kwargs): return filedialog.askopenfilename(**kwargs)
 def select_directory(**kwargs): return filedialog.askdirectory(**kwargs)

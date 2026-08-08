@@ -1,40 +1,67 @@
 from __future__ import annotations
-from typing import Tuple, Any
-import customtkinter as ctk
+from typing import Any, Tuple
 
 from .base import BaseWidget
+from .renderer import get_renderer
+
+# Keys that the container frames do NOT support. Row/Column/ScrollableColumn
+# share this filter so no container accidentally forwards widget-only options
+# (font/text_color/state/cursor) to CTkFrame or CTkScrollableFrame.
+_FRAME_UNSUPPORTED_KEYS = ("text_color", "font", "state", "cursor")
+
+
+def _clamp(value, limit):
+    """Return ``value`` clamped to ``limit``; ``None`` passes through unchanged."""
+    if value is not None and limit is not None:
+        return min(value, limit)
+    return value
+
+
+def _frame_props(container, *, width=None, height=None) -> dict[str, Any]:
+    """Collect frame constructor props shared by Row/Column/ScrollableColumn."""
+    props: dict[str, Any] = {
+        "fg_color": "transparent" if container._transparent else None
+    }
+    container._inject_base_args(props, width=width, height=height)
+    for key in _FRAME_UNSUPPORTED_KEYS:
+        props.pop(key, None)
+    return props
+
 
 class Empty(BaseWidget["Empty"]):
     """An empty container widget used for spacing and alignment.
-    
+
     Inherits from BaseWidget and creates a transparent frame with optional dimensions.
     """
 
     def __init__(self) -> None:
-        """Initializes the Empty container."""
         super().__init__()
 
-    def build(self, parent):
+    def build(self, parent, *, width=None, height=None):
         """Builds the empty container widget.
 
         Args:
             parent: The parent widget.
+            width: Optional build-time width override (internal use).
+            height: Optional build-time height override (internal use).
 
         Returns:
             A CTkFrame configured as an empty container.
         """
-        kwargs = {
-            "fg_color": "transparent", 
-            "width": self._width if self._width else 0,
-            "height": self._height if self._height else 0
+        effective_width = width if width is not None else self._width
+        effective_height = height if height is not None else self._height
+        props = {
+            "fg_color": "transparent",
+            "width": effective_width if effective_width else 0,
+            "height": effective_height if effective_height else 0,
         }
-        
-        frame = ctk.CTkFrame(parent, **kwargs)
-        
+
+        frame = get_renderer().create_container("Empty", parent, props)
         frame.pack_propagate(False)
         frame.grid_propagate(False)
 
         return frame
+
 
 class Column(BaseWidget["Column"]):
     """A vertical container that arranges widgets in a single column.
@@ -47,18 +74,22 @@ class Column(BaseWidget["Column"]):
         _pad_y (int): Vertical internal padding.
     """
 
-    def __init__(self) -> None:
-        """Initializes the Column container."""
+    def __init__(self, *children) -> None:
+        """Initializes the Column container.
+
+        Args:
+            *children: Optional child widgets, equivalent to calling add().
+        """
         super().__init__()
         self._spacing = 0
         self._transparent = False
-        self._args = ()
-        
+        self._args = children
+
         # Container-specific padding properties
         self._pad_x = 0
         self._pad_y = 0
 
-    def padding(self, pad: int|Tuple[int, int]) -> Column:
+    def padding(self, pad: int | Tuple[int, int]) -> Column:
         """Sets internal padding for the container.
 
         Args:
@@ -72,7 +103,7 @@ class Column(BaseWidget["Column"]):
         elif isinstance(pad, tuple):
             self._pad_x, self._pad_y = pad[0], pad[1]
         return self
-    
+
     def spacing(self, space: int) -> Column:
         """Sets vertical spacing between child widgets.
 
@@ -84,7 +115,7 @@ class Column(BaseWidget["Column"]):
         """
         self._spacing = space
         return self
-    
+
     def transparent(self, val: bool) -> Column:
         """Sets whether the container has transparent background.
 
@@ -98,7 +129,7 @@ class Column(BaseWidget["Column"]):
         return self
 
     def add(self, *args) -> Column:
-        """Adds child widgets to the container.
+        """Adds child widgets to the container (appends to existing children).
 
         Args:
             *args: Variable number of widgets to add.
@@ -106,85 +137,71 @@ class Column(BaseWidget["Column"]):
         Returns:
             Column: Returns self for method chaining.
         """
-        self._args = args
+        self._args = self._args + args
         return self
 
-    def build(self, parent):
+    def build(self, parent, *, width=None, height=None):
         """Builds the column container with all child widgets.
 
         Args:
             parent: The parent widget.
+            width: Optional build-time width override (internal use).
+            height: Optional build-time height override (internal use).
 
         Returns:
             A configured CTkFrame containing all child widgets in vertical layout.
         """
-        # Outer Frame configuration
-        outer_kwargs: dict[str, Any] = {"fg_color": "transparent" if self._transparent else None}
-        self._inject_base_args(outer_kwargs)
-        for k in ['text_color', 'font', 'state', 'cursor']: 
-            outer_kwargs.pop(k, None)
+        frame = get_renderer().create_container(
+            "Column", parent, _frame_props(self, width=width, height=height)
+        )
 
-        outer_frame = ctk.CTkFrame(parent, **outer_kwargs)
-
-        if self._width is not None or self._height is not None:
-            outer_frame.pack_propagate(False)
+        limit_w = width if width is not None else self._width
+        limit_h = height if height is not None else self._height
+        if limit_w is not None or limit_h is not None:
+            frame.pack_propagate(False)
 
         # Layout in parent container
         grid_args = {
-            "sticky": self._sticky, 
-            "rowspan": self._row_span, 
+            "sticky": self._sticky,
+            "rowspan": self._row_span,
             "columnspan": self._col_span,
-            "padx": self._margin_x,  # Container margin
-            "pady": self._margin_y
+            "padx": self._margin_x,
+            "pady": self._margin_y,
         }
-        outer_frame.grid(**grid_args)
-        outer_frame.rowconfigure(0, weight=1)
-        outer_frame.columnconfigure(0, weight=1)
-        
-        # Inner frame for actual content
-        inner_frame = ctk.CTkFrame(outer_frame, corner_radius=0, fg_color="transparent")
-        inner_frame.pack(
-            expand=True, 
-            fill="both", 
-            padx=self._pad_x, 
-            pady=self._pad_y 
-        )
-        
+        frame.grid(**grid_args)
+
         # Single column configuration
-        inner_frame.columnconfigure(0, weight=1)
+        frame.columnconfigure(0, weight=1)
 
         # Stack child widgets vertically
         total = len(self._args)
         for i, ele in enumerate(self._args):
-            # Prevent overflow
-            if self._height is not None and ele._height is not None:
-                if ele._height > self._height: 
-                    ele.height(self._height)
-            if self._width is not None and ele._width is not None:
-                if ele._width > self._width: 
-                    ele.width(self._width)
-            
-            # Configure row weight
-            inner_frame.rowconfigure(i, weight=ele._weight)
-            the_ele = ele.build(inner_frame)
-            
-            # Handle child margins (compatible with int and tuple)
-            m_top = ele._margin_y[0] if isinstance(ele._margin_y, tuple) else ele._margin_y
-            m_bottom = ele._margin_y[1] if isinstance(ele._margin_y, tuple) else ele._margin_y
-            
-            # Add spacing to all but last child
-            m_bottom += (self._spacing if i != total - 1 else 0)
+            # Clamp child sizes locally; the child's own config is never mutated.
+            effective_w = _clamp(ele._width, limit_w)
+            effective_h = _clamp(ele._height, limit_h)
 
-            # Stack with combined margins
+            frame.rowconfigure(i, weight=ele._weight)
+            the_ele = ele.build(frame, width=effective_w, height=effective_h)
+
+            m_top = ele._margin_y
+            m_bottom = ele._margin_y
+            if i == 0:
+                m_top += self._pad_y
+            if i == total - 1:
+                m_bottom += self._pad_y
+            if i != total - 1:
+                m_bottom += self._spacing
+
             the_ele.grid(
-                row=i, 
-                column=0, 
-                sticky="nsew", 
-                padx=ele._margin_x,
-                pady=(m_top, m_bottom)
+                row=i,
+                column=0,
+                sticky="nsew",
+                padx=ele._margin_x + self._pad_x,
+                pady=(m_top, m_bottom),
             )
 
-        return outer_frame
+        return frame
+
 
 class Row(BaseWidget["Row"]):
     """A horizontal container that arranges widgets in a single row.
@@ -197,16 +214,20 @@ class Row(BaseWidget["Row"]):
         _pad_y (int): Vertical internal padding.
     """
 
-    def __init__(self) -> None:
-        """Initializes the Row container."""
+    def __init__(self, *children) -> None:
+        """Initializes the Row container.
+
+        Args:
+            *children: Optional child widgets, equivalent to calling add().
+        """
         super().__init__()
         self._spacing = 0
         self._transparent = False
-        self._args = ()
+        self._args = children
         self._pad_x = 0
         self._pad_y = 0
 
-    def padding(self, pad: int|Tuple[int, int]) -> Row:
+    def padding(self, pad: int | Tuple[int, int]) -> Row:
         """Sets internal padding for the container.
 
         Args:
@@ -215,12 +236,12 @@ class Row(BaseWidget["Row"]):
         Returns:
             Row: Returns self for method chaining.
         """
-        if isinstance(pad, int): 
+        if isinstance(pad, int):
             self._pad_x, self._pad_y = pad, pad
-        elif isinstance(pad, tuple): 
+        elif isinstance(pad, tuple):
             self._pad_x, self._pad_y = pad[0], pad[1]
         return self
-    
+
     def spacing(self, space: int) -> Row:
         """Sets horizontal spacing between child widgets.
 
@@ -246,7 +267,7 @@ class Row(BaseWidget["Row"]):
         return self
 
     def add(self, *args) -> Row:
-        """Adds child widgets to the container.
+        """Adds child widgets to the container (appends to existing children).
 
         Args:
             *args: Variable number of widgets to add.
@@ -254,82 +275,72 @@ class Row(BaseWidget["Row"]):
         Returns:
             Row: Returns self for method chaining.
         """
-        self._args = args
+        self._args = self._args + args
         return self
 
-    def build(self, parent):
+    def build(self, parent, *, width=None, height=None):
         """Builds the row container with all child widgets.
 
         Args:
             parent: The parent widget.
+            width: Optional build-time width override (internal use).
+            height: Optional build-time height override (internal use).
 
         Returns:
             A configured CTkFrame containing all child widgets in horizontal layout.
         """
-        # Outer Frame configuration
-        outer_kwargs: dict[str, Any] = {"fg_color": "transparent" if self._transparent else None}
-        self._inject_base_args(outer_kwargs)
-        for k in ['text_color', 'font', 'state', 'cursor']: 
-            outer_kwargs.pop(k, None)
+        frame = get_renderer().create_container(
+            "Row", parent, _frame_props(self, width=width, height=height)
+        )
 
-        outer_frame = ctk.CTkFrame(parent, **outer_kwargs)
-
-        if self._width is not None or self._height is not None:
-            outer_frame.pack_propagate(False)
+        limit_w = width if width is not None else self._width
+        limit_h = height if height is not None else self._height
+        if limit_w is not None or limit_h is not None:
+            frame.pack_propagate(False)
 
         # Layout in parent container
         grid_args = {
-            "sticky": self._sticky, 
-            "rowspan": self._row_span, 
+            "sticky": self._sticky,
+            "rowspan": self._row_span,
             "columnspan": self._col_span,
             "padx": self._margin_x,
-            "pady": self._margin_y
+            "pady": self._margin_y,
         }
-        outer_frame.grid(**grid_args)
+        frame.grid(**grid_args)
 
-        outer_frame.rowconfigure(0, weight=1)
-        outer_frame.columnconfigure(0, weight=1)
-        
-        # Inner frame for actual content
-        inner_frame = ctk.CTkFrame(outer_frame, corner_radius=0, fg_color="transparent")
-        inner_frame.pack(expand=True, fill="both", padx=self._pad_x, pady=self._pad_y)
-        
         # Single row configuration
-        inner_frame.rowconfigure(0, weight=1)
+        frame.rowconfigure(0, weight=1)
 
         # Stack child widgets horizontally
         total = len(self._args)
         for i, ele in enumerate(self._args):
-            # Prevent overflow
-            if self._height is not None and ele._height is not None:
-                if ele._height > self._height: 
-                    ele.height(self._height)
-            if self._width is not None and ele._width is not None:
-                if ele._width > self._width: 
-                    ele.width(self._width)
-            
-            # Configure column weight
-            inner_frame.columnconfigure(i, weight=ele._weight)
-            the_ele = ele.build(inner_frame)
-            
-            # Handle child margins (compatible with int and tuple)
-            m_left = ele._margin_x[0] if isinstance(ele._margin_x, tuple) else ele._margin_x
-            m_right = ele._margin_x[1] if isinstance(ele._margin_x, tuple) else ele._margin_x
-            
-            # Add spacing to all but last child
-            m_right += (self._spacing if i != total - 1 else 0)
+            # Clamp child sizes locally; the child's own config is never mutated.
+            effective_w = _clamp(ele._width, limit_w)
+            effective_h = _clamp(ele._height, limit_h)
 
-            # Stack with combined margins
+            frame.columnconfigure(i, weight=ele._weight)
+            the_ele = ele.build(frame, width=effective_w, height=effective_h)
+
+            m_left = ele._margin_x
+            m_right = ele._margin_x
+            if i == 0:
+                m_left += self._pad_x
+            if i == total - 1:
+                m_right += self._pad_x
+            if i != total - 1:
+                m_right += self._spacing
+
             the_ele.grid(
-                row=0, 
-                column=i, 
+                row=0,
+                column=i,
                 sticky="nsew",
                 padx=(m_left, m_right),
-                pady=ele._margin_y
+                pady=ele._margin_y + self._pad_y,
             )
 
-        return outer_frame
-    
+        return frame
+
+
 class ScrollableColumn(BaseWidget["ScrollableColumn"]):
     """A vertically scrollable container based on CTkScrollableFrame.
 
@@ -342,17 +353,21 @@ class ScrollableColumn(BaseWidget["ScrollableColumn"]):
         _label_text (str): Optional label text for the scrollable frame.
     """
 
-    def __init__(self) -> None:
-        """Initializes the ScrollableColumn container."""
+    def __init__(self, *children) -> None:
+        """Initializes the ScrollableColumn container.
+
+        Args:
+            *children: Optional child widgets, equivalent to calling add().
+        """
         super().__init__()
         self._spacing = 0
         self._transparent = False
-        self._args = ()
+        self._args = children
         self._pad_x = 0
         self._pad_y = 0
         self._label_text = None
 
-    def padding(self, pad: int|Tuple[int, int]) -> ScrollableColumn:
+    def padding(self, pad: int | Tuple[int, int]) -> ScrollableColumn:
         """Sets internal padding for the container.
 
         Args:
@@ -361,12 +376,12 @@ class ScrollableColumn(BaseWidget["ScrollableColumn"]):
         Returns:
             ScrollableColumn: Returns self for method chaining.
         """
-        if isinstance(pad, int): 
+        if isinstance(pad, int):
             self._pad_x, self._pad_y = pad, pad
-        elif isinstance(pad, tuple): 
+        elif isinstance(pad, tuple):
             self._pad_x, self._pad_y = pad[0], pad[1]
         return self
-    
+
     def spacing(self, space: int) -> ScrollableColumn:
         """Sets vertical spacing between child widgets.
 
@@ -378,7 +393,7 @@ class ScrollableColumn(BaseWidget["ScrollableColumn"]):
         """
         self._spacing = space
         return self
-    
+
     def label(self, text: str) -> ScrollableColumn:
         """Sets an optional label for the scrollable frame.
 
@@ -390,7 +405,7 @@ class ScrollableColumn(BaseWidget["ScrollableColumn"]):
         """
         self._label_text = text
         return self
-    
+
     def transparent(self, val: bool) -> ScrollableColumn:
         """Sets whether the container has transparent background.
 
@@ -404,7 +419,7 @@ class ScrollableColumn(BaseWidget["ScrollableColumn"]):
         return self
 
     def add(self, *args) -> ScrollableColumn:
-        """Adds child widgets to the container.
+        """Adds child widgets to the container (appends to existing children).
 
         Args:
             *args: Variable number of widgets to add.
@@ -412,63 +427,55 @@ class ScrollableColumn(BaseWidget["ScrollableColumn"]):
         Returns:
             ScrollableColumn: Returns self for method chaining.
         """
-        self._args = args
+        self._args = self._args + args
         return self
 
-    def build(self, parent):
+    def build(self, parent, *, width=None, height=None):
         """Builds the scrollable column container with all child widgets.
 
         Args:
             parent: The parent widget.
+            width: Optional build-time width override (internal use).
+            height: Optional build-time height override (internal use).
 
         Returns:
             A configured CTkScrollableFrame containing all child widgets.
         """
-        # Prepare CTkScrollableFrame arguments
-        kwargs: dict[str, Any] = {}
-        self._inject_base_args(kwargs)
-        
-        # Handle transparent background
-        if self._transparent:
-            kwargs["fg_color"] = "transparent"
-            
+        props = _frame_props(self, width=width, height=height)
         if self._label_text:
-            kwargs["label_text"] = self._label_text
+            props["label_text"] = self._label_text
 
-        # Create scrollable frame
-        scroll_frame = ctk.CTkScrollableFrame(parent, **kwargs)
-        
+        frame = get_renderer().create_container("ScrollableColumn", parent, props)
+
+        limit_w = width if width is not None else self._width
+
         # Configure single column layout
-        scroll_frame.columnconfigure(0, weight=1)
+        frame.columnconfigure(0, weight=1)
 
         # Add child widgets with spacing
         total = len(self._args)
         for i, ele in enumerate(self._args):
             # Prevent width overflow (height is scrollable)
-            if self._width is not None and ele._width is not None:
-                if ele._width > self._width: 
-                    ele.width(self._width)
-            
-            # Configure row weight
-            scroll_frame.rowconfigure(i, weight=ele._weight)
-            
-            # Build child element
-            the_ele = ele.build(scroll_frame)
-            
-            # Handle child margins (compatible with int and tuple)
-            m_top = ele._margin_y[0] if isinstance(ele._margin_y, tuple) else ele._margin_y
-            m_bottom = ele._margin_y[1] if isinstance(ele._margin_y, tuple) else ele._margin_y
-            
-            # Add spacing to all but last child
-            m_bottom += (self._spacing if i != total - 1 else 0)
+            effective_w = _clamp(ele._width, limit_w)
 
-            # Stack with combined margins
+            frame.rowconfigure(i, weight=ele._weight)
+            the_ele = ele.build(frame, width=effective_w)
+
+            m_top = ele._margin_y
+            m_bottom = ele._margin_y
+            if i == 0:
+                m_top += self._pad_y
+            if i == total - 1:
+                m_bottom += self._pad_y
+            if i != total - 1:
+                m_bottom += self._spacing
+
             the_ele.grid(
-                row=i, 
-                column=0, 
-                sticky="nsew", 
-                padx=ele._margin_x,
-                pady=(m_top, m_bottom)
+                row=i,
+                column=0,
+                sticky="nsew",
+                padx=ele._margin_x + self._pad_x,
+                pady=(m_top, m_bottom),
             )
 
-        return scroll_frame
+        return frame

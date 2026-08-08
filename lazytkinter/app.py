@@ -1,47 +1,31 @@
 from __future__ import annotations
-from typing import Tuple, List
-import customtkinter as ctk
-import os
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-THEME_DIR = os.path.join(BASE_DIR, "themes")
+from .renderer import get_renderer
 
-def set_mode(mode: str):
+
+def set_mode(mode: str) -> None:
     """Sets the application appearance mode.
 
     Args:
         mode (str): Appearance mode, can be "light", "dark" or "system".
     """
-    ctk.set_appearance_mode(mode)
+    get_renderer().set_mode(mode)
 
-def set_theme(theme_name: str):
+
+def set_theme(theme_name: str) -> None:
     """Sets the application theme.
 
-    First tries to find theme file in built-in themes directory, if not found,
+    First tries to find theme file in built-in themes directory; if not found,
     attempts to load directly through customtkinter.
 
     Args:
         theme_name (str): Theme name, can be either built-in theme name or system path.
 
     Raises:
-        FileNotFoundError: When theme file cannot be found.
+        ValueError: When theme file cannot be found.
     """
-    # Try to find in built-in themes directory
-    filename = theme_name if theme_name.endswith(".json") else f"{theme_name}.json"
-    internal_path = os.path.join(THEME_DIR, filename)
+    get_renderer().set_theme(theme_name)
 
-    if os.path.exists(internal_path):
-        # Load using absolute path
-        ctk.set_default_color_theme(internal_path)
-        print(f"Loaded built-in theme: {theme_name}")
-        return
-
-    # If not found in built-in, try passing directly to customtkinter
-    # (allows loading JSON from other locations or using default themes like "blue")
-    try:
-        ctk.set_default_color_theme(theme_name)
-    except FileNotFoundError:
-        print(f"Error: Theme '{theme_name}' not found in built-in themes or system paths.")
 
 class Theme:
     """Built-in theme enumeration for autocompletion support.
@@ -59,28 +43,47 @@ class Theme:
     Blue = "blue"
     DarkBlue = "dark-blue"
     Green = "green"
-    
+
     # Additional themes
     Catppuccin = "catppuccin-mocha"
     Gruvbox = "gruvbox-theme"
     Dracula = "dracula-theme"
     EVA02 = "eva02"
 
-class Application(ctk.CTk):
-    """Custom Tkinter application base class.
+
+class Application:
+    """LazyTkinter application wrapper around the renderer's root window.
 
     Attributes:
-        _ipadx (int): Horizontal internal padding.
-        _ipady (int): Vertical internal padding.
-        base_frame (CTkFrame): Base frame container.
+        base_frame: Root frame container that holds the single layout.
     """
+
     def __init__(self) -> None:
         """Initializes the application."""
-        super().__init__() 
+        self._window = get_renderer().create_window()
         self._ipadx = 0
         self._ipady = 0
-        self.base_frame = ctk.CTkFrame(self, corner_radius=0)
+        self._layout_set = False
+        self.base_frame = get_renderer().create_container(
+            "RootFrame", self._window, {"corner_radius": 0}
+        )
         self.base_frame.grid(row=0, column=0, sticky="nsew")
+
+    def __getattr__(self, name):
+        """Forward unknown attributes to the native root window.
+
+        Keeps compatibility with the previous CTk subclass: native window
+        methods like ``after``, ``protocol`` or ``minsize`` still work on
+        ``Application`` instances.
+        """
+        return getattr(self._window, name)
+
+    def _check_single_layout(self) -> None:
+        if self._layout_set:
+            raise RuntimeError(
+                "Application layout is already set: call column()/row() exactly once. "
+                "Use Row/Column containers to build more complex layouts."
+            )
 
     def window_title(self, title: str) -> Application:
         """Sets window title.
@@ -91,44 +94,45 @@ class Application(ctk.CTk):
         Returns:
             Application: Returns self for method chaining.
         """
-        self.title(title)
+        self._window.title(title)
         return self
 
-    def window_size(self, size: str | Tuple | List) -> Application:
+    def window_size(self, size) -> Application:
         """Sets window size.
 
         Args:
-            size (str | Tuple | List): Window dimensions, can be string format like "400x300"
-                or tuple/list containing (width, height).
+            size: Window dimensions, either "400x300" or a (width, height) tuple/list.
 
         Returns:
             Application: Returns self for method chaining.
         """
-        if type(size) is str:
-            self.geometry(size)
+        if isinstance(size, str):
+            self._window.geometry(size)
         else:
-            self.geometry(f"{size[0]}x{size[1]}")
+            self._window.geometry(f"{size[0]}x{size[1]}")
         return self
-    
-    def padding(self, pad: int|Tuple[int, int]) -> Application: 
+
+    def padding(self, pad) -> Application:
         """Sets internal padding.
 
         Args:
-            pad (int | Tuple[int, int]): Padding value, can be uniform or (horizontal, vertical).
+            pad: Padding value, can be uniform (int) or (horizontal, vertical) tuple.
 
         Returns:
             Application: Returns self for method chaining.
         """
-        if type(pad) is int:
+        if isinstance(pad, int):
             self._ipadx, self._ipady = pad, pad
-        elif type(pad) is Tuple:
+        elif isinstance(pad, tuple):
             self._ipadx, self._ipady = pad[0], pad[1]
+        else:
+            raise TypeError("padding() expects an int or a (horizontal, vertical) tuple")
 
         self.base_frame.grid_configure(padx=self._ipadx, pady=self._ipady)
         return self
 
     def column(self, *args) -> Application:
-        """Adds widgets in column layout.
+        """Adds widgets in column layout (single root layout call).
 
         Args:
             *args: Variable number of widgets to add.
@@ -136,27 +140,29 @@ class Application(ctk.CTk):
         Returns:
             Application: Returns self for method chaining.
         """
+        self._check_single_layout()
         num = 0
         self.base_frame.columnconfigure(0, weight=1)
         for ele in args:
             self.base_frame.rowconfigure(num, weight=ele._weight)
             the_ele = ele.build(self.base_frame)
             grid_args = {
-                "row": num, 
-                "column": 0, 
-                "sticky": ele._sticky,  # Use child widget's sticky setting
-                "padx": ele._margin_x,  # Use child widget's margin settings
+                "row": num,
+                "column": 0,
+                "sticky": ele._sticky,
+                "padx": ele._margin_x,
                 "pady": ele._margin_y,
                 "rowspan": ele._row_span,
-                "columnspan": ele._col_span
+                "columnspan": ele._col_span,
             }
             the_ele.grid(**grid_args)
             num += 1
 
+        self._layout_set = True
         return self
-    
+
     def row(self, *args) -> Application:
-        """Adds widgets in row layout.
+        """Adds widgets in row layout (single root layout call).
 
         Args:
             *args: Variable number of widgets to add.
@@ -164,31 +170,33 @@ class Application(ctk.CTk):
         Returns:
             Application: Returns self for method chaining.
         """
+        self._check_single_layout()
         num = 0
         self.base_frame.rowconfigure(0, weight=1)
         for ele in args:
             self.base_frame.columnconfigure(num, weight=ele._weight)
             the_ele = ele.build(self.base_frame)
             grid_args = {
-                "row": 0, 
-                "column": num, 
+                "row": 0,
+                "column": num,
                 "sticky": ele._sticky,
                 "padx": ele._margin_x,
                 "pady": ele._margin_y,
                 "rowspan": ele._row_span,
-                "columnspan": ele._col_span
+                "columnspan": ele._col_span,
             }
             the_ele.grid(**grid_args)
             num += 1
 
+        self._layout_set = True
         return self
-        
-    def build(self):
-        """Builds the application layout."""
-        self.columnconfigure(0, weight=1)
-        self.rowconfigure(0, weight=1)
 
-    def run(self):
+    def build(self) -> None:
+        """Builds the application layout (root grid weights)."""
+        self._window.columnconfigure(0, weight=1)
+        self._window.rowconfigure(0, weight=1)
+
+    def run(self) -> None:
         """Runs the application main loop."""
         self.build()
-        self.mainloop()
+        self._window.mainloop()
