@@ -250,9 +250,13 @@ class FramePropsTests(unittest.TestCase):
         for key in ("font", "text_color", "state", "cursor"):
             self.assertNotIn(key, props)
 
-    def test_transparent_sets_fg_color(self):
-        props = _frame_props(Column().transparent(True))
+    def test_default_fg_color_is_transparent(self):
+        props = _frame_props(Column())
         self.assertEqual(props["fg_color"], "transparent")
+
+    def test_explicit_fg_color_wins(self):
+        props = _frame_props(Column().fg_color("blue"))
+        self.assertEqual(props["fg_color"], "blue")
 
 
 class ContainerPaddingTests(unittest.TestCase):

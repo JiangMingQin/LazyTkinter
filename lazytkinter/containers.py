@@ -43,11 +43,15 @@ def _compose_sticky(axis_sticky: str, horizontal_fill: bool, vertical_fill: bool
 
 
 def _frame_props(container, *, width=None, height=None) -> dict[str, Any]:
-    """Collect frame constructor props shared by all containers."""
+    """Collect frame constructor props shared by all containers.
+
+    Containers are transparent by default; a background color is opt-in via
+    ``fg_color()`` (which maps to the frame's fill color), and ``radius()``
+    controls the corner radius.
+    """
     props: dict[str, Any] = {}
     container._inject_base_args(props, width=width, height=height)
-    if container._transparent:
-        props["fg_color"] = "transparent"
+    props.setdefault("fg_color", "transparent")
     for key in _FRAME_UNSUPPORTED_KEYS:
         props.pop(key, None)
     return props
@@ -219,7 +223,6 @@ class Column(BaseWidget["Column"]):
         _gap (int): Vertical spacing between children.
         _padding (int): Inner padding on the container edges.
         _default_align (str): Default cross-axis alignment ("left"/"center"/"right").
-        _transparent (bool): Whether the container background is transparent.
     """
 
     def __init__(self, *children) -> None:
@@ -231,7 +234,6 @@ class Column(BaseWidget["Column"]):
         super().__init__()
         self._width_policy = "fill"  # Columns stretch across the parent by default
         self._default_align = "left"
-        self._transparent = False
         self._args = children
         self._gap = 0
         self._padding = 0
@@ -259,11 +261,6 @@ class Column(BaseWidget["Column"]):
             self._padding = pad
         else:
             raise ValueError("padding() expects a non-negative integer")
-        return self
-
-    def transparent(self, val: bool) -> Column:
-        """Set whether the container background is transparent."""
-        self._transparent = val
         return self
 
     def add(self, *args) -> Column:
@@ -306,7 +303,6 @@ class Row(BaseWidget["Row"]):
         _gap (int): Horizontal spacing between children.
         _padding (int): Inner padding on the container edges.
         _default_align (str): Default cross-axis alignment ("top"/"center"/"bottom").
-        _transparent (bool): Whether the container background is transparent.
     """
 
     def __init__(self, *children) -> None:
@@ -317,7 +313,6 @@ class Row(BaseWidget["Row"]):
         """
         super().__init__()
         self._default_align = "top"
-        self._transparent = False
         self._args = children
         self._gap = 0
         self._padding = 0
@@ -345,11 +340,6 @@ class Row(BaseWidget["Row"]):
             self._padding = pad
         else:
             raise ValueError("padding() expects a non-negative integer")
-        return self
-
-    def transparent(self, val: bool) -> Row:
-        """Set whether the container background is transparent."""
-        self._transparent = val
         return self
 
     def add(self, *args) -> Row:
@@ -401,7 +391,6 @@ class ZStack(BaseWidget["ZStack"]):
         self._width_policy = "fill"
         self._height_policy = "fill"
         self._default_align = "center"
-        self._transparent = False
         self._args = children
         self._padding = 0
 
@@ -420,11 +409,6 @@ class ZStack(BaseWidget["ZStack"]):
             self._padding = pad
         else:
             raise ValueError("padding() expects a non-negative integer")
-        return self
-
-    def transparent(self, val: bool) -> ZStack:
-        """Set whether the container background is transparent."""
-        self._transparent = val
         return self
 
     def add(self, *args) -> ZStack:
@@ -478,7 +462,6 @@ class Scroll(BaseWidget["Scroll"]):
             raise ValueError("Scroll expects exactly one child, e.g. Scroll(Column(...))")
         self._width_policy = "fill"
         self._height_policy = "fill"
-        self._transparent = False
         self._child = children[0]
         self._direction = "vertical"
 
@@ -490,11 +473,6 @@ class Scroll(BaseWidget["Scroll"]):
                 "horizontal/both need a canvas-based renderer"
             )
         self._direction = d
-        return self
-
-    def transparent(self, val: bool) -> Scroll:
-        """Set whether the container background is transparent."""
-        self._transparent = val
         return self
 
     def build(self, parent, *, width=None, height=None):

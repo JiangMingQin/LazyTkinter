@@ -33,7 +33,7 @@ app.size("small").window_title("Login Example").padding(20).column(
         # title label
         ltk.Label().text("User Login").font(("Arial", 20, "bold")),
         # main content
-        ltk.Column().padding(10).gap(10).transparent(True).add(
+        ltk.Column().padding(10).gap(10).add(
             # Entry: user_input_var
             ltk.Entry()
                 .height(35)
