@@ -80,6 +80,81 @@ class SizePolicyChainTests(unittest.TestCase):
         self.assertIsNone(widget._pending_size_axis)
 
 
+class FillWeightTests(unittest.TestCase):
+    def test_fill_with_weight(self):
+        widget = ltk.Button().fill(weight=2)
+        self.assertEqual(widget._weight, 2)
+        self.assertEqual((widget._width_policy, widget._height_policy), ("fill", "fill"))
+
+    def test_fill_without_weight_defaults_none(self):
+        self.assertIsNone(ltk.Button().fill()._weight)
+
+    def test_invalid_weight_raises(self):
+        with self.assertRaises(ValueError):
+            ltk.Button().fill(weight=0)
+        with self.assertRaises(ValueError):
+            ltk.Button().fill(weight=-1)
+        with self.assertRaises(ValueError):
+            ltk.Button().fill(weight="x")
+
+    def test_column_weights_are_proportional(self):
+        slots = _resolve_column_slots(
+            [
+                ltk.Button().height().fill(weight=1),
+                ltk.Button().height().fill(weight=2),
+            ],
+            default_align="left",
+            gap=0,
+            padding=0,
+        )
+        self.assertEqual([slot["weight"] for slot in slots], [1, 2])
+
+    def test_row_weights_are_proportional(self):
+        slots = _resolve_row_slots(
+            [
+                ltk.Button().width().fill(weight=2),
+                ltk.Button().width().fill(weight=3),
+            ],
+            default_align="top",
+            gap=0,
+            padding=0,
+        )
+        self.assertEqual([slot["weight"] for slot in slots], [2, 3])
+
+    def test_default_fills_split_equally(self):
+        slots = _resolve_column_slots(
+            [ltk.Button().height().fill(), ltk.Button().height().fill()],
+            default_align="left",
+            gap=0,
+            padding=0,
+        )
+        self.assertEqual([slot["weight"] for slot in slots], [1, 1])
+
+    def test_weight_on_non_main_axis_raises(self):
+        with self.assertRaises(ValueError):
+            _resolve_column_slots(
+                [ltk.Button().width().fill(weight=2)],
+                default_align="left",
+                gap=0,
+                padding=0,
+            )
+
+    def test_weight_downgraded_by_spacer_raises(self):
+        with self.assertRaises(ValueError):
+            _resolve_column_slots(
+                [ltk.Button().height().fill(weight=2), ltk.Spacer()],
+                default_align="left",
+                gap=0,
+                padding=0,
+            )
+
+    def test_zstack_weight_raises(self):
+        with self.assertRaises(ValueError):
+            _resolve_zstack_slots(
+                [ltk.Button().fill(weight=2)], default_align="center", padding=0
+            )
+
+
 class ContainerSizeChainTests(unittest.TestCase):
     def test_column_width_chain_overrides_default(self):
         column = ltk.Column().width().fit()

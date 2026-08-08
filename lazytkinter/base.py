@@ -105,6 +105,7 @@ class BaseWidget(Generic[T]):
         # Layout
         self._align = None  # per-widget override, resolved by the parent container
         self._pending_size_axis = None  # "width" / "height" / None
+        self._weight = None  # fill(weight=...), None means the default 1
 
     def _inject_base_args(
         self, kwargs: dict[str, Any], *, width=None, height=None
@@ -200,12 +201,20 @@ class BaseWidget(Generic[T]):
         self._pending_size_axis = None
         return self  # type: ignore
 
-    def fill(self) -> T:
+    def fill(self, weight: int | None = None) -> T:
         """Set the size policy to "fill" on the pending axis, or both axes.
 
         Use after a no-arg ``width()`` / ``height()`` to target one axis
         (``widget.width().fill()``), or standalone to fill both axes.
+
+        ``weight`` (positive int) controls how this child shares the parent's
+        remaining main-axis space with other fill children: fills with weights
+        1 and 2 split the leftover space 1:2. The default is 1.
         """
+        if weight is not None:
+            if not isinstance(weight, int) or isinstance(weight, bool) or weight < 1:
+                raise ValueError("fill() weight expects a positive integer")
+            self._weight = weight
         self._apply_size_policy("fill")
         return self  # type: ignore
 

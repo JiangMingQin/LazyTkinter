@@ -92,7 +92,13 @@ def _resolve_column_slots(children, default_align, gap, padding, justify="start"
         else:
             main_fill = child._height_policy == "fill" and not has_spacer
             cross_fill = child._width_policy == "fill"
-            weight = 1 if main_fill else 0
+            if child._weight is not None and not main_fill:
+                raise ValueError(
+                    "fill(weight=...) only works when the child fills the "
+                    "container's main axis (fit children or fills downgraded "
+                    "by a Spacer cannot use weight)"
+                )
+            weight = (child._weight if child._weight is not None else 1) if main_fill else 0
             sticky = _compose_sticky(
                 _COLUMN_ALIGN_STICKY[align],
                 horizontal_fill=cross_fill,
@@ -139,7 +145,13 @@ def _resolve_row_slots(children, default_align, gap, padding, justify="start"):
         else:
             main_fill = child._width_policy == "fill" and not has_spacer
             cross_fill = child._height_policy == "fill"
-            weight = 1 if main_fill else 0
+            if child._weight is not None and not main_fill:
+                raise ValueError(
+                    "fill(weight=...) only works when the child fills the "
+                    "container's main axis (fit children or fills downgraded "
+                    "by a Spacer cannot use weight)"
+                )
+            weight = (child._weight if child._weight is not None else 1) if main_fill else 0
             sticky = _compose_sticky(
                 _ROW_ALIGN_STICKY[align],
                 horizontal_fill=main_fill,
@@ -164,6 +176,8 @@ def _resolve_zstack_slots(children, default_align, padding):
     """Resolve each ZStack child to (sticky, padx, pady) in the shared cell."""
     slots = []
     for child in children:
+        if child._weight is not None:
+            raise ValueError("fill(weight=...) is only for Row/Column main-axis fills")
         align = child._align if child._align is not None else default_align
         if align not in _ZSTACK_ANCHOR_STICKY:
             raise ValueError(

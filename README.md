@@ -49,6 +49,7 @@ It replaces traditional grid and pack methods with Row/Column/ZStack containers,
   ltk.Button().width().fill()   # 宽度 fill，高度保持 fit
   ltk.Column().width().fit()    # 覆盖 Column 默认 fill，改为包裹内容
   ltk.Button().fill()           # 两轴都 fill
+  ltk.Button().fill(weight=2)   # fill 且按 2 份参与主轴空间分配（默认等分）
   ```
 
 - **声明式布局(Declarative Layout)**: 提供 `Row` 和 `Column` 容器，无需手写复杂的 `grid` 参数。
