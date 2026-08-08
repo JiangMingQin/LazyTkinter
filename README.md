@@ -6,15 +6,15 @@
 
 ---
 
-**LazyTkinter** 是一个基于 CustomTkinter 的 Python 界面库，旨在通过声明式编程简化 Tkinter 的布局和开发流程。它去除了传统的 grid 和 pack 方法，引入了 Row 和 Column 容器，仿照 HTML 的设计理念，增加了 padding 和 margin，使布局更加直观。
+**LazyTkinter** 是一个基于 CustomTkinter 的 Python 界面库，旨在通过声明式编程简化 Tkinter 的布局和开发流程。它去除了传统的 grid 和 pack 方法，引入了 `Row` / `Column` / `ZStack` 容器，配合 `fit` / `fill` 尺寸策略、`gap` / `padding` 间距和 `Spacer` 弹性占位，使布局像搭积木一样直观。
 > LazyTkinter is a Python UI library built on CustomTkinter, designed to simplify Tkinter layout and development workflows via Declarative Programming. 
-It replaces traditional grid and pack methods with Row and Column containers, adopting HTML-like design concepts (adding padding and margin) to make layouts more intuitive.
+It replaces traditional grid and pack methods with Row/Column/ZStack containers, fit/fill size policies, gap/padding spacing and Spacer springs to make layouts more intuitive.
 
 **目标受众**：适合希望快速开发简单 GUI 应用的开发者，尤其是对命令式编程感到繁琐，但又不想使用 PySide 或 QT 等大型框架的用户。
 > Ideal for developers looking to quickly build simple GUI applications — especially those who find Imperative Programming cumbersome, but don’t want to use heavyweight frameworks like PySide or QT.
 
-**未来计划**：如果项目有后续更新，会先修复其中的一些bug，比如宽高的设置，然后会增加锚点功能，使得布局更加灵活。最后就是增加更多组件等。
-> If the project receives further updates, we will first fix existing bugs (e.g., width/height configuration), then add Anchor Functionality to make layouts more flexible, and finally expand the library with additional widgets.
+**未来计划**：宽高设置问题已修复，锚点功能已通过 `align` / `ZStack` 实现。接下来会优先补充数据型控件（`Treeview` / `Listbox`）解决大列表性能问题，再增加控件引用机制（`.id()` + `app.get()`）与语义化主题 token，最后扩展更多组件。
+> Width/height configuration is fixed and Anchor Functionality is now provided via `align` / `ZStack`. Next steps: data widgets (Treeview/Listbox) for large lists, widget references (`.id()` + `app.get()`), semantic theme tokens, and more widgets.
 
 ![light](assets/gruvbox-light.png)
 
@@ -53,7 +53,7 @@ It replaces traditional grid and pack methods with Row and Column containers, ad
 
 - **内置主题 (Built-in Themes)**: 开箱即用的 `Catppuccin`, `Gruvbox`, `Nord` 等配色方案。
 
-- **自动滚动 (Auto Scroll)**: `ScrollableColumn` 让长列表布局变得极其简单。
+- **自动滚动 (Auto Scroll)**: `Scroll` 包装任意单个子元素，长列表布局变得极其简单。
 
 ---
 
@@ -79,7 +79,11 @@ LazyTkinter 内置了以下社区热门主题，无需下载 JSON 文件即可�
 
 * 📐 `Column`
 
-* 📐 `ScrollableColumn`
+* 📐 `ZStack` (重叠层叠)
+
+* 📐 `Spacer` (弹性占位)
+
+* 📐 `Scroll` (滚动包装器)
 
 * 📐 `Empty` (占位符)
 
@@ -125,6 +129,7 @@ lazytkinter/
 ├── app.py           # Application & Window wrapper
 ├── widgets.py       # Basic widget wrapper
 ├── containers.py    # Layout container wrapper
+├── renderer.py      # Renderer protocol & CTk implementation
 ├── utils.py         # Utility classes (Image, StringVar)
 └── themes/          # Built-in JSON theme files
 ```
@@ -170,12 +175,16 @@ pip install customtkinter>=5.2.0
 4. **构建 UI / Build UI**：
    
    ```python
-   app.window_size( # set window size
-           "400x300"
+   app.size( # set window size: "fill" / "large" / "medium" / "small" / (w, h)
+           "small"
        ).window_title( # set title
            "My first app"
-       ).column( # vertical arrangment
-           ltk.Button().margin((100, 150)).weight(0).text("Click!").event(on_click) 
+       ).column( # vertical arrangement
+           ltk.Spacer(), # elastic space
+           ltk.Column().align("center").add(
+               ltk.Button().text("Click!").event(on_click),
+           ),
+           ltk.Spacer(),
        )
    ```
 
@@ -200,12 +209,16 @@ def on_click():
     print("click!")
 
 # build UI
-app.window_size( # set window size
-        "400x300"
+app.size( # set window size: "fill" / "large" / "medium" / "small" / (w, h)
+        "small"
     ).window_title( # set title
         "My first app"
-    ).column( # vertical arrangment
-        ltk.Button().margin((100, 150)).weight(0).text("Click!").event(on_click) 
+    ).column( # vertical arrangement
+        ltk.Spacer(), # elastic space
+        ltk.Column().align("center").add(
+            ltk.Button().text("Click!").event(on_click),
+        ),
+        ltk.Spacer(),
     )
 
 # run

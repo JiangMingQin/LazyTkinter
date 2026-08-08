@@ -3,7 +3,7 @@
 import unittest
 
 import lazytkinter as ltk
-from lazytkinter.containers import Column, ScrollableColumn
+from lazytkinter.containers import Column, Scroll, ZStack
 from lazytkinter.renderer import Renderer, get_renderer, set_renderer
 
 _real_renderer = get_renderer()
@@ -75,20 +75,13 @@ class RendererFlowTests(unittest.TestCase):
         self.assertEqual(props["fg_color"], "red")
         self.assertNotIn("font", props)
 
-    def test_scrollable_column_filters_unsupported_props(self):
-        (
-            ScrollableColumn()
-            .font(("Arial", 12))
-            .text_color("red")
-            .state("disabled")
-            .cursor("hand2")
-            .add(ltk.Button().text("x"))
-            .build(None)
-        )
-        kind, props = self.fake.container_calls[0]
-        self.assertEqual(kind, "ScrollableColumn")
-        for key in ("font", "text_color", "state", "cursor"):
-            self.assertNotIn(key, props)
+    def test_container_kinds(self):
+        Column().build(None)
+        Scroll(ltk.Button().text("x")).build(None)
+        ZStack().add(ltk.Button()).build(None)
+        ltk.Spacer().build(None)
+        kinds = [call[0] for call in self.fake.container_calls]
+        self.assertEqual(kinds, ["Column", "Scroll", "ZStack", "Spacer"])
 
     def test_column_clamps_child_without_mutating(self):
         child = ltk.Button().width(300).height(60)

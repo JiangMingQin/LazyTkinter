@@ -6,26 +6,24 @@ sys.path.append(root_dir)
 
 import lazytkinter as ltk
 
-ltk.set_theme(ltk.Theme.Gruvbox) # set theme
+ltk.set_theme(ltk.Theme.Gruvbox)  # set theme
 
 # create program
 app = ltk.Application()
 
-# creat event
+# create event
 def on_click():
     print("click!")
 
 # build UI
-app.window_size( # set window size
-        "400x300"
-    ).window_title( # set title
+app.size("small").window_title(  # set window size & title
         "My first app"
-    ).column( # vertical arrangment
-        ltk.Button() 
-            .margin((100, 150)) 
-            .weight(0) 
-            .text("Click!")
-            .event(on_click),
+    ).column(  # vertical arrangement
+        ltk.Spacer(),
+        ltk.Column().align("center").add(
+            ltk.Button().text("Click!").event(on_click),
+        ),
+        ltk.Spacer(),
     )
 
 # run
