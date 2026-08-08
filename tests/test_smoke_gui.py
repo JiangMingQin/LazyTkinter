@@ -57,7 +57,7 @@ class SmokeTests(unittest.TestCase):
     def test_zstack_overlay(self):
         app = ltk.Application()
         app.size((500, 400)).window_title("smoke").center().column(
-            ltk.ZStack().width("fill").height("fill").padding(12).add(
+            ltk.ZStack().width().fill().height().fill().padding(12).add(
                 ltk.Button().text("under"),
                 ltk.Button().text("over").align("top-right"),
             ),
@@ -145,7 +145,7 @@ class SmokeTests(unittest.TestCase):
                 ltk.Column().gap(5).add(
                     *[ltk.Button().text(f"Item {i}") for i in range(50)]
                 ),
-            ).height("fill"),
+            ).height().fill(),
         )
         app.build()
         app._window.update_idletasks()
