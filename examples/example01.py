@@ -37,11 +37,11 @@ app.size("small").window_title("Login Example").padding(20).column(
             # Entry: user_input_var
             ltk.Entry()
                 .height(35)
-                .width().fill()
+                .width(400)
                 .radius(100)
                 .variable(user_input_var),  # <--- bind variable
             # Row: Login and Cancel buttons
-            ltk.Row().align("center").gap(10).add(
+            ltk.Row().justify("center").gap(10).add(
                 # Login Button
                 ltk.Button()
                     .text("Login")

@@ -19,11 +19,9 @@ def on_click():
 app.size("small").window_title(  # set window size & title
         "My first app"
     ).column(  # vertical arrangement
-        ltk.Spacer(),
-        ltk.Column().align("center").add(
+        ltk.Column().center().add(  # center on both axes
             ltk.Button().text("Click!").event(on_click),
         ),
-        ltk.Spacer(),
     )
 
 # run

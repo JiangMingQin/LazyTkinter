@@ -122,6 +122,84 @@ class ContainerSizeChainTests(unittest.TestCase):
         self.assertEqual(chained_container["sticky"], string_container["sticky"])
 
 
+class JustifyTests(unittest.TestCase):
+    def test_invalid_value_raises(self):
+        with self.assertRaises(ValueError):
+            ltk.Column().justify("middle")
+        with self.assertRaises(ValueError):
+            ltk.Row().justify("middle")
+
+    def test_column_center_auto_fills_height(self):
+        column = ltk.Column().justify("center")
+        self.assertEqual(column._justify, "center")
+        self.assertEqual(column._height_policy, "fill")
+
+    def test_row_center_auto_fills_width(self):
+        row = ltk.Row().justify("center")
+        self.assertEqual(row._justify, "center")
+        self.assertEqual(row._width_policy, "fill")
+
+    def test_fixed_size_not_overridden(self):
+        column = ltk.Column().height(300).justify("center")
+        self.assertEqual(column._height, 300)
+        self.assertEqual(column._height_policy, "fit")
+
+    def test_start_does_not_autofill(self):
+        self.assertEqual(ltk.Column().justify("start")._height_policy, "fit")
+
+    def test_column_center_insets_implicit_spacers(self):
+        slots = _resolve_column_slots(
+            [ltk.Button()], default_align="left", gap=0, padding=0, justify="center"
+        )
+        self.assertEqual(len(slots), 3)
+        self.assertIsInstance(slots[0]["child"], ltk.Spacer)
+        self.assertIsInstance(slots[2]["child"], ltk.Spacer)
+        self.assertEqual(slots[0]["weight"], 1)
+        self.assertEqual(slots[1]["weight"], 0)
+        self.assertEqual(slots[2]["weight"], 1)
+
+    def test_column_end_insets_leading_spacer(self):
+        slots = _resolve_column_slots(
+            [ltk.Button()], default_align="left", gap=0, padding=0, justify="end"
+        )
+        self.assertEqual(len(slots), 2)
+        self.assertIsInstance(slots[0]["child"], ltk.Spacer)
+        self.assertEqual(slots[0]["weight"], 1)
+
+    def test_fill_downgraded_with_implicit_spacer(self):
+        slots = _resolve_column_slots(
+            [ltk.Button().height("fill")],
+            default_align="left",
+            gap=0,
+            padding=0,
+            justify="center",
+        )
+        self.assertEqual(slots[1]["weight"], 0)
+
+    def test_row_center_insets_implicit_spacers(self):
+        slots = _resolve_row_slots(
+            [ltk.Button()], default_align="top", gap=0, padding=0, justify="center"
+        )
+        self.assertEqual(len(slots), 3)
+        self.assertEqual(slots[0]["weight"], 1)
+        self.assertEqual(slots[2]["weight"], 1)
+        self.assertIsInstance(slots[0]["child"], ltk.Spacer)
+
+
+class CenterShortcutTests(unittest.TestCase):
+    def test_column_center_shortcut(self):
+        column = ltk.Column().center()
+        self.assertEqual(column._justify, "center")
+        self.assertEqual(column._default_align, "center")
+        self.assertEqual(column._height_policy, "fill")
+
+    def test_row_center_shortcut(self):
+        row = ltk.Row().center()
+        self.assertEqual(row._justify, "center")
+        self.assertEqual(row._default_align, "center")
+        self.assertEqual(row._width_policy, "fill")
+
+
 class AlignTests(unittest.TestCase):
     def test_widget_align_stores_override(self):
         widget = ltk.Button().align("top-right")

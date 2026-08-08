@@ -57,7 +57,7 @@ def _frame_props(container, *, width=None, height=None) -> dict[str, Any]:
     return props
 
 
-def _resolve_column_slots(children, default_align, gap, padding):
+def _resolve_column_slots(children, default_align, gap, padding, justify="start"):
     """Resolve each Column child to (row, weight, sticky, padx, pady).
 
     Rules:
@@ -67,7 +67,14 @@ def _resolve_column_slots(children, default_align, gap, padding):
       Spacers consume the remaining space by their weight;
     - padding applies on the container edges, gap applies between children;
     - the cross axis follows the child's align (or the container default).
+    - ``justify="center"`` insets one implicit weight-1 Spacer on each end,
+      ``justify="end"`` insets one on the leading end only; implicit spacers
+      participate in the "Spacer present -> fill downgrades" rule.
     """
+    if justify == "center":
+        children = [Spacer()] + list(children) + [Spacer()]
+    elif justify == "end":
+        children = [Spacer()] + list(children)
     has_spacer = any(isinstance(child, Spacer) for child in children)
     total = len(children)
     slots = []
@@ -105,11 +112,16 @@ def _resolve_column_slots(children, default_align, gap, padding):
     return slots
 
 
-def _resolve_row_slots(children, default_align, gap, padding):
+def _resolve_row_slots(children, default_align, gap, padding, justify="start"):
     """Resolve each Row child to (column, weight, sticky, padx, pady).
 
-    Rules mirror ``_resolve_column_slots`` with the main axis horizontal.
+    Rules mirror ``_resolve_column_slots`` (including ``justify``) with the main
+    axis horizontal.
     """
+    if justify == "center":
+        children = [Spacer()] + list(children) + [Spacer()]
+    elif justify == "end":
+        children = [Spacer()] + list(children)
     has_spacer = any(isinstance(child, Spacer) for child in children)
     total = len(children)
     slots = []
@@ -234,6 +246,7 @@ class Column(BaseWidget["Column"]):
         super().__init__()
         self._width_policy = "fill"  # Columns stretch across the parent by default
         self._default_align = "left"
+        self._justify = "start"
         self._args = children
         self._gap = 0
         self._padding = 0
@@ -246,6 +259,25 @@ class Column(BaseWidget["Column"]):
             )
         self._default_align = a
         return self
+
+    def justify(self, value: str) -> Column:
+        """Set the main-axis distribution: "start" (default), "center" or "end".
+
+        "center" / "end" automatically turn the main axis into "fill" (when no
+        fixed height is set) so there is space to distribute.
+        """
+        if value not in ("start", "center", "end"):
+            raise ValueError(
+                f"Column.justify() expects one of ('start', 'center', 'end'), got {value!r}"
+            )
+        self._justify = value
+        if value != "start" and self._height is None and self._height_policy == "fit":
+            self._height_policy = "fill"
+        return self
+
+    def center(self) -> Column:
+        """Center children on both axes: justify("center") + align("center")."""
+        return self.justify("center").align("center")
 
     def gap(self, space: int) -> Column:
         """Set the vertical spacing between children (integer pixels)."""
@@ -278,7 +310,9 @@ class Column(BaseWidget["Column"]):
             frame.pack_propagate(False)
 
         frame.columnconfigure(0, weight=1)
-        slots = _resolve_column_slots(self._args, self._default_align, self._gap, self._padding)
+        slots = _resolve_column_slots(
+            self._args, self._default_align, self._gap, self._padding, self._justify
+        )
         for slot in slots:
             child = slot["child"]
             effective_w = _clamp(child._width, limit_w)
@@ -313,6 +347,7 @@ class Row(BaseWidget["Row"]):
         """
         super().__init__()
         self._default_align = "top"
+        self._justify = "start"
         self._args = children
         self._gap = 0
         self._padding = 0
@@ -325,6 +360,25 @@ class Row(BaseWidget["Row"]):
             )
         self._default_align = a
         return self
+
+    def justify(self, value: str) -> Row:
+        """Set the main-axis distribution: "start" (default), "center" or "end".
+
+        "center" / "end" automatically turn the main axis into "fill" (when no
+        fixed width is set) so there is space to distribute.
+        """
+        if value not in ("start", "center", "end"):
+            raise ValueError(
+                f"Row.justify() expects one of ('start', 'center', 'end'), got {value!r}"
+            )
+        self._justify = value
+        if value != "start" and self._width is None and self._width_policy == "fit":
+            self._width_policy = "fill"
+        return self
+
+    def center(self) -> Row:
+        """Center children on both axes: justify("center") + align("center")."""
+        return self.justify("center").align("center")
 
     def gap(self, space: int) -> Row:
         """Set the horizontal spacing between children (integer pixels)."""
@@ -357,7 +411,9 @@ class Row(BaseWidget["Row"]):
             frame.pack_propagate(False)
 
         frame.rowconfigure(0, weight=1)
-        slots = _resolve_row_slots(self._args, self._default_align, self._gap, self._padding)
+        slots = _resolve_row_slots(
+            self._args, self._default_align, self._gap, self._padding, self._justify
+        )
         for slot in slots:
             child = slot["child"]
             effective_w = _clamp(child._width, limit_w)
