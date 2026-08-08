@@ -48,7 +48,7 @@ class App:
                 ltk.Button().width(80).text("search").event(self.search_something),
             ),
             # Main Area
-            ltk.Row().gap(10).radius(10).padding(10).height().fill().fg_color("#313244").add(
+            ltk.Row().gap(10).radius(10).padding(10).height().fill().width().fill().fg_color("#313244").add(
                 # Left Sidebar
                 ltk.Column().width(150).gap(10).padding(10).height().fill().transparent().add(
                     ltk.Button().height(30).text("Page 1").event(lambda: self.turn_to_page(1)),
