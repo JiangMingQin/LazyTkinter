@@ -27,9 +27,8 @@ def on_cancel_click():
     welcome_msg_var.set("")
 
 # build UI
-app.size("small").window_title("Login Example").padding(20).column(
-    ltk.Spacer(),
-    ltk.Column().align("center").gap(16).add(
+app.size("small").window_title("Login Example").column(
+    ltk.Column().center().gap(16).add(
         # title label
         ltk.Label().text("User Login").font(("Arial", 20, "bold")),
         # main content
@@ -58,7 +57,6 @@ app.size("small").window_title("Login Example").padding(20).column(
         # result message label: welcome_msg_var
         ltk.Label().variable(welcome_msg_var),  # <--- bind variable, auto refresh
     ),
-    ltk.Spacer(),
 )
 
 app.run()

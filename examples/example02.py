@@ -40,18 +40,18 @@ class App:
 
         # build page
         app.size("large").window_title("My first app").column(
-            ltk.Column().gap(5).padding(5).height("fill").add(
+            ltk.Column().gap(5).padding(5).height().fill().add(
                 # Top Bar
                 ltk.Row().gap(10).padding(10).align("center").height(60).add(
                     ltk.Label().text("LazyTkinter"),
                     ltk.Empty().width(10),  # fixed placeholder
-                    ltk.Entry().width("fill").height(35).radius(100).placeholder_text("entry..."),
+                    ltk.Entry().width().fill().height(35).radius(100).placeholder_text("entry..."),
                     ltk.Button().width(80).text("search").event(self.search_something),
                 ),
                 # Main Area
-                ltk.Row().gap(10).padding(5).height("fill").add(
+                ltk.Row().gap(10).padding(5).height().fill().add(
                     # Left Sidebar
-                    ltk.Column().width(150).gap(10).padding(10).height("fill").add(
+                    ltk.Column().width(150).gap(10).padding(10).height().fill().add(
                         ltk.Button().height(30).text("Page 1").event(lambda: self.turn_to_page(1)),
                         ltk.Button().height(30).text("Page 2").event(lambda: self.turn_to_page(2)),
                         ltk.Button().height(30).text("Disabled").state("disabled"),
@@ -59,7 +59,7 @@ class App:
                         ltk.Switch().height(30).radius(10).text("Dark/Light").event(self.switch_mode),
                     ),
                     # Right Main Content
-                    ltk.Column().gap(10).padding(10).height("fill").add(
+                    ltk.Column().gap(10).padding(10).height().fill().add(
                         ltk.Row().height(130).gap(10).add(
                             # Checkbox
                             ltk.Column().width(60).gap(5).add(
@@ -75,7 +75,7 @@ class App:
                                 ltk.RadioButton().height(20),
                             ),
                             # Textbox
-                            ltk.Textbox().width("fill").height("fill").radius(8),
+                            ltk.Textbox().width().fill().height().fill().radius(8),
                         ),
                         # Slider
                         ltk.Slider().height(20),
@@ -91,11 +91,11 @@ class App:
                         ),
                         # ComboBox & OptionMenu
                         ltk.Row().height(30).gap(10).add(
-                            ltk.ComboBox().width("fill").values([
+                            ltk.ComboBox().width().fill().values([
                                 "Combo 1",
                                 "Combo 2",
                             ]).event(self.on_combo_change),
-                            ltk.OptionMenu().width("fill").values([
+                            ltk.OptionMenu().width().fill().values([
                                 "Menu 1",
                                 "Menu 2",
                             ]),
