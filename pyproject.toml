@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lazytkinter"
+dynamic = ["version"]
+description = "Declarative tkinter UI library built on CustomTkinter"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+authors = [
+    { name = "MingQin J" },
+]
+dependencies = [
+    "customtkinter>=5.2.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/JiangMingQin/LazyTkinter"
+
+[tool.setuptools.dynamic]
+version = { attr = "lazytkinter.__version__" }
+
+[tool.setuptools.packages.find]
+include = ["lazytkinter*"]
+
+[tool.setuptools.package-data]
+lazytkinter = ["py.typed", "themes/*.json"]

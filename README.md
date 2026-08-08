@@ -207,13 +207,15 @@ lazytkinter/
 
 ## 📦 安装 / Installation
 
-将项目克隆到本地，依赖 CustomTkinter 运行：
+将项目克隆到本地后安装（自动拉取 `customtkinter` 依赖）：
 
 ```bash
 git clone https://github.com/JiangMingQin/lazytkinter.git
 cd lazytkinter
-pip install customtkinter>=5.2.0
+pip install -e .          # 开发模式安装（含依赖）
 ```
+
+也可以直接 `pip install .` 普通安装。
 
 ---
 

@@ -17,6 +17,7 @@
 - **外观**：容器默认使用主题色背景（自带可见圆角），`transparent()` 显式透明；`fg_color()` 自定义背景色，`radius()` 设置圆角。
 - **字体**：`font(family=..., size=..., weight=..., slant=..., underline=..., overstrike=...)` 关键字/字典形式，支持 IDE 自动补全；旧元组写法兼容。
 - **测试**：新增纯逻辑单测与隐藏窗口冒烟用例（`tests/test_logic.py`、`tests/test_renderer.py`、`tests/test_smoke_gui.py`），无显示环境自动跳过冒烟。
+- **打包与工程化**：新增 `pyproject.toml`（`pip install -e .` 一键安装并自动拉取 `customtkinter`）、`py.typed` 类型标记、GitHub Actions CI（Windows/Linux × Python 3.10–3.13 全矩阵自动运行测试）。
 
 ### 修改 (Changed)
 
