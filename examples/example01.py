@@ -27,36 +27,34 @@ def on_cancel_click():
     welcome_msg_var.set("")
 
 # build UI
-app.size("small").window_title("Login Example").column(
-    ltk.Column().center().gap(16).add(
-        # title label
-        ltk.Label().text("User Login").font(("Arial", 20, "bold")),
-        # main content
-        ltk.Column().padding(10).gap(10).align("center").add(
-            # Entry: user_input_var
-            ltk.Entry()
-                .height(35)
-                .width(400)
+app.size("small").window_title("Login Example").gap(16).center().column(
+    # title label
+    ltk.Label().text("User Login").font(("Arial", 20, "bold")),
+    # main content
+    ltk.Column().padding(10).gap(10).align("center").add(
+        # Entry: user_input_var
+        ltk.Entry()
+            .height(35)
+            .width(400)
+            .radius(100)
+            .variable(user_input_var),  # <--- bind variable
+        # Row: Login and Cancel buttons
+        ltk.Row().justify("center").gap(10).add(
+            # Login Button
+            ltk.Button()
+                .text("Login")
                 .radius(100)
-                .variable(user_input_var),  # <--- bind variable
-            # Row: Login and Cancel buttons
-            ltk.Row().justify("center").gap(10).add(
-                # Login Button
-                ltk.Button()
-                    .text("Login")
-                    .radius(100)
-                    .event(on_login_click),  # <--- bind function
-                # Cancel Button
-                ltk.Button()
-                    .text("Cancel")
-                    .fg_color("gray")
-                    .radius(100)
-                    .event(on_cancel_click),
-            ),
+                .event(on_login_click),  # <--- bind function
+            # Cancel Button
+            ltk.Button()
+                .text("Cancel")
+                .fg_color("gray")
+                .radius(100)
+                .event(on_cancel_click),
         ),
-        # result message label: welcome_msg_var
-        ltk.Label().variable(welcome_msg_var),  # <--- bind variable, auto refresh
     ),
+    # result message label: welcome_msg_var
+    ltk.Label().variable(welcome_msg_var),  # <--- bind variable, auto refresh
 )
 
 app.run()
