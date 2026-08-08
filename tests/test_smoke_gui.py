@@ -54,15 +54,24 @@ class SmokeTests(unittest.TestCase):
     def test_example02(self):
         self._run_example("examples/example02.py")
 
-    def test_zstack_and_spacer_layout(self):
+    def test_zstack_overlay(self):
         app = ltk.Application()
-        app.size((500, 400)).window_title("smoke")
-        app.column(
-            ltk.Spacer(),
+        app.size((500, 400)).window_title("smoke").center().column(
             ltk.ZStack().width("fill").height("fill").padding(12).add(
                 ltk.Button().text("under"),
                 ltk.Button().text("over").align("top-right"),
             ),
+        )
+        app.build()
+        app._window.update_idletasks()
+        app._window.destroy()
+
+    def test_spacer_unequal_distribution(self):
+        app = ltk.Application()
+        app.size((400, 300))
+        app.column(
+            ltk.Spacer().weight(1),
+            ltk.Button().text("middle"),
             ltk.Spacer().weight(2),
         )
         app.build()
@@ -81,10 +90,48 @@ class SmokeTests(unittest.TestCase):
         app._window.update_idletasks()
         app._window.destroy()
 
-    def test_application_center_root(self):
+    def test_application_center_root_with_gap(self):
         app = ltk.Application()
-        app.size("small").center().column(
+        app.size("small").gap(10).center().column(
+            ltk.Label().text("title"),
             ltk.Button().text("centered"),
+        )
+        app.build()
+        app._window.update_idletasks()
+        app._window.destroy()
+
+    def test_row_justify_center_layout(self):
+        app = ltk.Application()
+        app.size("small")
+        app.column(
+            ltk.Column().padding(20).add(
+                ltk.Row().justify("center").gap(10).add(
+                    ltk.Button().text("Login"),
+                    ltk.Button().text("Cancel"),
+                ),
+            ),
+        )
+        app.build()
+        app._window.update_idletasks()
+        app._window.destroy()
+
+    def test_justify_end_layout(self):
+        app = ltk.Application()
+        app.size("small").justify("end").column(
+            ltk.Button().text("bottom"),
+        )
+        app.build()
+        app._window.update_idletasks()
+        app._window.destroy()
+
+    def test_size_chain_and_container_appearance(self):
+        app = ltk.Application()
+        app.size("small")
+        app.column(
+            ltk.Column().width().fill().fg_color("#1e1e2e").radius(12).gap(8).padding(10).add(
+                ltk.Entry().height(35).width().fill(),
+                ltk.Button().width(120).text("ok"),
+            ),
         )
         app.build()
         app._window.update_idletasks()
@@ -114,6 +161,8 @@ class SmokeTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             ltk.Column().align("top")
         with self.assertRaises(ValueError):
+            ltk.Column().justify("middle")
+        with self.assertRaises(ValueError):
             ltk.set_theme("no-such-theme-xyz")
 
         app = ltk.Application()
@@ -121,3 +170,9 @@ class SmokeTests(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             app.column(ltk.Button())
         app._window.destroy()
+
+        app2 = ltk.Application()
+        app2.align("left")
+        with self.assertRaises(ValueError):
+            app2.row(ltk.Button())
+        app2._window.destroy()
