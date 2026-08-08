@@ -67,9 +67,11 @@ class CTkRenderer(Renderer):
         self._container_classes: Dict[str, Type] = {
             "RootFrame": ctk.CTkFrame,
             "Empty": ctk.CTkFrame,
+            "Spacer": ctk.CTkFrame,
             "Column": ctk.CTkFrame,
             "Row": ctk.CTkFrame,
-            "ScrollableColumn": ctk.CTkScrollableFrame,
+            "ZStack": ctk.CTkFrame,
+            "Scroll": ctk.CTkScrollableFrame,
         }
 
     def create_window(self):

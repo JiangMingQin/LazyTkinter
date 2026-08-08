@@ -1,28 +1,46 @@
 from __future__ import annotations
 
+from .containers import _resolve_column_slots, _resolve_row_slots
 from .renderer import get_renderer
+
+_WINDOW_PRESETS = {"large": "1200x800", "medium": "900x600", "small": "600x400"}
+
+
+def _resolve_window_size(size):
+    """Map a Window size value to an action: ("zoom", None) or ("geometry", "WxH")."""
+    if size == "fill":
+        return "zoom", None
+    if isinstance(size, str):
+        if size in _WINDOW_PRESETS:
+            return "geometry", _WINDOW_PRESETS[size]
+        raise ValueError(
+            f"size() expects 'fill', 'large', 'medium', 'small' or a (width, height) "
+            f"tuple, got {size!r}"
+        )
+    if isinstance(size, tuple) and len(size) == 2:
+        width, height = size
+        if isinstance(width, int) and isinstance(height, int) and width > 0 and height > 0:
+            return "geometry", f"{width}x{height}"
+        raise ValueError("size() tuple must contain two positive integers")
+    raise ValueError(
+        f"size() expects 'fill', 'large', 'medium', 'small' or a (width, height) "
+        f"tuple, got {size!r}"
+    )
 
 
 def set_mode(mode: str) -> None:
-    """Sets the application appearance mode.
-
-    Args:
-        mode (str): Appearance mode, can be "light", "dark" or "system".
-    """
+    """Sets the application appearance mode ("light", "dark" or "system")."""
     get_renderer().set_mode(mode)
 
 
 def set_theme(theme_name: str) -> None:
     """Sets the application theme.
 
-    First tries to find theme file in built-in themes directory; if not found,
-    attempts to load directly through customtkinter.
-
-    Args:
-        theme_name (str): Theme name, can be either built-in theme name or system path.
+    First tries to find the theme file in the built-in themes directory; if not
+    found, attempts to load it directly through customtkinter.
 
     Raises:
-        ValueError: When theme file cannot be found.
+        ValueError: When the theme file cannot be found.
     """
     get_renderer().set_theme(theme_name)
 
@@ -39,12 +57,10 @@ class Theme:
         Dracula: Dracula theme.
         EVA02: EVA02 theme.
     """
-    # CustomTkinter native themes
     Blue = "blue"
     DarkBlue = "dark-blue"
     Green = "green"
 
-    # Additional themes
     Catppuccin = "catppuccin-mocha"
     Gruvbox = "gruvbox-theme"
     Dracula = "dracula-theme"
@@ -70,12 +86,7 @@ class Application:
         self.base_frame.grid(row=0, column=0, sticky="nsew")
 
     def __getattr__(self, name):
-        """Forward unknown attributes to the native root window.
-
-        Keeps compatibility with the previous CTk subclass: native window
-        methods like ``after``, ``protocol`` or ``minsize`` still work on
-        ``Application`` instances.
-        """
+        """Forward unknown attributes to the native root window."""
         return getattr(self._window, name)
 
     def _check_single_layout(self) -> None:
@@ -86,108 +97,66 @@ class Application:
             )
 
     def window_title(self, title: str) -> Application:
-        """Sets window title.
-
-        Args:
-            title (str): Window title text.
-
-        Returns:
-            Application: Returns self for method chaining.
-        """
+        """Sets window title."""
         self._window.title(title)
         return self
 
-    def window_size(self, size) -> Application:
+    def size(self, size) -> Application:
         """Sets window size.
 
         Args:
-            size: Window dimensions, either "400x300" or a (width, height) tuple/list.
-
-        Returns:
-            Application: Returns self for method chaining.
+            size: "fill" (maximize), "large"/"medium"/"small" presets, or a
+                (width, height) tuple.
         """
-        if isinstance(size, str):
-            self._window.geometry(size)
+        action, value = _resolve_window_size(size)
+        if action == "zoom":
+            self._window.state("zoomed")
         else:
-            self._window.geometry(f"{size[0]}x{size[1]}")
+            self._window.geometry(value)
         return self
 
-    def padding(self, pad) -> Application:
-        """Sets internal padding.
-
-        Args:
-            pad: Padding value, can be uniform (int) or (horizontal, vertical) tuple.
-
-        Returns:
-            Application: Returns self for method chaining.
-        """
-        if isinstance(pad, int):
-            self._ipadx, self._ipady = pad, pad
-        elif isinstance(pad, tuple):
-            self._ipadx, self._ipady = pad[0], pad[1]
-        else:
-            raise TypeError("padding() expects an int or a (horizontal, vertical) tuple")
-
-        self.base_frame.grid_configure(padx=self._ipadx, pady=self._ipady)
+    def padding(self, pad: int) -> Application:
+        """Sets the window inner padding (integer pixels)."""
+        if not isinstance(pad, int) or pad < 0:
+            raise ValueError("Application.padding() expects a non-negative integer")
+        self._ipadx = pad
+        self._ipady = pad
+        self.base_frame.grid_configure(padx=pad, pady=pad)
         return self
 
     def column(self, *args) -> Application:
-        """Adds widgets in column layout (single root layout call).
-
-        Args:
-            *args: Variable number of widgets to add.
-
-        Returns:
-            Application: Returns self for method chaining.
-        """
+        """Adds widgets in column layout (single root layout call)."""
         self._check_single_layout()
-        num = 0
         self.base_frame.columnconfigure(0, weight=1)
-        for ele in args:
-            self.base_frame.rowconfigure(num, weight=ele._weight)
-            the_ele = ele.build(self.base_frame)
-            grid_args = {
-                "row": num,
-                "column": 0,
-                "sticky": ele._sticky,
-                "padx": ele._margin_x,
-                "pady": ele._margin_y,
-                "rowspan": ele._row_span,
-                "columnspan": ele._col_span,
-            }
-            the_ele.grid(**grid_args)
-            num += 1
-
+        slots = _resolve_column_slots(args, default_align="left", gap=0, padding=0)
+        for slot in slots:
+            the_ele = slot["child"].build(self.base_frame)
+            self.base_frame.rowconfigure(slot["row"], weight=slot["weight"])
+            the_ele.grid(
+                row=slot["row"],
+                column=0,
+                sticky=slot["sticky"],
+                padx=slot["padx"],
+                pady=slot["pady"],
+            )
         self._layout_set = True
         return self
 
     def row(self, *args) -> Application:
-        """Adds widgets in row layout (single root layout call).
-
-        Args:
-            *args: Variable number of widgets to add.
-
-        Returns:
-            Application: Returns self for method chaining.
-        """
+        """Adds widgets in row layout (single root layout call)."""
         self._check_single_layout()
-        num = 0
         self.base_frame.rowconfigure(0, weight=1)
-        for ele in args:
-            self.base_frame.columnconfigure(num, weight=ele._weight)
-            the_ele = ele.build(self.base_frame)
-            grid_args = {
-                "row": 0,
-                "column": num,
-                "sticky": ele._sticky,
-                "padx": ele._margin_x,
-                "pady": ele._margin_y,
-                "rowspan": ele._row_span,
-                "columnspan": ele._col_span,
-            }
-            the_ele.grid(**grid_args)
-            num += 1
-
+        slots = _resolve_row_slots(args, default_align="top", gap=0, padding=0)
+        for slot in slots:
+            the_ele = slot["child"].build(self.base_frame)
+            self.base_frame.columnconfigure(slot["column"], weight=slot["weight"])
+            the_ele.grid(
+                row=0,
+                column=slot["column"],
+                sticky=slot["sticky"],
+                padx=slot["padx"],
+                pady=slot["pady"],
+            )
         self._layout_set = True
         return self
 

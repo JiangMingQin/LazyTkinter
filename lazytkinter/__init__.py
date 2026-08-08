@@ -23,7 +23,9 @@ from .widgets import Textbox
 
 from .containers import Row
 from .containers import Column
-from .containers import ScrollableColumn
+from .containers import ZStack
+from .containers import Spacer
+from .containers import Scroll
 from .containers import Empty
 
 from .utils import StringVar
@@ -57,7 +59,9 @@ __all__ = [
     # containers
     "Row", 
     "Column", 
-    "ScrollableColumn", 
+    "ZStack",
+    "Spacer",
+    "Scroll",
     "Empty",
     # variable
     "StringVar", 
