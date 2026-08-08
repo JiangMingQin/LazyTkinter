@@ -125,12 +125,16 @@ class Application:
         return self
 
     def padding(self, pad: int) -> Application:
-        """Sets the window inner padding (integer pixels)."""
+        """Sets the window inner padding (integer pixels).
+
+        The padding is applied to the root layout's children, so the base frame
+        still covers the whole window (no visible border from the window's own
+        background).
+        """
         if not isinstance(pad, int) or pad < 0:
             raise ValueError("Application.padding() expects a non-negative integer")
         self._ipadx = pad
         self._ipady = pad
-        self.base_frame.grid_configure(padx=pad, pady=pad)
         return self
 
     def gap(self, space: int) -> Application:
@@ -182,7 +186,7 @@ class Application:
             args,
             default_align=align,
             gap=self._layout_gap,
-            padding=0,
+            padding=self._ipadx,
             justify=self._layout_justify,
         )
         for slot in slots:
@@ -212,7 +216,7 @@ class Application:
             args,
             default_align=align,
             gap=self._layout_gap,
-            padding=0,
+            padding=self._ipady,
             justify=self._layout_justify,
         )
         for slot in slots:
