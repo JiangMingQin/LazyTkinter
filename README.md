@@ -57,6 +57,8 @@ It replaces traditional grid and pack methods with Row/Column/ZStack containers,
   ltk.Row(ltk.Button(), ltk.Label())
   ```
 
+- **对齐语义 (Alignment Semantics)**: `align` 控制的是容器**交叉轴**对齐——`Column` 管左右（`left`/`center`/`right`），`Row` 管上下（`top`/`center`/`bottom`）。要让某个行/列自身在父容器里居中，请把 `align` 设在它的**父容器**上。
+
 - **零依赖感 (Zero Dependency Feeling)**: 直接通过 `lazytkinter` 导出常用变量 (`StringVar`) 和工具，无需额外导入 `customtkinter`。
 
 - **内置主题 (Built-in Themes)**: 开箱即用的 `Catppuccin`, `Gruvbox`, `Nord` 等配色方案。

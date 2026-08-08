@@ -33,10 +33,11 @@ app.size("small").window_title("Login Example").padding(20).column(
         # title label
         ltk.Label().text("User Login").font(("Arial", 20, "bold")),
         # main content
-        ltk.Column().padding(10).gap(10).add(
+        ltk.Column().padding(10).gap(10).align("center").add(
             # Entry: user_input_var
             ltk.Entry()
                 .height(35)
+                .width().fill()
                 .radius(100)
                 .variable(user_input_var),  # <--- bind variable
             # Row: Login and Cancel buttons
