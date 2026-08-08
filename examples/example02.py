@@ -44,13 +44,13 @@ class App:
             ltk.Row().gap(10).padding(10).radius(10).align("center").height(60).width().fill().add(
                 ltk.Label().text("LazyTkinter").font(family="Arial", size=16, weight="bold"),
                 ltk.Empty().width(10),  # fixed placeholder
-                ltk.Entry().width().fill(weight=2).height(35).radius(100).placeholder_text("entry..."),
-                ltk.Button().width().fill(weight=1).text("search").event(self.search_something),
+                ltk.Entry().width().fill().height(35).radius(100).placeholder_text("entry..."),
+                ltk.Button().height(35).text("search").event(self.search_something),
             ),
             # Main Area
-            ltk.Row().gap(10).radius(10).padding(10).height().fill().width().fill().add(
+            ltk.Row().gap(10).radius(10).padding(5).height().fill().width().fill().add(
                 # Left Sidebar
-                ltk.Column().width(150).gap(10).padding(10).height().fill().transparent().add(
+                ltk.Column().width(150).gap(10).padding(5).height().fill().transparent().add(
                     ltk.Button().height(30).text("Page 1").event(lambda: self.turn_to_page(1)),
                     ltk.Button().height(30).text("Page 2").event(lambda: self.turn_to_page(2)),
                     ltk.Button().height(30).text("Disabled").state("disabled"),
@@ -58,21 +58,21 @@ class App:
                     ltk.Switch().height(30).radius(10).text("Dark/Light").event(self.switch_mode),
                 ),
                 # Right Main Content
-                ltk.Column().gap(10).padding(10).height().fill().width().fill().transparent().add(
+                ltk.Column().gap(10).padding(5).height().fill().width().fill().transparent().add(
                     # Top Content
-                    ltk.Row().height(130).width().fill().gap(10).add(
+                    ltk.Row().height(150).width().fill().gap(10).transparent().add(
                         # Selection block: checkbox + radio take 1 part (1:2 vs textbox)
-                        ltk.Column().width().fill(weight=1).gap(10).transparent().add(
+                        ltk.Column().width().fill(weight=1).transparent().gap(10).add(
                             ltk.Row().width().fill().gap(10).transparent().add(
                                 # Checkbox
-                                ltk.Column().width(60).gap(5).add(
+                                ltk.Column().width().fill().transparent().gap(10).add(
                                     ltk.CheckBox().height(20).radius(8),
                                     ltk.CheckBox().height(20).radius(8),
                                     ltk.CheckBox().height(20).radius(8),
                                     ltk.CheckBox().height(20).radius(8),
                                 ),
                                 # RadioButton
-                                ltk.Column().width(60).gap(5).add(
+                                ltk.Column().width(60).fill().transparent().gap(10).add(
                                     ltk.RadioButton().height(20),
                                     ltk.RadioButton().height(20),
                                     ltk.RadioButton().height(20),
@@ -87,7 +87,7 @@ class App:
                     # ProgressBar
                     ltk.ProgressBar().value(0.7).height(10).width().fill(),
                     # SegmentedButton
-                    ltk.Row().height(30).add(
+                    ltk.Row().height(30).width().fill().add(
                         ltk.SegmentedButton().radius(100).values([
                             "Option A",
                             "Option B",
@@ -95,7 +95,7 @@ class App:
                         ]).event(self.on_segment_click).set_value("Option A"),
                     ),
                     # ComboBox & OptionMenu
-                    ltk.Row().height(30).gap(10).add(
+                    ltk.Row().height(30).width().fill().gap(10).add(
                         ltk.ComboBox().width().fill().values([
                             "Combo 1",
                             "Combo 2",
@@ -107,14 +107,14 @@ class App:
                     ),
                     # Scrollable list
                     ltk.Scroll(
-                        ltk.Column().gap(5).add(
-                            ltk.Button().radius(10).text("Item 1"),
-                            ltk.Button().radius(10).text("Item 2"),
-                            ltk.Button().radius(10).text("Item 3"),
-                            ltk.Button().radius(10).text("Item 4"),
-                            ltk.Button().radius(10).text("Item 5"),
-                            ltk.Button().radius(10).text("Item 6"),
-                            ltk.Button().radius(10).text("Item 7"),
+                        ltk.Column().gap(10).add(
+                            ltk.Button().width().fill().radius(10).text("Item 1"),
+                            ltk.Button().width().fill().radius(10).text("Item 2"),
+                            ltk.Button().width().fill().radius(10).text("Item 3"),
+                            ltk.Button().width().fill().radius(10).text("Item 4"),
+                            ltk.Button().width().fill().radius(10).text("Item 5"),
+                            ltk.Button().width().fill().radius(10).text("Item 6"),
+                            ltk.Button().width().fill().radius(10).text("Item 7"),
                         ),
                     ),
                 ),
