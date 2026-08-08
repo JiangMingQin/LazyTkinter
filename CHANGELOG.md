@@ -22,6 +22,7 @@
 ### 修改 (Changed)
 
 - 示例 `example00/01/02` 与 README 全面适配 v2 API；README 新增「布局 API 速查」章节。
+- 示例移除 `sys.path.append` 临时路径 hack，安装包后可直接运行。
 - `docs/ARCHITECTURE.md` 新增布局引擎 v2 章节。
 - 主题加载改用 `logging`；找不到主题时 `set_theme` 抛 `ValueError`（原为 print 输出后继续）。
 - 容器布局从双层 Frame 改为单层 Frame；容器 `build` 不再自我 grid，统一由父容器放置，消除重复 grid。
