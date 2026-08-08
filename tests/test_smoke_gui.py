@@ -81,6 +81,15 @@ class SmokeTests(unittest.TestCase):
         app._window.update_idletasks()
         app._window.destroy()
 
+    def test_application_center_root(self):
+        app = ltk.Application()
+        app.size("small").center().column(
+            ltk.Button().text("centered"),
+        )
+        app.build()
+        app._window.update_idletasks()
+        app._window.destroy()
+
     def test_scroll_layout(self):
         app = ltk.Application()
         app.size("small")

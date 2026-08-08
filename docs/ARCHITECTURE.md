@@ -84,7 +84,7 @@ class Renderer:
 - **对齐**：Column 交叉轴 `align`（`left`/`center`/`right`，默认 `left`），Row 交叉轴 `align`（`top`/`center`/`bottom`，默认 `top`），ZStack 锚点 `align`（`center`/`top-left`/... 默认 `center`）。子元素可自带 `align` 覆盖容器默认。主轴分布用 `justify`（`start`/`center`/`end`，默认 `start`；`center`/`end` 会自动把主轴转为 `fill`）；`.center()` = `justify("center") + align("center")`。
 - **外观**：容器默认透明背景，背景色由 `fg_color()` 显式设置（映射到 frame 填充色），圆角由 `radius()` 设置（映射到 `corner_radius`）。
 - **新原语**：`Spacer`（弹性弹簧，`weight` 正整数，默认 1）、`ZStack`（同格重叠）、`Scroll`（包装单个子元素，v1 仅 `direction='vertical'`）、`Empty` 保留为固定尺寸占位。
-- **Window**：`size('fill' | 'large' | 'medium' | 'small' | (w, h))`，`padding` 仅整数。
+- **Window**：`size('fill' | 'large' | 'medium' | 'small' | (w, h))`，`padding` 仅整数；根布局支持 `gap`/`align`/`justify`/`center()`，直接作用于 `column()`/`row()`，避免为根布局再包一层容器。
 
 ### 布局槽解析规则
 

@@ -1,9 +1,15 @@
 from __future__ import annotations
 
-from .containers import _resolve_column_slots, _resolve_row_slots
+from .containers import (
+    _COLUMN_ALIGN_STICKY,
+    _ROW_ALIGN_STICKY,
+    _resolve_column_slots,
+    _resolve_row_slots,
+)
 from .renderer import get_renderer
 
 _WINDOW_PRESETS = {"large": "1200x800", "medium": "900x600", "small": "600x400"}
+_WINDOW_ALIGNMENTS = ("left", "center", "right", "top", "bottom")
 
 
 def _resolve_window_size(size):
@@ -80,6 +86,9 @@ class Application:
         self._ipadx = 0
         self._ipady = 0
         self._layout_set = False
+        self._layout_gap = 0
+        self._layout_justify = "start"
+        self._layout_align = None  # None -> column() uses "left", row() uses "top"
         self.base_frame = get_renderer().create_container(
             "RootFrame", self._window, {"corner_radius": 0}
         )
@@ -124,11 +133,58 @@ class Application:
         self.base_frame.grid_configure(padx=pad, pady=pad)
         return self
 
+    def gap(self, space: int) -> Application:
+        """Sets the spacing between root layout children (integer pixels)."""
+        if not isinstance(space, int) or space < 0:
+            raise ValueError("Application.gap() expects a non-negative integer")
+        self._layout_gap = space
+        return self
+
+    def align(self, value: str) -> Application:
+        """Sets the root layout cross-axis alignment.
+
+        ``column()`` accepts "left"/"center"/"right"; ``row()`` accepts
+        "top"/"center"/"bottom". The axis is validated when the root layout is
+        built.
+        """
+        if value not in _WINDOW_ALIGNMENTS:
+            raise ValueError(
+                f"Application.align() expects one of {_WINDOW_ALIGNMENTS!r}, got {value!r}"
+            )
+        self._layout_align = value
+        return self
+
+    def justify(self, value: str) -> Application:
+        """Sets the root layout main-axis distribution ("start"/"center"/"end")."""
+        if value not in ("start", "center", "end"):
+            raise ValueError(
+                "Application.justify() expects one of ('start', 'center', 'end'), "
+                f"got {value!r}"
+            )
+        self._layout_justify = value
+        return self
+
+    def center(self) -> Application:
+        """Centers the root layout children on both axes."""
+        return self.justify("center").align("center")
+
     def column(self, *args) -> Application:
         """Adds widgets in column layout (single root layout call)."""
         self._check_single_layout()
+        align = self._layout_align if self._layout_align is not None else "left"
+        if align not in _COLUMN_ALIGN_STICKY:
+            raise ValueError(
+                f"Application.column() cannot use align {align!r}; "
+                f"expected one of {list(_COLUMN_ALIGN_STICKY)}"
+            )
         self.base_frame.columnconfigure(0, weight=1)
-        slots = _resolve_column_slots(args, default_align="left", gap=0, padding=0)
+        slots = _resolve_column_slots(
+            args,
+            default_align=align,
+            gap=self._layout_gap,
+            padding=0,
+            justify=self._layout_justify,
+        )
         for slot in slots:
             the_ele = slot["child"].build(self.base_frame)
             self.base_frame.rowconfigure(slot["row"], weight=slot["weight"])
@@ -145,8 +201,20 @@ class Application:
     def row(self, *args) -> Application:
         """Adds widgets in row layout (single root layout call)."""
         self._check_single_layout()
+        align = self._layout_align if self._layout_align is not None else "top"
+        if align not in _ROW_ALIGN_STICKY:
+            raise ValueError(
+                f"Application.row() cannot use align {align!r}; "
+                f"expected one of {list(_ROW_ALIGN_STICKY)}"
+            )
         self.base_frame.rowconfigure(0, weight=1)
-        slots = _resolve_row_slots(args, default_align="top", gap=0, padding=0)
+        slots = _resolve_row_slots(
+            args,
+            default_align=align,
+            gap=self._layout_gap,
+            padding=0,
+            justify=self._layout_justify,
+        )
         for slot in slots:
             the_ele = slot["child"].build(self.base_frame)
             self.base_frame.columnconfigure(slot["column"], weight=slot["weight"])

@@ -18,10 +18,8 @@ def on_click():
 # build UI
 app.size("small").window_title(  # set window size & title
         "My first app"
-    ).column(  # vertical arrangement
-        ltk.Column().center().add(  # center on both axes
-            ltk.Button().text("Click!").event(on_click),
-        ),
+    ).center().column(  # center on both axes at the window root
+        ltk.Button().text("Click!").event(on_click),
     )
 
 # run

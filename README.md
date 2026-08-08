@@ -57,7 +57,7 @@ It replaces traditional grid and pack methods with Row/Column/ZStack containers,
   ltk.Row(ltk.Button(), ltk.Label())
   ```
 
-- **对齐语义 (Alignment Semantics)**: `align` 控制**交叉轴**（Column 管左右、Row 管上下），`justify` 控制**主轴**（Column 管上下、Row 管左右，`center`/`end` 会自动把该轴转为 `fill` 以产生可分配空间），`.center()` 一步上下左右居中。
+- **对齐语义 (Alignment Semantics)**: `align` 控制**交叉轴**（Column 管左右、Row 管上下），`justify` 控制**主轴**（Column 管上下、Row 管左右，`center`/`end` 会自动把该轴转为 `fill` 以产生可分配空间），`.center()` 一步上下左右居中。`Application` 同样支持 `gap`/`align`/`justify`/`center()`，直接作用于根 `column()`/`row()`，无需再包一层容器。
 
 - **零依赖感 (Zero Dependency Feeling)**: 直接通过 `lazytkinter` 导出常用变量 (`StringVar`) 和工具，无需额外导入 `customtkinter`。
 
@@ -189,10 +189,8 @@ pip install customtkinter>=5.2.0
            "small"
        ).window_title( # set title
            "My first app"
-       ).column( # vertical arrangement
-           ltk.Column().center().add( # center on both axes
-               ltk.Button().text("Click!").event(on_click),
-           ),
+       ).center().column( # center on both axes at the window root
+           ltk.Button().text("Click!").event(on_click),
        )
    ```
 
@@ -221,10 +219,8 @@ app.size( # set window size: "fill" / "large" / "medium" / "small" / (w, h)
         "small"
     ).window_title( # set title
         "My first app"
-    ).column( # vertical arrangement
-        ltk.Column().center().add( # center on both axes
-            ltk.Button().text("Click!").event(on_click),
-        ),
+    ).center().column( # center on both axes at the window root
+        ltk.Button().text("Click!").event(on_click),
     )
 
 # run

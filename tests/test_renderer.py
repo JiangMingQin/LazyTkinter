@@ -130,6 +130,54 @@ class RendererFlowTests(unittest.TestCase):
             app.row(ltk.Button())
 
 
+class ApplicationLayoutTests(unittest.TestCase):
+    def setUp(self):
+        self.fake = FakeRenderer()
+        set_renderer(self.fake)
+
+    def tearDown(self):
+        set_renderer(_real_renderer)
+
+    def test_center_shortcut_builds(self):
+        app = ltk.Application()
+        app.center().column(ltk.Button().text("x"))
+        self.assertTrue(app._layout_set)
+
+    def test_gap_align_justify_state(self):
+        app = ltk.Application()
+        app.gap(10).align("center").justify("end")
+        self.assertEqual(app._layout_gap, 10)
+        self.assertEqual(app._layout_align, "center")
+        self.assertEqual(app._layout_justify, "end")
+
+    def test_invalid_values_raise(self):
+        app = ltk.Application()
+        with self.assertRaises(ValueError):
+            app.justify("middle")
+        with self.assertRaises(ValueError):
+            app.align("top-left")
+        with self.assertRaises(ValueError):
+            app.gap(-1)
+
+    def test_align_axis_validated_at_root_call(self):
+        app = ltk.Application()
+        app.align("left")
+        with self.assertRaises(ValueError):
+            app.row(ltk.Button())
+
+        app2 = ltk.Application()
+        app2.align("top")
+        with self.assertRaises(ValueError):
+            app2.column(ltk.Button())
+
+    def test_justify_center_insets_implicit_spacers_at_root(self):
+        app = ltk.Application()
+        app.justify("center").column(ltk.Button().text("x"))
+        spacer_kinds = [call[0] for call in self.fake.container_calls].count("Spacer")
+        self.assertEqual(spacer_kinds, 2)
+        self.assertEqual(len(self.fake.widget_calls), 1)
+
+
 class ThemeTests(unittest.TestCase):
     def test_missing_theme_raises_value_error(self):
         from lazytkinter.renderer import CTkRenderer
