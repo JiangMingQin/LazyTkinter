@@ -72,7 +72,7 @@ class App:
                                     ltk.CheckBox().height(20).radius(8),
                                 ),
                                 # RadioButton
-                                ltk.Column().width(60).fill().transparent().gap(10).add(
+                                ltk.Column().width().fill().transparent().gap(10).add(
                                     ltk.RadioButton().height(20),
                                     ltk.RadioButton().height(20),
                                     ltk.RadioButton().height(20),
