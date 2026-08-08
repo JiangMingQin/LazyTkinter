@@ -82,7 +82,7 @@ class Renderer:
 - **尺寸策略**：所有控件与容器的 `width` / `height` 接受 `int`（固定像素）、`'fit'`（包裹内容）或 `'fill'`（撑满父容器）。默认 `'fit'`，例外：Column 宽度默认 `'fill'`，ZStack / Scroll 宽度与高度默认 `'fill'`。支持链式写法 `.width().fill()` / `.height().fit()`（无轴前缀的 `.fill()` / `.fit()` 作用于双轴），与字符串写法等价，便于 IDE 自动补全发现。
 - **间距**：容器 `gap`（子元素之间）与 `padding`（内边距）只接受整数像素。
 - **对齐**：Column 交叉轴 `align`（`left`/`center`/`right`，默认 `left`），Row 交叉轴 `align`（`top`/`center`/`bottom`，默认 `top`），ZStack 锚点 `align`（`center`/`top-left`/... 默认 `center`）。子元素可自带 `align` 覆盖容器默认。主轴分布用 `justify`（`start`/`center`/`end`，默认 `start`；`center`/`end` 会自动把主轴转为 `fill`）；`.center()` = `justify("center") + align("center")`。
-- **外观**：容器默认透明背景，背景色由 `fg_color()` 显式设置（映射到 frame 填充色），圆角由 `radius()` 设置（映射到 `corner_radius`）。
+- **外观**：容器默认使用主题色背景（自带可见圆角），需要透明时显式调用 `transparent()`；背景色由 `fg_color()` 自定义（映射到 frame 填充色），圆角由 `radius()` 设置（映射到 `corner_radius`）。
 - **新原语**：`Spacer`（弹性弹簧，`weight` 正整数，默认 1）、`ZStack`（同格重叠）、`Scroll`（包装单个子元素，v1 仅 `direction='vertical'`）、`Empty` 保留为固定尺寸占位。
 - **Window**：`size('fill' | 'large' | 'medium' | 'small' | (w, h))`，`padding` 仅整数；根布局支持 `gap`/`align`/`justify`/`center()`，直接作用于 `column()`/`row()`，避免为根布局再包一层容器。
 

@@ -45,13 +45,14 @@ def _compose_sticky(axis_sticky: str, horizontal_fill: bool, vertical_fill: bool
 def _frame_props(container, *, width=None, height=None) -> dict[str, Any]:
     """Collect frame constructor props shared by all containers.
 
-    Containers are transparent by default; a background color is opt-in via
-    ``fg_color()`` (which maps to the frame's fill color), and ``radius()``
-    controls the corner radius.
+    Containers use the theme's default frame color unless ``transparent()``
+    or an explicit ``fg_color()`` is set; ``radius()`` controls the corner
+    radius.
     """
     props: dict[str, Any] = {}
     container._inject_base_args(props, width=width, height=height)
-    props.setdefault("fg_color", "transparent")
+    if container._transparent:
+        props["fg_color"] = "transparent"
     for key in _FRAME_UNSUPPORTED_KEYS:
         props.pop(key, None)
     return props
@@ -247,6 +248,7 @@ class Column(BaseWidget["Column"]):
         self._width_policy = "fill"  # Columns stretch across the parent by default
         self._default_align = "left"
         self._justify = "start"
+        self._transparent = False
         self._args = children
         self._gap = 0
         self._padding = 0
@@ -278,6 +280,11 @@ class Column(BaseWidget["Column"]):
     def center(self) -> Column:
         """Center children on both axes: justify("center") + align("center")."""
         return self.justify("center").align("center")
+
+    def transparent(self, val: bool = True) -> Column:
+        """Opt into a transparent background (default is the theme color)."""
+        self._transparent = val
+        return self
 
     def gap(self, space: int) -> Column:
         """Set the vertical spacing between children (integer pixels)."""
@@ -348,6 +355,7 @@ class Row(BaseWidget["Row"]):
         super().__init__()
         self._default_align = "top"
         self._justify = "start"
+        self._transparent = False
         self._args = children
         self._gap = 0
         self._padding = 0
@@ -379,6 +387,11 @@ class Row(BaseWidget["Row"]):
     def center(self) -> Row:
         """Center children on both axes: justify("center") + align("center")."""
         return self.justify("center").align("center")
+
+    def transparent(self, val: bool = True) -> Row:
+        """Opt into a transparent background (default is the theme color)."""
+        self._transparent = val
+        return self
 
     def gap(self, space: int) -> Row:
         """Set the horizontal spacing between children (integer pixels)."""
@@ -447,6 +460,7 @@ class ZStack(BaseWidget["ZStack"]):
         self._width_policy = "fill"
         self._height_policy = "fill"
         self._default_align = "center"
+        self._transparent = False
         self._args = children
         self._padding = 0
 
@@ -465,6 +479,11 @@ class ZStack(BaseWidget["ZStack"]):
             self._padding = pad
         else:
             raise ValueError("padding() expects a non-negative integer")
+        return self
+
+    def transparent(self, val: bool = True) -> ZStack:
+        """Opt into a transparent background (default is the theme color)."""
+        self._transparent = val
         return self
 
     def add(self, *args) -> ZStack:
@@ -518,6 +537,7 @@ class Scroll(BaseWidget["Scroll"]):
             raise ValueError("Scroll expects exactly one child, e.g. Scroll(Column(...))")
         self._width_policy = "fill"
         self._height_policy = "fill"
+        self._transparent = False
         self._child = children[0]
         self._direction = "vertical"
 
@@ -529,6 +549,11 @@ class Scroll(BaseWidget["Scroll"]):
                 "horizontal/both need a canvas-based renderer"
             )
         self._direction = d
+        return self
+
+    def transparent(self, val: bool = True) -> Scroll:
+        """Opt into a transparent background (default is the theme color)."""
+        self._transparent = val
         return self
 
     def build(self, parent, *, width=None, height=None):
