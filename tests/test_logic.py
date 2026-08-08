@@ -225,6 +225,45 @@ class AlignTests(unittest.TestCase):
             ltk.ZStack().align("bogus")
 
 
+class FontTests(unittest.TestCase):
+    def test_keyword_config(self):
+        widget = ltk.Label().font(family="Arial", size=20, weight="bold")
+        self.assertEqual(widget._font, ("Arial", 20, "bold"))
+
+    def test_dict_config(self):
+        widget = ltk.Label().font({"family": "Arial", "size": 20})
+        self.assertEqual(widget._font, ("Arial", 20))
+
+    def test_legacy_tuple_still_works(self):
+        widget = ltk.Label().font(("Arial", 20, "bold"))
+        self.assertEqual(widget._font, ("Arial", 20, "bold"))
+
+    def test_flattened_positional_still_works(self):
+        widget = ltk.Label().font("Arial", 20, "bold")
+        self.assertEqual(widget._font, ("Arial", 20, "bold"))
+
+    def test_size_only_defaults_family(self):
+        widget = ltk.Label().font(size=20)
+        self.assertEqual(widget._font, ("Roboto", 20))
+
+    def test_style_combination(self):
+        widget = ltk.Label().font(
+            family="Arial", size=12, weight="bold", slant="italic", underline=True
+        )
+        self.assertEqual(widget._font, ("Arial", 12, "bold italic underline"))
+
+    def test_no_args_is_noop(self):
+        self.assertIsNone(ltk.Label().font()._font)
+
+    def test_unsupported_key_raises(self):
+        with self.assertRaises(ValueError):
+            ltk.Label().font(color="red")
+
+    def test_invalid_weight_raises(self):
+        with self.assertRaises(ValueError):
+            ltk.Label().font(weight="heavy")
+
+
 class ColumnSlotTests(unittest.TestCase):
     def test_fit_and_fill_weights(self):
         fit = ltk.Button()

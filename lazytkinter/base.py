@@ -14,6 +14,55 @@ _ALIGNMENTS = (
     "top-left", "top-right", "bottom-left", "bottom-right",
 )
 
+_FONT_KEYS = ("family", "size", "weight", "slant", "underline", "overstrike")
+_FONT_WEIGHTS = ("normal", "bold")
+_FONT_SLANTS = ("roman", "italic")
+
+
+def _tuple_to_font_config(font_tuple):
+    """Convert a legacy tkinter-style font tuple to a config dict."""
+    config = {}
+    if not font_tuple:
+        return config
+    config["family"] = font_tuple[0]
+    if len(font_tuple) > 1 and isinstance(font_tuple[1], (int, float)):
+        config["size"] = font_tuple[1]
+        styles = font_tuple[2:]
+    else:
+        styles = font_tuple[1:]
+    style_text = " ".join(str(part) for part in styles).lower()
+    for token in style_text.split():
+        if token == "bold":
+            config["weight"] = "bold"
+        elif token == "italic":
+            config["slant"] = "italic"
+        elif token == "underline":
+            config["underline"] = True
+        elif token == "overstrike":
+            config["overstrike"] = True
+    return config
+
+
+def _build_font_tuple(config):
+    """Build a tkinter-compatible font tuple from a config dict."""
+    family = config.get("family") or "Roboto"
+    size = config.get("size")
+    parts = [family]
+    if size is not None:
+        parts.append(size)
+    styles = []
+    if config.get("weight") == "bold":
+        styles.append("bold")
+    if config.get("slant") == "italic":
+        styles.append("italic")
+    if config.get("underline"):
+        styles.append("underline")
+    if config.get("overstrike"):
+        styles.append("overstrike")
+    if styles:
+        parts.append(" ".join(styles))
+    return tuple(parts)
+
 
 class BaseWidget(Generic[T]):
     """Base class for custom Tkinter widgets providing common properties and methods.
@@ -211,10 +260,84 @@ class BaseWidget(Generic[T]):
         self._text_color = color
         return self  # type: ignore
 
-    # Font (supports tuple ("Roboto", 12) or ctk.CTkFont)
-    def font(self, font: tuple | Any) -> T:
-        """Set font."""
-        self._font = font
+    # Font
+    def font(
+        self,
+        *args,
+        family=None,
+        size=None,
+        weight=None,
+        slant=None,
+        underline=None,
+        overstrike=None,
+        **kwargs,
+    ) -> T:
+        """Set the widget font with keyword arguments or a dict.
+
+        Preferred forms (IDE autocompletion friendly):
+            .font(family="Arial", size=20, weight="bold")
+            .font({"family": "Arial", "size": 20})
+
+        The legacy tuple form .font(("Arial", 20, "bold")) and a single font
+        object (e.g. a CTkFont) are still accepted.
+
+        Supported keys: family, size, weight ("normal"/"bold"),
+        slant ("roman"/"italic"), underline (bool), overstrike (bool).
+        """
+        if args:
+            if len(args) == 1 and isinstance(args[0], dict):
+                config = dict(args[0])
+            elif len(args) == 1 and isinstance(args[0], tuple):
+                config = _tuple_to_font_config(args[0])
+            elif len(args) == 1 and not isinstance(args[0], (str, int, float)):
+                # pass-through of a font object (e.g. ctk.CTkFont)
+                if (
+                    family is not None
+                    or size is not None
+                    or weight is not None
+                    or slant is not None
+                    or underline is not None
+                    or overstrike is not None
+                    or kwargs
+                ):
+                    raise TypeError(
+                        "font() cannot combine a font object with other arguments"
+                    )
+                self._font = args[0]
+                return self  # type: ignore
+            else:
+                config = _tuple_to_font_config(tuple(args))
+        else:
+            config = {}
+
+        named = {
+            "family": family,
+            "size": size,
+            "weight": weight,
+            "slant": slant,
+            "underline": underline,
+            "overstrike": overstrike,
+        }
+        for key, value in named.items():
+            if value is not None:
+                config[key] = value
+        config.update(kwargs)
+
+        for key in config:
+            if key not in _FONT_KEYS:
+                raise ValueError(
+                    f"font() got unsupported key {key!r}; supported keys: {_FONT_KEYS}"
+                )
+        if config.get("weight") not in (None,) + _FONT_WEIGHTS:
+            raise ValueError(f"font() weight must be one of {_FONT_WEIGHTS}")
+        if config.get("slant") not in (None,) + _FONT_SLANTS:
+            raise ValueError(f"font() slant must be one of {_FONT_SLANTS}")
+        if config.get("underline") not in (None, True, False):
+            raise ValueError("font() underline must be a bool")
+        if config.get("overstrike") not in (None, True, False):
+            raise ValueError("font() overstrike must be a bool")
+
+        self._font = _build_font_tuple(config) if config else None
         return self  # type: ignore
 
     # Interaction

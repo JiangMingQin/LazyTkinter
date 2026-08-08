@@ -29,7 +29,7 @@ def on_cancel_click():
 # build UI
 app.size("small").window_title("Login Example").gap(16).center().column(
     # title label
-    ltk.Label().text("User Login").font(("Arial", 20, "bold")),
+    ltk.Label().text("User Login").font(family="Arial", size=20, weight="bold"),
     # main content
     ltk.Column().padding(10).gap(10).align("center").add(
         # Entry: user_input_var
