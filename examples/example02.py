@@ -41,14 +41,14 @@ class App:
         # build page
         app.size("large").window_title("My first app").gap(10).padding(10).column(
             # Top Bar
-            ltk.Row().gap(10).padding(10).radius(10).align("center").height(60).width().fill().fg_color("#313244").add(
+            ltk.Row().gap(10).padding(10).radius(10).align("center").height(60).width().fill().add(
                 ltk.Label().text("LazyTkinter").font(family="Arial", size=16, weight="bold"),
                 ltk.Empty().width(10),  # fixed placeholder
-                ltk.Entry().width().fill().height(35).radius(100).placeholder_text("entry..."),
-                ltk.Button().width(80).text("search").event(self.search_something),
+                ltk.Entry().width().fill(weight=2).height(35).radius(100).placeholder_text("entry..."),
+                ltk.Button().width().fill(weight=1).text("search").event(self.search_something),
             ),
             # Main Area
-            ltk.Row().gap(10).radius(10).padding(10).height().fill().width().fill().fg_color("#313244").add(
+            ltk.Row().gap(10).radius(10).padding(10).height().fill().width().fill().add(
                 # Left Sidebar
                 ltk.Column().width(150).gap(10).padding(10).height().fill().transparent().add(
                     ltk.Button().height(30).text("Page 1").event(lambda: self.turn_to_page(1)),
@@ -59,6 +59,7 @@ class App:
                 ),
                 # Right Main Content
                 ltk.Column().gap(10).padding(10).height().fill().width().fill().transparent().add(
+                    # Top Content
                     ltk.Row().height(130).width().fill().gap(10).add(
                         # Checkbox
                         ltk.Column().width(60).gap(5).add(
