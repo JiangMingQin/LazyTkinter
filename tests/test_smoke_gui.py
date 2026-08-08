@@ -78,6 +78,19 @@ class SmokeTests(unittest.TestCase):
         app._window.update_idletasks()
         app._window.destroy()
 
+    def test_fixed_container_height(self):
+        app = ltk.Application()
+        app.size((300, 200)).column(
+            ltk.Row().height(60).add(
+                ltk.Label().text("x"),
+            ),
+        )
+        app.build()
+        app._window.update_idletasks()
+        row = app.base_frame.winfo_children()[0]
+        self.assertEqual(row.winfo_reqheight(), 60)
+        app._window.destroy()
+
     def test_center_shortcut_layout(self):
         app = ltk.Application()
         app.size("small")

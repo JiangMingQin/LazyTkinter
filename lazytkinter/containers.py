@@ -307,7 +307,7 @@ class Column(BaseWidget["Column"]):
         limit_w = width if width is not None else self._width
         limit_h = height if height is not None else self._height
         if limit_w is not None or limit_h is not None:
-            frame.pack_propagate(False)
+            frame.grid_propagate(False)
 
         frame.columnconfigure(0, weight=1)
         slots = _resolve_column_slots(
@@ -408,7 +408,7 @@ class Row(BaseWidget["Row"]):
         limit_w = width if width is not None else self._width
         limit_h = height if height is not None else self._height
         if limit_w is not None or limit_h is not None:
-            frame.pack_propagate(False)
+            frame.grid_propagate(False)
 
         frame.rowconfigure(0, weight=1)
         slots = _resolve_row_slots(
@@ -479,7 +479,7 @@ class ZStack(BaseWidget["ZStack"]):
         limit_w = width if width is not None else self._width
         limit_h = height if height is not None else self._height
         if limit_w is not None or limit_h is not None:
-            frame.pack_propagate(False)
+            frame.grid_propagate(False)
 
         frame.rowconfigure(0, weight=1)
         frame.columnconfigure(0, weight=1)
