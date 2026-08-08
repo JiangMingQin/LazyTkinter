@@ -31,6 +31,8 @@ class BaseWidget(Generic[T]):
         _cursor (str | None): Cursor style.
         _state (str | None): Widget state ("normal" or "disabled").
         _align (str | None): Per-widget placement override for the parent container.
+        _pending_size_axis (str | None): Axis being configured by a no-arg
+            width()/height() call, completed by the following fill()/fit().
     """
     def __init__(self) -> None:
         """Initialize base widget properties."""
@@ -53,6 +55,7 @@ class BaseWidget(Generic[T]):
 
         # Layout
         self._align = None  # per-widget override, resolved by the parent container
+        self._pending_size_axis = None  # "width" / "height" / None
 
     def _inject_base_args(
         self, kwargs: dict[str, Any], *, width=None, height=None
@@ -80,15 +83,23 @@ class BaseWidget(Generic[T]):
         if self._cursor is not None: kwargs['cursor'] = self._cursor
 
     # Dimensions
-    def width(self, w: int | str) -> T:
-        """Set widget width: a fixed pixel int, "fit" (wrap content) or "fill".
+    def width(self, w: int | str | None = None) -> T:
+        """Set widget width.
+
+        Accepts a fixed pixel int, or a size policy: "fit" (wrap content) or
+        "fill" (stretch to parent). Calling without an argument marks the width
+        axis so the following ``.fill()`` / ``.fit()`` applies to width only:
+        ``widget.width().fill()``.
 
         Args:
-            w (int | str): Width value.
+            w (int | str | None): Width value; None marks the width axis.
 
         Returns:
             T: Returns self for method chaining.
         """
+        if w is None:
+            self._pending_size_axis = "width"
+            return self  # type: ignore
         if isinstance(w, int):
             if w < 0:
                 raise ValueError(
@@ -103,17 +114,26 @@ class BaseWidget(Generic[T]):
             raise ValueError(
                 f"width() expects an int or one of {_SIZE_POLICIES!r}, got {w!r}"
             )
+        self._pending_size_axis = None
         return self  # type: ignore
 
-    def height(self, h: int | str) -> T:
-        """Set widget height: a fixed pixel int, "fit" (wrap content) or "fill".
+    def height(self, h: int | str | None = None) -> T:
+        """Set widget height.
+
+        Accepts a fixed pixel int, or a size policy: "fit" (wrap content) or
+        "fill" (stretch to parent). Calling without an argument marks the
+        height axis so the following ``.fill()`` / ``.fit()`` applies to height
+        only: ``widget.height().fit()``.
 
         Args:
-            h (int | str): Height value.
+            h (int | str | None): Height value; None marks the height axis.
 
         Returns:
             T: Returns self for method chaining.
         """
+        if h is None:
+            self._pending_size_axis = "height"
+            return self  # type: ignore
         if isinstance(h, int):
             if h < 0:
                 raise ValueError(
@@ -128,7 +148,40 @@ class BaseWidget(Generic[T]):
             raise ValueError(
                 f"height() expects an int or one of {_SIZE_POLICIES!r}, got {h!r}"
             )
+        self._pending_size_axis = None
         return self  # type: ignore
+
+    def fill(self) -> T:
+        """Set the size policy to "fill" on the pending axis, or both axes.
+
+        Use after a no-arg ``width()`` / ``height()`` to target one axis
+        (``widget.width().fill()``), or standalone to fill both axes.
+        """
+        self._apply_size_policy("fill")
+        return self  # type: ignore
+
+    def fit(self) -> T:
+        """Set the size policy to "fit" on the pending axis, or both axes.
+
+        Use after a no-arg ``width()`` / ``height()`` to target one axis
+        (``widget.height().fit()``), or standalone to fit both axes.
+        """
+        self._apply_size_policy("fit")
+        return self  # type: ignore
+
+    def _apply_size_policy(self, policy: str) -> None:
+        if self._pending_size_axis == "width":
+            self._width = None
+            self._width_policy = policy
+        elif self._pending_size_axis == "height":
+            self._height = None
+            self._height_policy = policy
+        else:
+            self._width = None
+            self._height = None
+            self._width_policy = policy
+            self._height_policy = policy
+        self._pending_size_axis = None
 
     def radius(self, r: int) -> T:
         """Set corner radius.

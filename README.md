@@ -43,6 +43,14 @@ It replaces traditional grid and pack methods with Row/Column/ZStack containers,
   ltk.Button().text("Click").width(100).event(func)
   ```
 
+- **可发现的尺寸策略 (Discoverable Size Policy)**: `width()` / `height()` 后可继续链出 `.fill()` / `.fit()`，配合 IDE 补全无需查文档；也支持固定像素 `width(120)`。控件与布局容器统一可用。
+  
+  ```python
+  ltk.Button().width().fill()   # 宽度 fill，高度保持 fit
+  ltk.Column().width().fit()    # 覆盖 Column 默认 fill，改为包裹内容
+  ltk.Button().fill()           # 两轴都 fill
+  ```
+
 - **声明式布局(Declarative Layout)**: 提供 `Row` 和 `Column` 容器，无需手写复杂的 `grid` 参数。
   
   ```python

@@ -42,6 +42,86 @@ class SizePolicyTests(unittest.TestCase):
             ltk.Button().height(-5)
 
 
+class SizePolicyChainTests(unittest.TestCase):
+    def test_width_chain_only_changes_width(self):
+        widget = ltk.Button().width().fill()
+        self.assertEqual(widget._width_policy, "fill")
+        self.assertEqual(widget._height_policy, "fit")
+        self.assertIsNone(widget._width)
+
+    def test_height_chain_only_changes_height(self):
+        widget = ltk.Button().width("fill").height().fit()
+        self.assertEqual(widget._width_policy, "fill")
+        self.assertEqual(widget._height_policy, "fit")
+
+    def test_bare_fill_applies_to_both_axes(self):
+        widget = ltk.Button().width(120).height(60).fill()
+        self.assertEqual(widget._width_policy, "fill")
+        self.assertEqual(widget._height_policy, "fill")
+        self.assertIsNone(widget._width)
+        self.assertIsNone(widget._height)
+
+    def test_bare_fit_applies_to_both_axes(self):
+        widget = ltk.Button().fill().fit()
+        self.assertEqual(widget._width_policy, "fit")
+        self.assertEqual(widget._height_policy, "fit")
+
+    def test_policy_clears_fixed_pixels(self):
+        widget = ltk.Button().width(120)
+        widget.width().fill()
+        self.assertIsNone(widget._width)
+        self.assertEqual(widget._width_policy, "fill")
+
+    def test_argument_call_clears_pending_axis(self):
+        widget = ltk.Button()
+        widget.width(120)
+        self.assertIsNone(widget._pending_size_axis)
+        widget.height("fill")
+        self.assertIsNone(widget._pending_size_axis)
+
+
+class ContainerSizeChainTests(unittest.TestCase):
+    def test_column_width_chain_overrides_default(self):
+        column = ltk.Column().width().fit()
+        self.assertEqual(column._width_policy, "fit")
+        self.assertEqual(column._height_policy, "fit")
+
+    def test_row_height_chain(self):
+        row = ltk.Row().height().fill()
+        self.assertEqual(row._height_policy, "fill")
+        self.assertEqual(row._width_policy, "fit")
+
+    def test_chained_and_string_forms_resolve_identically(self):
+        from lazytkinter.containers import _resolve_column_slots, _resolve_row_slots
+
+        chained_row = _resolve_row_slots(
+            [ltk.Button().width().fill()], default_align="top", gap=0, padding=0
+        )[0]
+        string_row = _resolve_row_slots(
+            [ltk.Button().width("fill")], default_align="top", gap=0, padding=0
+        )[0]
+        self.assertEqual(chained_row["weight"], string_row["weight"])
+        self.assertEqual(chained_row["sticky"], string_row["sticky"])
+
+        chained_col = _resolve_column_slots(
+            [ltk.Button().height().fill()], default_align="left", gap=0, padding=0
+        )[0]
+        string_col = _resolve_column_slots(
+            [ltk.Button().height("fill")], default_align="left", gap=0, padding=0
+        )[0]
+        self.assertEqual(chained_col["weight"], string_col["weight"])
+        self.assertEqual(chained_col["sticky"], string_col["sticky"])
+
+        chained_container = _resolve_row_slots(
+            [ltk.Column().width().fit()], default_align="top", gap=0, padding=0
+        )[0]
+        string_container = _resolve_row_slots(
+            [ltk.Column().width("fit")], default_align="top", gap=0, padding=0
+        )[0]
+        self.assertEqual(chained_container["weight"], string_container["weight"])
+        self.assertEqual(chained_container["sticky"], string_container["sticky"])
+
+
 class AlignTests(unittest.TestCase):
     def test_widget_align_stores_override(self):
         widget = ltk.Button().align("top-right")
