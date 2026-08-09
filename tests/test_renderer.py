@@ -174,7 +174,7 @@ class RendererFlowTests(unittest.TestCase):
         try:
             wrapper = ltk.Label().id("label")
             built = wrapper.build(None)
-            wrapper.text("hi")
+            wrapper.config(ltk.Label).text("hi")
             self.assertEqual(built.configured.get("text"), "hi")
         finally:
             registry.clear()

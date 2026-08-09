@@ -119,6 +119,20 @@ class BaseWidget(Generic[T]):
         self._id = name
         return self  # type: ignore
 
+    def config(self, cls: type[T]) -> T:
+        """Narrow this wrapper to a concrete widget type (runtime-checked).
+
+        ``app.get("name").config(ltk.Label).text("...")`` checks that the
+        registered widget is actually a ``Label`` and returns it typed, so
+        chainable setters type-check and autocomplete. A mismatch raises
+        ``TypeError`` with the widget id and the actual/expected types.
+        """
+        if not isinstance(self, cls):
+            raise TypeError(
+                f"widget {self._id!r} is {type(self).__name__}, expected {cls.__name__}"
+            )
+        return self  # type: ignore
+
     def _create_widget(self, kind, parent, kwargs):
         """Create a native widget through the renderer and register its id."""
         widget = get_renderer().create_widget(kind, parent, kwargs)

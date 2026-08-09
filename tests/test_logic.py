@@ -639,3 +639,14 @@ class TokenTests(unittest.TestCase):
         ltk.set_theme("gruvbox-theme")
         self.assertEqual(token_mod._current, "gruvbox-theme")
         ltk.set_theme("catppuccin-mocha")
+
+
+class ConfigNarrowingTests(unittest.TestCase):
+    def test_config_returns_same_wrapper(self):
+        label = ltk.Label()
+        self.assertIs(label.config(ltk.Label), label)
+
+    def test_config_mismatch_raises(self):
+        button = ltk.Button().id("btn")
+        with self.assertRaises(TypeError):
+            button.config(ltk.Label)

@@ -12,7 +12,7 @@ count = 0
 def on_click(value=None):
     global count
     count += 1
-    app.get("count").text(str(count))
+    app.get("count").config(ltk.Label).text(str(count))
 
 # build UI
 app.size("small").window_title("Counter").center().gap(10).column(

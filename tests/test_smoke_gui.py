@@ -209,7 +209,7 @@ class SmokeTests(unittest.TestCase):
         app.build()
         app._window.update_idletasks()
 
-        app.get("count").text("5")
+        app.get("count").config(ltk.Label).text("5")
         self.assertEqual(app.native("count").cget("text"), "5")
 
         tree = app.layout_tree()

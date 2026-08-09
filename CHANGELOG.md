@@ -30,6 +30,7 @@
 - example00 改为计数器示例（`.id("count")` + `app.get("count").configure(...)` 验证运行时更新）；example02 的 Scroll 列表替换为 Treeview + Listbox 展示。
 - `app.get()` / `registry.get()` 返回类型标注为 `tkinter.Widget`，消除 Pylance 对 `.configure` 等方法的类型报错。
 - `app.get()` 现在返回**配置包装对象**而非原生控件：构建后仍可用链式 setter（`.text()` / `.fg_color()` / `.state()` 等）实时更新（内部自动转发到原生控件，不支持的选项静默跳过）；需要原生控件时用 `app.native(name)`。example00 计数器改为 `app.get("count").text(...)` 写法。
+- 新增 `.config(类型)` 泛型收窄：`app.get("name").config(ltk.Label).text(...)` 通过运行时 `isinstance` 校验并返回对应控件类型，解决 Pylance 对具体控件方法的类型报错；类型不匹配抛 `TypeError`。
 - `docs/ARCHITECTURE.md` 新增布局引擎 v2 章节。
 - 主题加载改用 `logging`；找不到主题时 `set_theme` 抛 `ValueError`（原为 print 输出后继续）。
 - 容器布局从双层 Frame 改为单层 Frame；容器 `build` 不再自我 grid，统一由父容器放置，消除重复 grid。
