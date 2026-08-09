@@ -495,10 +495,10 @@ class DividerFlowTests(unittest.TestCase):
         self.assertEqual(props["width"], 1)
         self.assertNotIn("height", props)
 
-    def test_divider_thickness_and_token_color(self):
+    def test_divider_line_width_and_token_color(self):
         token_mod.set_theme("catppuccin-mocha")
         try:
-            ltk.Divider().thickness(3).fg_color("primary").build(None)
+            ltk.Divider().line_width(3).fg_color("primary").build(None)
             _, props = self.fake.widget_calls[0]
             self.assertEqual(props["height"], 3)
             self.assertEqual(props["fg_color"], token_mod.color("primary"))

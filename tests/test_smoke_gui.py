@@ -236,7 +236,7 @@ class SmokeTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             ltk.SplitPanel().sash_width(-1)
         with self.assertRaises(ValueError):
-            ltk.Divider().thickness(0)
+            ltk.Divider().line_width(0)
         with self.assertRaises(ValueError):
             ltk.Divider().orientation("diagonal")
         with self.assertRaises(ValueError):

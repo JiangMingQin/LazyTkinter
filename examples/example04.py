@@ -13,7 +13,7 @@ def main() -> None:
     app = ltk.Application()
     app.size("large").window_title("SplitPanel & Divider").padding(12).gap(12).column(
         ltk.Label().text("Drag the sash between the two panes to resize them."),
-        ltk.Divider(),
+        ltk.Divider().line_width(2),
         ltk.SplitPanel().vertical()
         .add(
             ltk.Column().gap(8).padding(8).radius(0).add(

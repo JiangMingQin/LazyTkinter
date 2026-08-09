@@ -780,7 +780,7 @@ class DividerLogicTests(unittest.TestCase):
     def test_default_horizontal(self):
         divider = ltk.Divider()
         self.assertEqual(divider._orientation, "horizontal")
-        self.assertEqual(divider._thickness, 1)
+        self.assertEqual(divider._line_width, 1)
         self.assertEqual(divider._width_policy, "fill")
 
     def test_orientation_chain_and_string(self):
@@ -805,12 +805,12 @@ class DividerLogicTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             ltk.Divider().orientation("diagonal")
 
-    def test_thickness_validation(self):
+    def test_line_width_validation(self):
         with self.assertRaises(ValueError):
-            ltk.Divider().thickness(0)
+            ltk.Divider().line_width(0)
         with self.assertRaises(ValueError):
-            ltk.Divider().thickness(-1)
+            ltk.Divider().line_width(-1)
         with self.assertRaises(ValueError):
-            ltk.Divider().thickness(2.5)
+            ltk.Divider().line_width(2.5)
         with self.assertRaises(ValueError):
-            ltk.Divider().thickness(True)
+            ltk.Divider().line_width(True)

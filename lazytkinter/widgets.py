@@ -661,7 +661,7 @@ class Divider(BaseWidget["Divider"]):
     def __init__(self) -> None:
         super().__init__()
         self._orientation = "horizontal"
-        self._thickness = 1
+        self._line_width = 1
         self._width_policy = "fill"
 
     def orientation(self, orient=None) -> Divider:
@@ -674,7 +674,7 @@ class Divider(BaseWidget["Divider"]):
                 f"got {orient!r}"
             )
         self._orientation = orient
-        # the main axis spans the container; the cross axis stays at thickness
+        # the main axis spans the container; the cross axis stays at line width
         if orient == "horizontal":
             self._width_policy = "fill"
         else:
@@ -689,11 +689,11 @@ class Divider(BaseWidget["Divider"]):
         """Set the divider vertical."""
         return self.orientation("vertical")
 
-    def thickness(self, n: int) -> Divider:
-        """Set the cross-axis thickness in pixels (positive integer)."""
+    def line_width(self, n: int) -> Divider:
+        """Set the cross-axis line width in pixels (positive integer)."""
         if not isinstance(n, int) or isinstance(n, bool) or n < 1:
-            raise ValueError("Divider.thickness() expects a positive integer")
-        self._thickness = n
+            raise ValueError("Divider.line_width() expects a positive integer")
+        self._line_width = n
         return self
 
     def build(self, parent, *, width=None, height=None):
@@ -709,7 +709,7 @@ class Divider(BaseWidget["Divider"]):
                 raise ValueError(
                     "Divider's main axis cannot be fit; use fill() or a fixed width"
                 )
-            props["height"] = self._thickness
+            props["height"] = self._line_width
             if self._width is not None:
                 props["width"] = self._width
         else:
@@ -717,7 +717,7 @@ class Divider(BaseWidget["Divider"]):
                 raise ValueError(
                     "Divider's main axis cannot be fit; use fill() or a fixed height"
                 )
-            props["width"] = self._thickness
+            props["width"] = self._line_width
             if self._height is not None:
                 props["height"] = self._height
         return self._create_widget("Divider", parent, props)
