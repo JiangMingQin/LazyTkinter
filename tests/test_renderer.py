@@ -405,6 +405,13 @@ class SplitPanelFlowTests(unittest.TestCase):
     def test_split_panel_orientation_vertical(self):
         ltk.SplitPanel(ltk.Column(), ltk.Column()).orientation("vertical").build(None)
         _, props = self.fake.container_calls[0]
+        # vertical cut (left/right panes) maps to ttk orient "horizontal"
+        self.assertEqual(props["orient"], "horizontal")
+
+    def test_split_panel_horizontal_orient(self):
+        ltk.SplitPanel(ltk.Column(), ltk.Column()).horizontal().build(None)
+        _, props = self.fake.container_calls[0]
+        # horizontal cut (top/bottom panes) maps to ttk orient "vertical"
         self.assertEqual(props["orient"], "vertical")
 
     def test_split_panel_requires_two_panes(self):
@@ -429,7 +436,40 @@ class SplitPanelFlowTests(unittest.TestCase):
     def test_split_panel_orientation_chain(self):
         ltk.SplitPanel(ltk.Column(), ltk.Column()).orientation().vertical().build(None)
         _, props = self.fake.container_calls[0]
-        self.assertEqual(props["orient"], "vertical")
+        self.assertEqual(props["orient"], "horizontal")
+
+    def test_split_panel_panes_wrapped(self):
+        ltk.SplitPanel().add(ltk.Column()).add(ltk.Column()).build(None)
+        kinds = [kind for kind, _ in self.fake.container_calls]
+        self.assertEqual(kinds[0], "SplitPanel")
+        self.assertEqual(kinds.count("SplitPanelPane"), 2)
+        self.assertEqual(kinds.count("Column"), 2)
+
+    def test_split_panel_pane_transparent(self):
+        ltk.SplitPanel().add(ltk.Column()).transparent().add(ltk.Column()).build(None)
+        pane_calls = [
+            props
+            for kind, props in self.fake.container_calls
+            if kind == "SplitPanelPane"
+        ]
+        self.assertEqual(pane_calls[0]["fg_color"], "transparent")
+        self.assertEqual(
+            pane_calls[1]["fg_color"], self.fake.native_theme_colors()["surface"]
+        )
+
+    def test_split_panel_axis_mismatch_raises(self):
+        with self.assertRaises(ValueError):
+            ltk.SplitPanel().add(ltk.Column()).min_height(100).add(ltk.Column()).build(None)
+        with self.assertRaises(ValueError):
+            ltk.SplitPanel().horizontal().add(ltk.Column()).min_width(100).add(
+                ltk.Column()
+            ).build(None)
+
+    def test_split_panel_min_exceeds_max_raises(self):
+        with self.assertRaises(ValueError):
+            ltk.SplitPanel().add(ltk.Column()).min_width(200).max_width(100).add(
+                ltk.Column()
+            ).build(None)
 
 
 class DividerFlowTests(unittest.TestCase):

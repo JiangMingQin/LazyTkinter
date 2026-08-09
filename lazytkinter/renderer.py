@@ -86,6 +86,7 @@ class CTkRenderer(Renderer):
             "ZStack": ctk.CTkFrame,
             "Scroll": ctk.CTkScrollableFrame,
             "SplitPanel": ttk.Panedwindow,
+            "SplitPanelPane": ctk.CTkFrame,
         }
         self._palette_cache: Dict[str, str] | None = None
 

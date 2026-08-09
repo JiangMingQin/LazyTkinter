@@ -277,14 +277,23 @@ class SmokeTests(unittest.TestCase):
     def test_split_panel(self):
         app = ltk.Application()
         app.size((600, 420)).window_title("smoke").column(
-            ltk.SplitPanel(
-                ltk.Column().gap(8).padding(8).add(ltk.Label().text("left")),
-                ltk.Column().gap(8).padding(8).add(ltk.Label().text("right")),
-            )
+            ltk.SplitPanel().id("split").vertical()
+            .add(ltk.Column().gap(8).padding(8).add(ltk.Label().text("left")))
+            .min_width(120).max_width(300)
+            .add(ltk.Column().gap(8).padding(8).add(ltk.Label().text("right")))
+            .min_width(120),
         )
         app.build()
-        app._window.update_idletasks()
-        self.assertEqual(len(app._window.winfo_children()), 1)
+        app._window.deiconify()
+        app._window.update()
+        native = app.native("split")
+        self.assertGreater(native.winfo_width(), 0)
+        # force an out-of-range sash, then let the <Map> clamp snap it back
+        native.sashpos(0, 30)
+        app._window.update()
+        native.event_generate("<Map>")
+        app._window.update()
+        self.assertGreaterEqual(native.sashpos(0), 100)
         app._window.destroy()
 
     def test_divider(self):

@@ -14,6 +14,7 @@ from lazytkinter.containers import (
     _frame_props,
     _resolve_column_slots,
     _resolve_row_slots,
+    _resolve_sash_positions,
     _resolve_zstack_slots,
 )
 from lazytkinter import registry
@@ -671,9 +672,9 @@ class CanvasLogicTests(unittest.TestCase):
 class SplitPanelLogicTests(unittest.TestCase):
     def test_constructor_and_add(self):
         paned = ltk.SplitPanel(Column(), Column())
-        self.assertEqual(len(paned._args), 2)
+        self.assertEqual(len(paned._panes), 2)
         paned.add(Column())
-        self.assertEqual(len(paned._args), 3)
+        self.assertEqual(len(paned._panes), 3)
 
     def test_orientation_validation(self):
         with self.assertRaises(ValueError):
@@ -693,7 +694,7 @@ class SplitPanelLogicTests(unittest.TestCase):
     def test_no_arg_orientation_is_noop(self):
         panel = ltk.SplitPanel()
         self.assertIs(panel.orientation(), panel)
-        self.assertEqual(panel._orientation, "horizontal")
+        self.assertEqual(panel._orientation, "vertical")
 
     def test_sash_width_validation(self):
         with self.assertRaises(ValueError):
@@ -717,6 +718,62 @@ class SplitPanelLogicTests(unittest.TestCase):
             ltk.SplitPanel(object())
         with self.assertRaises(TypeError):
             ltk.SplitPanel().add(object())
+
+    def test_chain_add_and_pane_attributes(self):
+        panel = ltk.SplitPanel()
+        panel.add(Column()).min_width(120).max_width(400)
+        panel.add(Column()).min_width(200).transparent()
+        first, second = panel._panes
+        self.assertEqual(first["min_width"], 120)
+        self.assertEqual(first["max_width"], 400)
+        self.assertFalse(first["transparent"])
+        self.assertEqual(second["min_width"], 200)
+        self.assertTrue(second["transparent"])
+
+    def test_pane_attribute_before_add_raises(self):
+        with self.assertRaises(ValueError):
+            ltk.SplitPanel().min_width(100)
+
+    def test_pane_size_validation(self):
+        with self.assertRaises(ValueError):
+            ltk.SplitPanel().add(Column()).min_width(-1)
+        with self.assertRaises(ValueError):
+            ltk.SplitPanel().add(Column()).max_width(True)
+        with self.assertRaises(ValueError):
+            ltk.SplitPanel().add(Column()).min_height(2.5)
+        with self.assertRaises(ValueError):
+            ltk.SplitPanel().add(Column()).transparent("yes")
+
+
+class SashSolverTests(unittest.TestCase):
+    def test_unbounded_keeps_positions(self):
+        targets = _resolve_sash_positions([200, 200], [None, None], [None, None], 400)
+        self.assertEqual(targets, [200])
+
+    def test_min_clamps_up(self):
+        targets = _resolve_sash_positions([100, 300], [250, None], [None, None], 400)
+        self.assertEqual(targets, [250])
+
+    def test_max_clamps_down(self):
+        targets = _resolve_sash_positions([150, 250], [None, None], [150, None], 400)
+        self.assertEqual(targets, [150])
+
+    def test_two_mins_intersection(self):
+        targets = _resolve_sash_positions([200, 200], [250, 100], [None, None], 400)
+        self.assertEqual(targets, [250])
+
+    def test_conflict_prefers_min(self):
+        targets = _resolve_sash_positions([200, 200], [350, 100], [None, None], 400)
+        self.assertEqual(targets, [350])
+
+    def test_three_panes_sequential(self):
+        targets = _resolve_sash_positions(
+            [100, 100, 200],
+            [150, 80, None],
+            [None, None, None],
+            400,
+        )
+        self.assertEqual(targets, [150, 230])
 
 
 class DividerLogicTests(unittest.TestCase):

@@ -611,19 +611,68 @@ def _configure_split_panel_style(parent, colors, sash_width, proxysash, style_na
     style.configure(style_name, **opts)
 
 
+def _validate_pane_size(value, name: str) -> int:
+    """Validate a per-pane min/max constraint value."""
+    if not isinstance(value, int) or isinstance(value, bool) or value < 0:
+        raise ValueError(f"SplitPanel.{name}() expects a non-negative integer")
+    return value
+
+
+def _resolve_sash_positions(sizes, mins, maxs, total):
+    """Compute target sash positions satisfying per-pane min/max constraints.
+
+    Args:
+        sizes: current pane sizes along the sash axis.
+        mins: per-pane minimum size (None = 0).
+        maxs: per-pane maximum size (None = unbounded).
+        total: total pane space along the sash axis.
+
+    Returns:
+        Target positions for each sash (n-1 values). Each sash is clamped to
+        the intersection of the leading pane's [min, max] and the trailing
+        panes' aggregate [min, max]; when the intersection is empty, minimum
+        constraints take priority.
+    """
+    n = len(sizes)
+    if n < 2:
+        return []
+    lo = [0 if m is None else m for m in mins]
+    hi = [float("inf") if x is None else x for x in maxs]
+    pos = []
+    acc = 0
+    for size in sizes:
+        acc += size
+        pos.append(acc)
+    for i in range(n - 1):
+        prev = pos[i - 1] if i > 0 else 0
+        trailing_min = sum(lo[i + 1:])
+        trailing_max = sum(hi[i + 1:])
+        low = max(prev + lo[i], total - trailing_max)
+        high = min(prev + hi[i], total - trailing_min)
+        if low > high:
+            # infeasible: min constraints win over max constraints
+            low = prev + lo[i]
+            high = min(prev + hi[i], total - trailing_min)
+            if high < low:
+                high = low
+        pos[i] = min(max(pos[i], low), high)
+    return pos[:-1]
+
+
 class SplitPanel(BaseWidget["SplitPanel"]):
     """A resizable split container backed by ``ttk.Panedwindow``.
 
-    Children are arranged side by side (``orientation("horizontal")``, the
-    default, like Row) or stacked top-to-bottom (``orientation("vertical")``,
-    like Column); the draggable sash between panes is themed with the CTk
-    palette at build time.
+    Direction follows the cut line: ``.vertical()`` makes a vertical cut
+    (left/right panes, width constraints) and ``.horizontal()`` makes a
+    horizontal cut (top/bottom panes, height constraints). Panes are added
+    with the chainable ``.add(child)`` followed by per-pane attributes::
 
-    Usage Example:
-        ltk.SplitPanel(
-            ltk.Column().add(ltk.Label().text("left")),
-            ltk.Column().add(ltk.Label().text("right")),
-        ).orientation("vertical")
+        ltk.SplitPanel().vertical()
+            .add(ltk.Column(...)).min_width(120).max_width(400).transparent()
+            .add(ltk.Column(...)).min_width(200)
+
+    Min/max sizes are enforced with a ``sashpos()`` clamp after a drag, because
+    ``ttk.Panedwindow`` has no native per-pane size constraints.
     """
 
     def __init__(self, *children) -> None:
@@ -635,13 +684,13 @@ class SplitPanel(BaseWidget["SplitPanel"]):
         super().__init__()
         self._width_policy = "fill"
         self._height_policy = "fill"
-        self._orientation = "horizontal"
+        self._orientation = "vertical"  # cut-line direction: vertical = left/right
         self._sash_width = 5
         self._proxy_sash = True
         self._style_name = f"LTkSplitPanel{next(_SPLIT_STYLE_SEQ)}.TPanedwindow"
-        self._args = children
+        self._panes: list[dict[str, Any]] = []
         for child in children:
-            self._check_child(child)
+            self.add(child)
 
     @staticmethod
     def _check_child(child) -> None:
@@ -652,38 +701,83 @@ class SplitPanel(BaseWidget["SplitPanel"]):
             )
 
     def add(self, *args) -> SplitPanel:
-        """Append pane widgets to the container."""
+        """Append pane widgets; per-pane attributes apply to the last add."""
         for child in args:
             self._check_child(child)
-        self._args = self._args + args
+            self._panes.append(
+                {
+                    "child": child,
+                    "min_width": None,
+                    "max_width": None,
+                    "min_height": None,
+                    "max_height": None,
+                    "transparent": False,
+                }
+            )
+        return self
+
+    def _last_pane(self) -> dict[str, Any]:
+        if not self._panes:
+            raise ValueError(
+                "SplitPanel pane attributes must follow add(), e.g. "
+                "SplitPanel().vertical().add(child).min_width(120)"
+            )
+        return self._panes[-1]
+
+    def min_width(self, value: int) -> SplitPanel:
+        """Set the last pane's minimum width (vertical cut)."""
+        self._last_pane()["min_width"] = _validate_pane_size(value, "min_width")
+        return self
+
+    def max_width(self, value: int) -> SplitPanel:
+        """Set the last pane's maximum width (vertical cut)."""
+        self._last_pane()["max_width"] = _validate_pane_size(value, "max_width")
+        return self
+
+    def min_height(self, value: int) -> SplitPanel:
+        """Set the last pane's minimum height (horizontal cut)."""
+        self._last_pane()["min_height"] = _validate_pane_size(value, "min_height")
+        return self
+
+    def max_height(self, value: int) -> SplitPanel:
+        """Set the last pane's maximum height (horizontal cut)."""
+        self._last_pane()["max_height"] = _validate_pane_size(value, "max_height")
+        return self
+
+    def transparent(self, active: bool = True) -> SplitPanel:
+        """Make the last pane's wrapper frame transparent."""
+        if not isinstance(active, bool):
+            raise ValueError("SplitPanel.transparent() expects a bool")
+        self._last_pane()["transparent"] = active
         return self
 
     def orientation(self, orient=None) -> SplitPanel:
-        """Set the split direction.
+        """Set the cut direction.
 
-        Chainable form mirrors ``width().fill()``:
-        ``SplitPanel(...).orientation().vertical()``; the string form
-        ``.orientation("horizontal")`` is also accepted. Calling without an
-        argument is a no-op prefix for ``.horizontal()`` / ``.vertical()``.
+        ``vertical`` = vertical cut line (left/right panes, width attributes);
+        ``horizontal`` = horizontal cut line (top/bottom panes, height
+        attributes). Chainable form mirrors ``width().fill()``:
+        ``.orientation().vertical()``; the string form is also accepted.
+        Calling without an argument is a no-op prefix.
         """
         if orient is None:
             return self
-        if orient not in ("horizontal", "vertical"):
+        if orient not in ("vertical", "horizontal"):
             raise ValueError(
-                "SplitPanel.orientation() expects 'horizontal' or 'vertical', "
+                "SplitPanel.orientation() expects 'vertical' or 'horizontal', "
                 f"got {orient!r}"
             )
         self._orientation = orient
         return self
 
-    def horizontal(self) -> SplitPanel:
-        """Split left/right (like Row)."""
-        self._orientation = "horizontal"
+    def vertical(self) -> SplitPanel:
+        """Cut vertically: left/right panes (width constraints)."""
+        self._orientation = "vertical"
         return self
 
-    def vertical(self) -> SplitPanel:
-        """Split top/bottom (like Column)."""
-        self._orientation = "vertical"
+    def horizontal(self) -> SplitPanel:
+        """Cut horizontally: top/bottom panes (height constraints)."""
+        self._orientation = "horizontal"
         return self
 
     def sash_width(self, width: int) -> SplitPanel:
@@ -700,25 +794,87 @@ class SplitPanel(BaseWidget["SplitPanel"]):
         self._proxy_sash = active
         return self
 
+    def _validate_panes(self) -> None:
+        vertical = self._orientation == "vertical"
+        for pane in self._panes:
+            if vertical:
+                if pane["min_height"] is not None or pane["max_height"] is not None:
+                    raise ValueError(
+                        "vertical SplitPanel panes use width constraints "
+                        "(min_width/max_width), not height"
+                    )
+                lo, hi = pane["min_width"], pane["max_width"]
+            else:
+                if pane["min_width"] is not None or pane["max_width"] is not None:
+                    raise ValueError(
+                        "horizontal SplitPanel panes use height constraints "
+                        "(min_height/max_height), not width"
+                    )
+                lo, hi = pane["min_height"], pane["max_height"]
+            if lo is not None and hi is not None and lo > hi:
+                raise ValueError("SplitPanel pane min cannot exceed its max")
+
+    def _clamp_sashes(self, paned) -> None:
+        """Clamp sash positions so every pane satisfies its min/max constraints."""
+        frames = getattr(self, "_pane_frames", None)
+        if not frames or len(frames) < 2:
+            return
+        if self._orientation == "vertical":
+            sizes = [frame.winfo_width() for frame in frames]
+            mins = [pane["min_width"] for pane in self._panes]
+            maxs = [pane["max_width"] for pane in self._panes]
+        else:
+            sizes = [frame.winfo_height() for frame in frames]
+            mins = [pane["min_height"] for pane in self._panes]
+            maxs = [pane["max_height"] for pane in self._panes]
+        if any(size <= 0 for size in sizes):
+            return
+        targets = _resolve_sash_positions(sizes, mins, maxs, sum(sizes))
+        for index, target in enumerate(targets):
+            paned.sashpos(index, target)
+
     def build(self, parent, *, width=None, height=None):
-        if len(self._args) < 2:
+        if len(self._panes) < 2:
             raise ValueError(
                 "SplitPanel needs at least two panes, e.g. "
-                "SplitPanel(Column(...), Column(...))"
+                "SplitPanel().vertical().add(...).add(...)"
             )
+        self._validate_panes()
+        palette = get_renderer().native_theme_colors()
         _configure_split_panel_style(
             parent,
-            get_renderer().native_theme_colors(),
+            palette,
             self._sash_width,
             self._proxy_sash,
             self._style_name,
         )
+        ttk_orient = "horizontal" if self._orientation == "vertical" else "vertical"
         paned = self._create_container(
             "SplitPanel",
             parent,
-            {"orient": self._orientation, "style": self._style_name},
+            {"orient": ttk_orient, "style": self._style_name},
         )
-        for child in self._args:
-            the_ele = child.build(paned)
-            paned.add(the_ele, weight=1)
+        pane_frames = []
+        for pane in self._panes:
+            fg = "transparent" if pane["transparent"] else palette["surface"]
+            # internal pane wrapper: created directly so it does not re-register
+            # the SplitPanel's id nor overwrite self._built (the paned window)
+            frame = get_renderer().create_container(
+                "SplitPanelPane", paned, {"fg_color": fg}
+            )
+            frame.columnconfigure(0, weight=1)
+            frame.rowconfigure(0, weight=1)
+            the_ele = pane["child"].build(frame)
+            the_ele.grid(row=0, column=0, sticky="nsew")
+            paned.add(frame, weight=1)
+            pane_frames.append(frame)
+        self._pane_frames = pane_frames
+        paned.bind(
+            "<Map>",
+            lambda _event: paned.after_idle(lambda: self._clamp_sashes(paned)),
+        )
+        paned.bind(
+            "<ButtonRelease-1>",
+            lambda _event: paned.after_idle(lambda: self._clamp_sashes(paned)),
+        )
         return paned
