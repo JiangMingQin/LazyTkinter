@@ -2,7 +2,7 @@
 
 本项目所有重要变更都会记录在此文件中。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本遵循 [Semantic Versioning](https://semver.org/lang/zh-CN/)。
 
-## [Unreleased]
+## [0.8.0] - 2026-08-10
 
 ### 新增 (Added)
 
@@ -30,6 +30,7 @@
 
 ### 修改 (Changed)
 
+- Treeview / Listbox 标注为**试验功能**：使用系统（ttk/tk）控件渲染，可能与 CTk 主题风格不完全统一；版本升至 v0.8.0。
 - `Spacer` 与 `Empty` 合并为 `Space`：`Space()` 默认弹性（等价旧 `Spacer`，按 `weight` 分配剩余空间），显式 `width()` / `height()` 固定像素时变为刚性透明占位（等价旧 `Empty`）；固定尺寸的 `Space` 不再触发 fill 子元素降级，仅弹性 `Space` 生效；ZStack 中弹性 `Space` 抛 `ValueError`、固定尺寸可用；显式 `weight()` 与主轴固定尺寸同用抛 `ValueError`。
 - 示例 `example00/01/02` 与 README 全面适配 v2 API；README 新增「布局 API 速查」章节。
 - 示例移除 `sys.path.append` 临时路径 hack，安装包后可直接运行。
