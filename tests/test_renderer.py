@@ -15,6 +15,7 @@ class Stub:
     def __init__(self):
         self.configured = {}
         self.set_calls = []
+        self.inserted = []
         self.value = 1
 
     def get(self):
@@ -25,6 +26,9 @@ class Stub:
 
     def set(self, value):
         self.set_calls.append(value)
+
+    def insert(self, *args, **kwargs):
+        self.inserted.append((args, kwargs))
 
     def __getattr__(self, name):
         def _noop(*args, **kwargs):
@@ -37,14 +41,17 @@ class FakeRenderer(Renderer):
     def __init__(self):
         self.widget_calls = []
         self.container_calls = []
+        self.created_widgets = []
         self.window = Stub()
 
     def create_window(self):
         return self.window
 
     def create_widget(self, kind, parent, props):
+        stub = Stub()
         self.widget_calls.append((kind, dict(props)))
-        return Stub()
+        self.created_widgets.append(stub)
+        return stub
 
     def create_container(self, kind, parent, props):
         self.container_calls.append((kind, dict(props)))
@@ -138,6 +145,25 @@ class RendererFlowTests(unittest.TestCase):
     def test_empty_default_value_is_set(self):
         widget = ltk.ComboBox().values(["a", "b"]).set_value("").build(None)
         self.assertEqual(widget.set_calls, [""])
+
+    def test_treeview_build_inserts_rows(self):
+        ltk.Treeview().columns(["A", "B"]).rows([("1", "2"), ("3", "4")]).build(None)
+        kinds = [call[0] for call in self.fake.widget_calls]
+        self.assertIn("Treeview", kinds)
+        self.assertIn("Scrollbar", kinds)
+        self.assertEqual(self.fake.container_calls[0][0], "Column")
+        tree = self.fake.created_widgets[kinds.index("Treeview")]
+        self.assertEqual(
+            tree.inserted,
+            [(("", "end"), {"values": ("1", "2")}), (("", "end"), {"values": ("3", "4")})],
+        )
+
+    def test_listbox_build_inserts_items(self):
+        ltk.Listbox().items(["x", "y"]).build(None)
+        kinds = [call[0] for call in self.fake.widget_calls]
+        self.assertIn("Listbox", kinds)
+        listbox = self.fake.created_widgets[kinds.index("Listbox")]
+        self.assertEqual(listbox.inserted, [(("end", "x"), {}), (("end", "y"), {})])
 
     def test_progressbar_sets_initial_value(self):
         widget = ltk.ProgressBar().value(0.7).build(None)

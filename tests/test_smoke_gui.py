@@ -164,6 +164,36 @@ class SmokeTests(unittest.TestCase):
         app._window.update_idletasks()
         app._window.destroy()
 
+    def test_treeview_and_listbox(self):
+        app = ltk.Application()
+        app.size("small")
+        selected = []
+        app.column(
+            ltk.Treeview()
+                .columns(["Item", "Value"])
+                .rows([(f"Item {i}", i) for i in range(300)])
+                .height().fill()
+                .event(selected.append),
+            ltk.Listbox()
+                .items([f"Item {i}" for i in range(300)])
+                .height().fill()
+                .event(selected.append),
+        )
+        app.build()
+        app._window.update_idletasks()
+
+        tree_frame, listbox_frame = app.base_frame.winfo_children()
+        tree = next(c for c in tree_frame.winfo_children() if c.winfo_class() == "Treeview")
+        listbox = next(c for c in listbox_frame.winfo_children() if c.winfo_class() == "Listbox")
+        self.assertEqual(len(tree.get_children()), 300)
+        self.assertEqual(listbox.size(), 300)
+
+        tree.selection_set(tree.get_children()[0])
+        tree.event_generate("<<TreeviewSelect>>")
+        app._window.update_idletasks()
+        self.assertEqual(len(selected), 1)
+        app._window.destroy()
+
     def test_invalid_api_raises(self):
         with self.assertRaises(ValueError):
             ltk.Button().width("bogus")

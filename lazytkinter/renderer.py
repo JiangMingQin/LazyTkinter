@@ -10,6 +10,8 @@ from __future__ import annotations
 
 import logging
 import os
+import tkinter as tk
+from tkinter import ttk
 from typing import Any, Dict, Type
 
 import customtkinter as ctk
@@ -63,6 +65,9 @@ class CTkRenderer(Renderer):
             "ComboBox": ctk.CTkComboBox,
             "OptionMenu": ctk.CTkOptionMenu,
             "Textbox": ctk.CTkTextbox,
+            "Treeview": ttk.Treeview,
+            "Listbox": tk.Listbox,
+            "Scrollbar": ttk.Scrollbar,
         }
         self._container_classes: Dict[str, Type] = {
             "RootFrame": ctk.CTkFrame,
