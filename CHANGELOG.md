@@ -6,6 +6,7 @@
 
 ### 新增 (Added)
 
+- **数据控件主题化**：`Treeview` / `Listbox` 保留原生控件（性能优先），构建时用 `native_theme_colors()` 调色板为每个实例生成唯一 ttk style（仿 SplitPanel 的 per-instance 模式）——Treeview 与滚动条经 `ttk.Style` 上色（表面/文字/边框/选中色），Listbox 为 tk 控件、同一调色板走控件选项（`bg`/`fg`/`selectbackground` 等）；切换主题或明暗后需重建窗口。
 - **新组件（v0.7.0）**：
   - `SplitPanel`（原 PanedWindow，可拖拽分栏，`ttk.Panedwindow`）：链式 `add()` + 面板属性——`min_width/max_width`（纵向切割）、`min_height/max_height`（横向切割）、`transparent()`；方向按**切割线方向**定义（`vertical()` = 左右分栏、`horizontal()` = 上下分栏，`orientation()` 字符串形式保留）；最小/最大尺寸用 `sashpos` 拖动后回夹实现（ttk 无原生支持）；`sash_width()`、`proxy_sash()`（默认幽灵分隔条）；每实例 ttk style + 主题调色板缓存。
   - `Divider`（分隔线，CTkFrame 薄层）：`orientation()` 链式、`line_width()`；默认色取当前 CTk 主题 border（`ctk.ThemeManager`，语义 token 兜底）。

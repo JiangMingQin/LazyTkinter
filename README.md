@@ -219,12 +219,14 @@ ltk.Button().fg_color("primary")            # 颜色可用语义 token 名
 ltk.color("primary")                        # 读取当前主题的 token 值
 ```
 
-**数据型控件 / Data Widgets**（大列表性能优先，原生外观）：
+**数据型控件 / Data Widgets**（大列表性能优先，原生控件 + 主题化调色板）：
 
 ```python
 ltk.Treeview().columns(["Item", "Value"]).rows([("a", 1), ("b", 2)]).event(cb)
 ltk.Listbox().items(["a", "b"]).event(cb)
 ```
+
+> **Treeview / Listbox 主题化**：保留 `ttk.Treeview` / `tk.Listbox` 原生控件（性能优先），构建时用 `native_theme_colors()` 调色板为每个实例生成唯一的 ttk style（`LTkData<N>.Treeview` 等）：表面/文字/边框/选中色跟随当前 CTk 主题；Listbox 为 tk 控件，同一调色板通过控件选项上色。切换主题或明暗后需重建窗口生效；个别平台对 Treeview 背景上色支持受限（Windows 正常）。
 
 **窗口 / Window**：
 
