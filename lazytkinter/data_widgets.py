@@ -1,13 +1,61 @@
-"""Data-oriented widgets for large lists (performance-first, native look)."""
+"""Data-oriented widgets for large lists (performance-first, themed native look)."""
 
 from __future__ import annotations
+from itertools import count
+from tkinter import ttk
 from typing import Any
 
 from .base import BaseWidget
 from .renderer import get_renderer
 
 
-def _new_scroll_frame(wrapper, parent, *, width=None, height=None):
+_DATA_STYLE_SEQ = count(1)
+
+
+def _configure_data_styles(
+    parent, colors, tree_style=None, heading_style=None, scroll_style=None
+) -> None:
+    """Apply the CTk-derived palette to one data widget instance's ttk styles.
+
+    Each Treeview/Listbox gets its own style names (like SplitPanel) so
+    instances never interfere. Listbox itself is a ``tk`` widget and is colored
+    through widget options instead of a ttk style.
+    """
+    if parent is None:
+        return
+    style = ttk.Style(parent)
+    if tree_style is not None:
+        style.configure(
+            tree_style,
+            background=colors["surface"],
+            fieldbackground=colors["surface"],
+            foreground=colors["text"],
+            bordercolor=colors["border"],
+            rowheight=26,
+        )
+        style.map(
+            tree_style,
+            background=[("selected", colors["primary"])],
+            foreground=[("selected", colors["primary_text"])],
+        )
+    if heading_style is not None:
+        style.configure(
+            heading_style,
+            background=colors["border"],
+            foreground=colors["text"],
+            relief="flat",
+        )
+    if scroll_style is not None:
+        style.configure(
+            scroll_style,
+            background=colors["surface"],
+            troughcolor=colors["border"],
+            arrowcolor=colors["text"],
+            borderwidth=0,
+        )
+
+
+def _new_scroll_frame(wrapper, parent, *, width=None, height=None, scroll_style=None):
     """Create the wrapper frame and its vertical scrollbar (grid-based)."""
     # internal helpers are created directly so they never re-register the
     # widget's id nor overwrite its _built reference (the main native widget)
@@ -17,7 +65,10 @@ def _new_scroll_frame(wrapper, parent, *, width=None, height=None):
     if limit_w is not None or limit_h is not None:
         frame.grid_propagate(False)
 
-    scrollbar = get_renderer().create_widget("Scrollbar", frame, {"orient": "vertical"})
+    scrollbar_kwargs: dict[str, Any] = {"orient": "vertical"}
+    if scroll_style is not None:
+        scrollbar_kwargs["style"] = scroll_style
+    scrollbar = get_renderer().create_widget("Scrollbar", frame, scrollbar_kwargs)
     frame.grid_columnconfigure(0, weight=1)
     frame.grid_rowconfigure(0, weight=1)
     return frame, scrollbar
@@ -35,8 +86,8 @@ def _place_scrollable(frame, scrollbar, native):
 class Treeview(BaseWidget["Treeview"]):
     """A ``ttk.Treeview`` data widget with a built-in vertical scrollbar.
 
-    Trade-off: native ttk appearance (performance-first) instead of CTk
-    styling; one widget plus data instead of one widget per row.
+    Trade-off: native ttk widget (performance-first) instead of one CTk widget
+    per row; the per-instance ttk style is themed with the CTk palette.
     """
 
     def __init__(self) -> None:
@@ -44,6 +95,10 @@ class Treeview(BaseWidget["Treeview"]):
         self._columns: list[str] = []
         self._rows: list[tuple] = []
         self._command = None
+        style_n = next(_DATA_STYLE_SEQ)
+        self._tree_style = f"LTkData{style_n}.Treeview"
+        self._heading_style = f"LTkData{style_n}.Treeview.Heading"
+        self._scroll_style = f"LTkDataScroll{style_n}.Vertical.TScrollbar"
 
     def columns(self, columns: list) -> Treeview:
         """Set the column headers (each header is used as its column id)."""
@@ -63,7 +118,22 @@ class Treeview(BaseWidget["Treeview"]):
     def build(self, parent, *, width=None, height=None):
         props: dict[str, Any] = {}
         self._inject_base_args(props, width=width, height=height)
-        frame, scrollbar = _new_scroll_frame(self, parent, width=width, height=height)
+        palette = get_renderer().native_theme_colors()
+        _configure_data_styles(
+            parent,
+            palette,
+            tree_style=self._tree_style,
+            heading_style=self._heading_style,
+            scroll_style=self._scroll_style,
+        )
+        props["style"] = self._tree_style
+        frame, scrollbar = _new_scroll_frame(
+            self,
+            parent,
+            width=width,
+            height=height,
+            scroll_style=self._scroll_style,
+        )
         tree = self._create_widget("Treeview", frame, props)
 
         columns = self._columns or ["Column"]
@@ -94,6 +164,8 @@ class Listbox(BaseWidget["Listbox"]):
         super().__init__()
         self._items: list = []
         self._command = None
+        style_n = next(_DATA_STYLE_SEQ)
+        self._scroll_style = f"LTkDataScroll{style_n}.Vertical.TScrollbar"
 
     def items(self, items: list) -> Listbox:
         """Set the list items."""
@@ -108,7 +180,27 @@ class Listbox(BaseWidget["Listbox"]):
     def build(self, parent, *, width=None, height=None):
         props: dict[str, Any] = {}
         self._inject_base_args(props, width=width, height=height)
-        frame, scrollbar = _new_scroll_frame(self, parent, width=width, height=height)
+        palette = get_renderer().native_theme_colors()
+        _configure_data_styles(parent, palette, scroll_style=self._scroll_style)
+        props.update(
+            {
+                "bg": palette["surface"],
+                "fg": palette["text"],
+                "selectbackground": palette["primary"],
+                "selectforeground": palette["primary_text"],
+                "highlightbackground": palette["border"],
+                "highlightthickness": 1,
+                "relief": "flat",
+                "bd": 0,
+            }
+        )
+        frame, scrollbar = _new_scroll_frame(
+            self,
+            parent,
+            width=width,
+            height=height,
+            scroll_style=self._scroll_style,
+        )
         listbox = self._create_widget("Listbox", frame, props)
 
         for item in self._items:

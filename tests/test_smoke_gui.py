@@ -209,6 +209,26 @@ class SmokeTests(unittest.TestCase):
         self.assertEqual(len(selected), 1)
         app._window.destroy()
 
+    def test_data_widget_theming(self):
+        from tkinter import ttk
+
+        app = ltk.Application()
+        app.size((500, 360)).window_title("smoke").column(
+            ltk.Treeview().id("t").columns(["A"]).rows([("1",)]),
+            ltk.Listbox().id("l").items(["a"]),
+        )
+        app.build()
+        app._window.update_idletasks()
+
+        palette = renderer_mod.get_renderer().native_theme_colors()
+        tree_style = app.native("t").cget("style")
+        self.assertTrue(tree_style.startswith("LTkData"))
+        self.assertTrue(tree_style.endswith(".Treeview"))
+        configured = ttk.Style(app._window).configure(tree_style)
+        self.assertEqual(configured["background"], palette["surface"])
+        self.assertEqual(app.native("l").cget("bg"), palette["surface"])
+        app._window.destroy()
+
     def test_id_get_and_layout_tree(self):
         app = ltk.Application()
         app.size("small")

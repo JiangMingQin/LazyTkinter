@@ -249,6 +249,35 @@ class RendererFlowTests(unittest.TestCase):
         finally:
             registry.clear()
 
+    def test_treeview_per_instance_styles(self):
+        ltk.Treeview().build(None)
+        ltk.Treeview().build(None)
+        tree_calls = [
+            props for kind, props in self.fake.widget_calls if kind == "Treeview"
+        ]
+        self.assertNotEqual(tree_calls[0]["style"], tree_calls[1]["style"])
+        self.assertTrue(tree_calls[0]["style"].startswith("LTkData"))
+        self.assertTrue(tree_calls[0]["style"].endswith(".Treeview"))
+
+    def test_data_scrollbar_style(self):
+        ltk.Treeview().build(None)
+        scroll_calls = [
+            props for kind, props in self.fake.widget_calls if kind == "Scrollbar"
+        ]
+        self.assertTrue(scroll_calls[0]["style"].endswith(".Vertical.TScrollbar"))
+
+    def test_listbox_palette_colors(self):
+        ltk.Listbox().items(["a"]).build(None)
+        props = [
+            p for kind, p in self.fake.widget_calls if kind == "Listbox"
+        ][0]
+        palette = self.fake.native_theme_colors()
+        self.assertEqual(props["bg"], palette["surface"])
+        self.assertEqual(props["fg"], palette["text"])
+        self.assertEqual(props["selectbackground"], palette["primary"])
+        self.assertEqual(props["selectforeground"], palette["primary_text"])
+        self.assertEqual(props["highlightbackground"], palette["border"])
+
     def test_progressbar_sets_initial_value(self):
         widget = ltk.ProgressBar().value(0.7).build(None)
         self.assertEqual(widget.set_calls, [0.7])
