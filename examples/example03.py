@@ -1,4 +1,4 @@
-"""Example 03: Canvas.
+"""Example 03: Treeview and Listbox (data widgets).
 
 Run with:
     python examples/example03.py
@@ -11,21 +11,37 @@ def main() -> None:
     ltk.set_theme(ltk.Theme.Catppuccin)
 
     app = ltk.Application()
-    app.size("medium").window_title("Canvas").padding(16).gap(12).column(
-        ltk.Label().text("A drawing surface (CTkCanvas / tk.Canvas)."),
-        ltk.Canvas()
-        .id("drawing")
-        .width(680)
-        .height(420)
-        .fg_color("surface_alt")
-        .draw(
-            lambda c: (
-                c.create_rectangle(20, 20, 180, 130, fill=ltk.color("primary"), outline=""),
-                c.create_oval(
-                    220, 40, 330, 150, fill=ltk.color("bg"), outline=ltk.color("text")
-                ),
-                c.create_line(30, 360, 640, 120, fill=ltk.color("text"), width=3),
-            )
+    app.size("large").window_title("Treeview & Listbox").padding(12).gap(12).column(
+        ltk.Label().text(
+            "Select a row or an item; the selection is printed to the console."
+        ),
+        ltk.Row().gap(8).padding(8).width().fill().height().fill().add(
+            ltk.Column().gap(8).padding(8).height().fill().add(
+                ltk.Label().text("Treeview (columns + rows)"),
+                ltk.Treeview()
+                .id("table")
+                .columns(["Task", "Priority"])
+                .rows(
+                    [
+                        ("Write docs", "high"),
+                        ("Fix bug #42", "high"),
+                        ("Refactor UI", "medium"),
+                        ("Review PR", "low"),
+                    ]
+                )
+                .width().fill()
+                .height().fill()
+                .event(lambda row: print("tree selected:", row)),
+            ),
+            ltk.Column().gap(8).padding(8).height().fill().add(
+                ltk.Label().text("Listbox (items)"),
+                ltk.Listbox()
+                .id("list")
+                .items(["python", "javascript", "rust", "go", "zig"])
+                .width().fill()
+                .height().fill()
+                .event(lambda item: print("list selected:", item)),
+            ),
         ),
     )
     app.run()

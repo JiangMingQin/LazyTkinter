@@ -229,6 +229,26 @@ class RendererFlowTests(unittest.TestCase):
         listbox = self.fake.created_widgets[kinds.index("Listbox")]
         self.assertEqual(listbox.inserted, [(("end", "x"), {}), (("end", "y"), {})])
 
+    def test_treeview_with_id_registers_main_widget(self):
+        registry.clear()
+        try:
+            tree = ltk.Treeview().id("t").columns(["A"]).rows([(1,)])
+            tree.build(None)
+            self.assertIs(tree._built, self.fake.created_widgets[-1])
+            self.assertIs(registry.get("t"), tree)
+        finally:
+            registry.clear()
+
+    def test_listbox_with_id_registers_main_widget(self):
+        registry.clear()
+        try:
+            listbox = ltk.Listbox().id("l").items(["a"])
+            listbox.build(None)
+            self.assertIs(listbox._built, self.fake.created_widgets[-1])
+            self.assertIs(registry.get("l"), listbox)
+        finally:
+            registry.clear()
+
     def test_progressbar_sets_initial_value(self):
         widget = ltk.ProgressBar().value(0.7).build(None)
         self.assertEqual(widget.set_calls, [0.7])

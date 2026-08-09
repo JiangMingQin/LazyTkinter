@@ -4,17 +4,20 @@ from __future__ import annotations
 from typing import Any
 
 from .base import BaseWidget
+from .renderer import get_renderer
 
 
 def _new_scroll_frame(wrapper, parent, *, width=None, height=None):
     """Create the wrapper frame and its vertical scrollbar (grid-based)."""
-    frame = wrapper._create_container("Column", parent, {})
+    # internal helpers are created directly so they never re-register the
+    # widget's id nor overwrite its _built reference (the main native widget)
+    frame = get_renderer().create_container("Column", parent, {})
     limit_w = width if width is not None else wrapper._width
     limit_h = height if height is not None else wrapper._height
     if limit_w is not None or limit_h is not None:
         frame.grid_propagate(False)
 
-    scrollbar = wrapper._create_widget("Scrollbar", frame, {"orient": "vertical"})
+    scrollbar = get_renderer().create_widget("Scrollbar", frame, {"orient": "vertical"})
     frame.grid_columnconfigure(0, weight=1)
     frame.grid_rowconfigure(0, weight=1)
     return frame, scrollbar
