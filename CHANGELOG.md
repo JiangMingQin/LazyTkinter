@@ -6,6 +6,7 @@
 
 ### 新增 (Added)
 
+- **新组件（v0.6.0）**：`Canvas`（画布）——基于 `CTkCanvas`（`tk.Canvas` 子类，绘图性能一致）；`.draw(func)` 注册绘制回调（可多次，构建后按序执行，收到原生画布）；`.fg_color()` 映射为画布背景（tk `bg`）；交互通过 `.id()` + `app.native(id).bind(...)`。新增 `examples/example03.py` 演示。
 - **渲染层解耦**：新增 `lazytkinter/renderer.py`（`Renderer` 协议 + `CTkRenderer`），成为包内唯一直接依赖 `customtkinter` 的模块；控件/容器改为“描述对象 → build → 渲染器”三层结构，为后续接入其他后端留好扩展点。
 - **布局引擎 v2**：
   - 尺寸策略：`width` / `height` 支持 `int`（固定像素）、`"fit"`（包裹内容）、`"fill"`（撑满父容器）；链式写法 `.width().fill()` / `.height().fit()` / `.fill()`，无轴前缀的 `.fill()` / `.fit()` 作用于双轴。

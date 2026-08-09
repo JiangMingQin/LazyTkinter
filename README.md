@@ -112,6 +112,8 @@ LazyTkinter 内置了以下社区热门主题，无需下载 JSON 文件即可�
 
 * 🎯 `Textbox`
 
+* 🎯 `Canvas` (画布)
+
 **选择组件 / Selection Widgets**
 
 * 🎯 `Switch`
@@ -181,10 +183,15 @@ ltk.ZStack().add(bg, fg.align("top-right"))  # 重叠 + 锚点
 ltk.Spacer().weight(2)                    # 弹性弹簧（吃剩余空间）
 ltk.Scroll(ltk.Column().add(*items))      # 滚动包装（v1 仅垂直）
 ltk.Empty().width(10)                     # 固定尺寸占位
+ltk.Canvas().width(400).height(300).fg_color("surface_alt").draw(
+    lambda c: c.create_rectangle(10, 10, 100, 100, fill=ltk.color("primary"))
+)
 ltk.Button().id("btn")                    # 注册 id，app.get("btn") 可继续链式设置
 app.get("btn").config(ltk.Label).text("新文本")  # .config(类型) 收窄类型 + 运行时校验
 app.native("btn")                         # 需要时获取原生控件
 ```
+
+> **Canvas 说明**：基于 `CTkCanvas`（即 `tk.Canvas` 子类，绘图性能一致）；`.draw(func)` 在构建后把原生画布交给回调绘制（可多次注册、按序执行），`.fg_color()` 设置画布背景，交互通过 `.id()` + `app.native(id).bind(...)`。
 
 **外观 / Appearance**：
 

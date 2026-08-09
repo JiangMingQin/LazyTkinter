@@ -230,6 +230,8 @@ class SmokeTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             ltk.Column().justify("middle")
         with self.assertRaises(ValueError):
+            ltk.Canvas().draw("not callable")
+        with self.assertRaises(ValueError):
             ltk.set_theme("no-such-theme-xyz")
 
         app = ltk.Application()
@@ -243,3 +245,23 @@ class SmokeTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             app2.row(ltk.Button())
         app2._window.destroy()
+
+    def test_canvas(self):
+        app = ltk.Application()
+        drawn = []
+        app.size((500, 360)).window_title("smoke").column(
+            ltk.Canvas()
+            .width(360)
+            .height(220)
+            .fg_color("surface_alt")
+            .draw(lambda c: drawn.append(c.create_rectangle(10, 10, 120, 90, fill="red"))),
+        )
+        app.build()
+        app._window.update_idletasks()
+
+        self.assertEqual(len(drawn), 1)
+        self.assertEqual(len(app._window.winfo_children()), 1)
+        app._window.destroy()
+
+    def test_example03(self):
+        self._run_example("examples/example03.py")
