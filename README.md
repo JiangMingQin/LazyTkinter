@@ -190,7 +190,9 @@ ltk.Empty().width(10)                     # 固定尺寸占位
 ltk.Canvas().width(400).height(300).fg_color("surface_alt").draw(
     lambda c: c.create_rectangle(10, 10, 100, 100, fill=ltk.color("primary"))
 )
-ltk.SplitPanel(ltk.Column(...), ltk.Column(...))  # 可拖拽分栏（左右/上下）
+ltk.SplitPanel().vertical()                       # 纵向切割=左右分栏
+    .add(ltk.Column(...)).min_width(120).max_width(400).transparent()
+    .add(ltk.Column(...)).min_width(200)
 ltk.Divider()                                     # 水平分隔线（默认，主题 border 色）
 ltk.Divider().vertical().thickness(2)             # 垂直分隔线（链式方向）
 ltk.Button().id("btn")                    # 注册 id，app.get("btn") 可继续链式设置
@@ -200,7 +202,12 @@ app.native("btn")                         # 需要时获取原生控件
 
 > **Canvas 说明**：基于 `CTkCanvas`（即 `tk.Canvas` 子类，绘图性能一致）；`.draw(func)` 在构建后把原生画布交给回调绘制（可多次注册、按序执行），`.fg_color()` 设置画布背景，交互通过 `.id()` + `app.native(id).bind(...)`。
 
-> **SplitPanel 说明**：基于 `ttk.Panedwindow`，构建时从当前 CTk 主题取色（`ctk.ThemeManager`，语义 token 兜底）设置分隔条颜色；默认开启 `proxy_sash`（拖动时显示幽灵分隔条、松开才落位，`.proxy_sash(False)` 关闭）；切换主题或明暗后需重建窗口生效。
+> **SplitPanel 说明**：基于 `ttk.Panedwindow`，方向按**切割线方向**定义（见下表）；构建时从当前 CTk 主题取色（`ctk.ThemeManager`，语义 token 兜底）设置分隔条颜色；默认开启 `proxy_sash`（拖动时显示幽灵分隔条、松开才落位，`.proxy_sash(False)` 关闭）；面板最小/最大尺寸在拖动结束后用 `sashpos` 自动回夹（ttk 无原生支持）；切换主题或明暗后需重建窗口生效。
+
+| 方向 | 切割线 | 面板可用属性 | 底层 ttk orient |
+| --- | --- | --- | --- |
+| `.vertical()` | 竖线（左右分栏） | `min_width` / `max_width` | `horizontal` |
+| `.horizontal()` | 横线（上下分栏） | `min_height` / `max_height` | `vertical` |
 
 > **Divider 说明**：基于 `CTkFrame` 的薄层分隔线，默认色为当前主题 border（可用 `.fg_color()` 覆盖）；`.orientation().horizontal()/.vertical()` 链式设置方向（字符串形式保留），`.thickness()` 设置粗细。
 
