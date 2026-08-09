@@ -6,7 +6,7 @@ ltk.set_theme(ltk.Theme.Gruvbox)  # set theme
 app = ltk.Application()
 
 # create event
-def on_click():
+def on_click(value=None):
     print("click!")
 
 # build UI

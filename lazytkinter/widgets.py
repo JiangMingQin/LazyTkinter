@@ -40,7 +40,7 @@ class Button(BaseWidget["Button"]):
         self._text = text
         return self
 
-    def event(self, command=lambda: None) -> Button:
+    def event(self, command=lambda value: None) -> Button:
         self._command = command
         return self
 
@@ -68,7 +68,6 @@ class Button(BaseWidget["Button"]):
         # If not set (is None), we don't pass this parameter,
         # so the native widget uses its own default styles.
         if self._text is not None: kwargs["text"] = self._text
-        if self._command is not None: kwargs["command"] = self._command
         if self._hover_color is not None: kwargs["hover_color"] = self._hover_color
         if self._border_width is not None: kwargs["border_width"] = self._border_width
         if self._border_color is not None: kwargs["border_color"] = self._border_color
@@ -79,7 +78,11 @@ class Button(BaseWidget["Button"]):
         # is extracted to the _inject_base_args method in BaseWidget.
         self._inject_base_args(kwargs, width=width, height=height)
 
-        return get_renderer().create_widget("Button", parent, kwargs)
+        btn = get_renderer().create_widget("Button", parent, kwargs)
+        if self._command is not None:
+            user_cmd = self._command
+            btn.configure(command=lambda: user_cmd(None))
+        return btn
 
 
 class Label(BaseWidget["Label"]):
@@ -178,7 +181,7 @@ class Switch(BaseWidget["Switch"]):
         self._text = text
         return self
 
-    def event(self, command=lambda val: None) -> Switch:
+    def event(self, command=lambda value: None) -> Switch:
         self._command = command
         return self
 
@@ -227,7 +230,7 @@ class CheckBox(BaseWidget["CheckBox"]):
         self._text = text
         return self
 
-    def event(self, command=lambda: None) -> CheckBox:
+    def event(self, command=lambda value: None) -> CheckBox:
         self._command = command
         return self
 
@@ -243,13 +246,16 @@ class CheckBox(BaseWidget["CheckBox"]):
     def build(self, parent, *, width=None, height=None):
         kwargs: dict[str, Any] = {}
         if self._text is not None: kwargs["text"] = self._text
-        if self._command is not None: kwargs["command"] = self._command
         if self._variable is not None: kwargs["variable"] = self._variable
         if self._on_value is not None: kwargs["onvalue"] = self._on_value
         if self._off_value is not None: kwargs["offvalue"] = self._off_value
 
         self._inject_base_args(kwargs, width=width, height=height)
-        return get_renderer().create_widget("CheckBox", parent, kwargs)
+        check_box = get_renderer().create_widget("CheckBox", parent, kwargs)
+        if self._command is not None:
+            user_cmd = self._command
+            check_box.configure(command=lambda: user_cmd(check_box.get()))
+        return check_box
 
 
 class RadioButton(BaseWidget["RadioButton"]):
@@ -274,7 +280,7 @@ class RadioButton(BaseWidget["RadioButton"]):
         self._variable = var
         return self
 
-    def event(self, command=lambda: None) -> RadioButton:
+    def event(self, command=lambda value: None) -> RadioButton:
         self._command = command
         return self
 
@@ -291,12 +297,15 @@ class RadioButton(BaseWidget["RadioButton"]):
         if self._text is not None: kwargs["text"] = self._text
         if self._value is not None: kwargs["value"] = self._value
         if self._variable is not None: kwargs["variable"] = self._variable
-        if self._command is not None: kwargs["command"] = self._command
         if self._radiobutton_width is not None: kwargs["radiobutton_width"] = self._radiobutton_width
         if self._radiobutton_height is not None: kwargs["radiobutton_height"] = self._radiobutton_height
 
         self._inject_base_args(kwargs, width=width, height=height)
-        return get_renderer().create_widget("RadioButton", parent, kwargs)
+        radio_button = get_renderer().create_widget("RadioButton", parent, kwargs)
+        if self._command is not None:
+            user_cmd = self._command
+            radio_button.configure(command=lambda: user_cmd(radio_button.get()))
+        return radio_button
 
 
 class Textbox(BaseWidget["Textbox"]):
@@ -422,6 +431,8 @@ class ProgressBar(BaseWidget["ProgressBar"]):
         return self
 
     def value(self, val: float) -> ProgressBar:
+        if isinstance(val, bool) or not isinstance(val, (int, float)) or not (0 <= val <= 1):
+            raise ValueError("ProgressBar.value() expects a number between 0 and 1")
         self._value = val
         return self
 
@@ -446,7 +457,7 @@ class SegmentedButton(BaseWidget["SegmentedButton"]):
         self._default_value = None
 
     def values(self, values: list) -> SegmentedButton:
-        self._values = values
+        self._values = list(values)
         return self
 
     def set_value(self, val: str) -> SegmentedButton:
@@ -465,7 +476,7 @@ class SegmentedButton(BaseWidget["SegmentedButton"]):
         if self._command: kwargs["command"] = self._command
 
         seg_btn = get_renderer().create_widget("SegmentedButton", parent, kwargs)
-        if self._default_value:
+        if self._default_value is not None:
             seg_btn.set(self._default_value)
         elif self._values:
             seg_btn.set(self._values[0])  # default value is the first one
@@ -481,7 +492,7 @@ class ComboBox(BaseWidget["ComboBox"]):
         self._default_value = None
 
     def values(self, values: list) -> ComboBox:
-        self._values = values
+        self._values = list(values)
         return self
 
     def set_value(self, val: str) -> ComboBox:
@@ -500,7 +511,7 @@ class ComboBox(BaseWidget["ComboBox"]):
         if self._command: kwargs["command"] = self._command
 
         combo = get_renderer().create_widget("ComboBox", parent, kwargs)
-        if self._default_value:
+        if self._default_value is not None:
             combo.set(self._default_value)
         return combo
 
@@ -513,7 +524,7 @@ class OptionMenu(BaseWidget["OptionMenu"]):
         self._default_value = None
 
     def values(self, values: list) -> OptionMenu:
-        self._values = values
+        self._values = list(values)
         return self
 
     def set_value(self, val: str) -> OptionMenu:
@@ -532,6 +543,6 @@ class OptionMenu(BaseWidget["OptionMenu"]):
         if self._command: kwargs["command"] = self._command
 
         opt = get_renderer().create_widget("OptionMenu", parent, kwargs)
-        if self._default_value:
+        if self._default_value is not None:
             opt.set(self._default_value)
         return opt

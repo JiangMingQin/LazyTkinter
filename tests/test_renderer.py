@@ -117,6 +117,28 @@ class RendererFlowTests(unittest.TestCase):
         command()
         self.assertEqual(received, [widget.value])
 
+    def test_button_event_receives_none(self):
+        received = []
+        widget = ltk.Button().event(received.append).build(None)
+        widget.configured["command"]()
+        self.assertEqual(received, [None])
+
+    def test_checkbox_event_receives_value(self):
+        received = []
+        widget = ltk.CheckBox().event(received.append).build(None)
+        widget.configured["command"]()
+        self.assertEqual(received, [widget.value])
+
+    def test_radiobutton_event_receives_value(self):
+        received = []
+        widget = ltk.RadioButton().event(received.append).build(None)
+        widget.configured["command"]()
+        self.assertEqual(received, [widget.value])
+
+    def test_empty_default_value_is_set(self):
+        widget = ltk.ComboBox().values(["a", "b"]).set_value("").build(None)
+        self.assertEqual(widget.set_calls, [""])
+
     def test_progressbar_sets_initial_value(self):
         widget = ltk.ProgressBar().value(0.7).build(None)
         self.assertEqual(widget.set_calls, [0.7])

@@ -8,14 +8,14 @@ user_input_var = ltk.StringVar()  # to store user input
 welcome_msg_var = ltk.StringVar()  # to store welcome message
 
 # event functions
-def on_login_click():
+def on_login_click(value=None):
     name = user_input_var.get()
     if name:
         welcome_msg_var.set(f"Welcome back, {name}!")
     else:
         welcome_msg_var.set("Please enter a username!")
 
-def on_cancel_click():
+def on_cancel_click(value=None):
     # clear input and result message
     user_input_var.set("")
     welcome_msg_var.set("")

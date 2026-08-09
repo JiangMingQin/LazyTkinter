@@ -495,6 +495,31 @@ class SpacerTests(unittest.TestCase):
             Spacer().weight("x")
 
 
+class ComponentConsistencyTests(unittest.TestCase):
+    def test_set_value_empty_string_works(self):
+        self.assertEqual(ltk.ComboBox().set_value("")._default_value, "")
+        self.assertEqual(ltk.SegmentedButton().set_value("")._default_value, "")
+        self.assertEqual(ltk.OptionMenu().set_value("")._default_value, "")
+
+    def test_values_are_copied(self):
+        items = ["a", "b"]
+        combo = ltk.ComboBox().values(items)
+        items.append("c")
+        self.assertEqual(combo._values, ["a", "b"])
+
+        seg_items = ["x"]
+        seg = ltk.SegmentedButton().values(seg_items)
+        seg_items.append("y")
+        self.assertEqual(seg._values, ["x"])
+
+    def test_progressbar_value_validation(self):
+        with self.assertRaises(ValueError):
+            ltk.ProgressBar().value(1.5)
+        with self.assertRaises(ValueError):
+            ltk.ProgressBar().value(-0.1)
+        ltk.ProgressBar().value(0.7)
+
+
 class ChildrenApiTests(unittest.TestCase):
     def test_constructor_children(self):
         a, b, c = object(), object(), object()

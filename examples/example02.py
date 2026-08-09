@@ -8,7 +8,7 @@ class App:
         ltk.set_theme(ltk.Theme.Catppuccin)
 
     # event
-    def search_something(self):
+    def search_something(self, value=None):
         print("search....")
 
     def turn_to_page(self, page):
@@ -82,14 +82,14 @@ class App:
                     ltk.ProgressBar().value(0.7).height(10).width().fill(),
                     # SegmentedButton
                     ltk.Row().height(30).width().fill().add(
-                        ltk.SegmentedButton().radius(100).values([
+                        ltk.SegmentedButton().radius(100).fill().values([
                             "Option A",
                             "Option B",
                             "Option C",
                         ]).event(self.on_segment_click).set_value("Option A"),
                     ),
                     # ComboBox & OptionMenu
-                    ltk.Row().height(30).width().fill().gap(10).add(
+                    ltk.Row().height(30).width().fill().transparent().gap(10).add(
                         ltk.ComboBox().width().fill().values([
                             "Combo 1",
                             "Combo 2",
