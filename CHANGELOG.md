@@ -28,6 +28,7 @@
 - 示例移除 `sys.path.append` 临时路径 hack，安装包后可直接运行。
 - **破坏性变更**：所有 `event()` 回调统一接收“当前值”——`Button` 收到 `None`，`CheckBox`/`RadioButton` 收到 `get()`，其余控件保持传值；示例同步更新。
 - example00 改为计数器示例（`.id("count")` + `app.get("count").configure(...)` 验证运行时更新）；example02 的 Scroll 列表替换为 Treeview + Listbox 展示。
+- `app.get()` / `registry.get()` 返回类型标注为 `tkinter.Widget`，消除 Pylance 对 `.configure` 等方法的类型报错。
 - `docs/ARCHITECTURE.md` 新增布局引擎 v2 章节。
 - 主题加载改用 `logging`；找不到主题时 `set_theme` 抛 `ValueError`（原为 print 输出后继续）。
 - 容器布局从双层 Frame 改为单层 Frame；容器 `build` 不再自我 grid，统一由父容器放置，消除重复 grid。

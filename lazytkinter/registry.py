@@ -1,6 +1,8 @@
 """Runtime registry mapping widget ids to their built native widgets."""
 
-_registry: dict[str, object] = {}
+import tkinter as tk
+
+_registry: dict[str, tk.Widget] = {}
 
 
 def register(name: str, widget) -> None:
@@ -14,7 +16,7 @@ def register(name: str, widget) -> None:
         pass
 
 
-def get(name: str):
+def get(name: str) -> tk.Widget:
     """Return the native widget registered under ``name`` (KeyError if missing)."""
     return _registry[name]
 

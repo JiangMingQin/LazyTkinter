@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import tkinter as tk
+
 from .containers import (
     _COLUMN_ALIGN_STICKY,
     _ROW_ALIGN_STICKY,
@@ -246,7 +248,7 @@ class Application:
         self.build()
         self._window.mainloop()
 
-    def get(self, name: str):
+    def get(self, name: str) -> tk.Widget:
         """Return the native widget registered under an id (see ``.id()``)."""
         return _registry_get(name)
 
