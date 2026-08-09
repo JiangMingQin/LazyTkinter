@@ -73,9 +73,21 @@ class SmokeTests(unittest.TestCase):
         app = ltk.Application()
         app.size((400, 300))
         app.column(
-            ltk.Spacer().weight(1),
+            ltk.Space().weight(1),
             ltk.Button().text("middle"),
-            ltk.Spacer().weight(2),
+            ltk.Space().weight(2),
+        )
+        app.build()
+        app._window.update_idletasks()
+
+    def test_fixed_space(self):
+        app = ltk.Application()
+        app.size((400, 120)).window_title("smoke").column(
+            ltk.Row().gap(8).padding(8).add(
+                ltk.Button().text("left"),
+                ltk.Space().width(10),
+                ltk.Button().text("right"),
+            ),
         )
         app.build()
         app._window.update_idletasks()

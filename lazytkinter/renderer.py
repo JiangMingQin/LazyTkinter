@@ -79,8 +79,7 @@ class CTkRenderer(Renderer):
         }
         self._container_classes: Dict[str, Type] = {
             "RootFrame": ctk.CTkFrame,
-            "Empty": ctk.CTkFrame,
-            "Spacer": ctk.CTkFrame,
+            "Space": ctk.CTkFrame,
             "Column": ctk.CTkFrame,
             "Row": ctk.CTkFrame,
             "ZStack": ctk.CTkFrame,

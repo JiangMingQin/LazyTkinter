@@ -66,19 +66,22 @@ def _resolve_column_slots(children, default_align, gap, padding, justify="start"
     Rules:
     - fit children get weight 0; fill children get weight 1 (multiple fills
       split remaining space equally);
-    - if any Spacer exists, fill children lose their main-axis stretch and
-      Spacers consume the remaining space by their weight;
+    - if any elastic Space exists, fill children lose their main-axis stretch
+      and elastic Spaces consume the remaining space by their weight; fixed-size
+      Spaces behave like ordinary rigid children;
     - padding applies on the container edges, gap applies between children;
     - the cross axis follows the child's align (or the container default).
-    - ``justify="center"`` insets one implicit weight-1 Spacer on each end,
-      ``justify="end"`` insets one on the leading end only; implicit spacers
-      participate in the "Spacer present -> fill downgrades" rule.
+    - ``justify="center"`` insets one implicit weight-1 Space on each end,
+      ``justify="end"`` insets one on the leading end only; implicit spaces
+      participate in the "elastic Space present -> fill downgrades" rule.
     """
     if justify == "center":
-        children = [Spacer()] + list(children) + [Spacer()]
+        children = [Space()] + list(children) + [Space()]
     elif justify == "end":
-        children = [Spacer()] + list(children)
-    has_spacer = any(isinstance(child, Spacer) for child in children)
+        children = [Space()] + list(children)
+    has_space = any(
+        isinstance(child, Space) and child._height is None for child in children
+    )
     total = len(children)
     slots = []
     for i, child in enumerate(children):
@@ -88,17 +91,22 @@ def _resolve_column_slots(children, default_align, gap, padding, justify="start"
                 f"Column child uses invalid align {align!r}; "
                 f"expected one of {list(_COLUMN_ALIGN_STICKY)}"
             )
-        if isinstance(child, Spacer):
-            weight = child._weight
+        if isinstance(child, Space) and child._height is None:
+            weight = child._weight if child._weight is not None else 1
             sticky = ""
         else:
-            main_fill = child._height_policy == "fill" and not has_spacer
+            if isinstance(child, Space) and child._weight is not None:
+                raise ValueError(
+                    "Space.weight() requires an elastic main axis "
+                    "(no fixed height in Column / no fixed width in Row)"
+                )
+            main_fill = child._height_policy == "fill" and not has_space
             cross_fill = child._width_policy == "fill"
             if child._weight is not None and not main_fill:
                 raise ValueError(
                     "fill(weight=...) only works when the child fills the "
                     "container's main axis (fit children or fills downgraded "
-                    "by a Spacer cannot use weight)"
+                    "by an elastic Space cannot use weight)"
                 )
             weight = (child._weight if child._weight is not None else 1) if main_fill else 0
             sticky = _compose_sticky(
@@ -128,10 +136,12 @@ def _resolve_row_slots(children, default_align, gap, padding, justify="start"):
     axis horizontal.
     """
     if justify == "center":
-        children = [Spacer()] + list(children) + [Spacer()]
+        children = [Space()] + list(children) + [Space()]
     elif justify == "end":
-        children = [Spacer()] + list(children)
-    has_spacer = any(isinstance(child, Spacer) for child in children)
+        children = [Space()] + list(children)
+    has_space = any(
+        isinstance(child, Space) and child._width is None for child in children
+    )
     total = len(children)
     slots = []
     for i, child in enumerate(children):
@@ -141,17 +151,22 @@ def _resolve_row_slots(children, default_align, gap, padding, justify="start"):
                 f"Row child uses invalid align {align!r}; "
                 f"expected one of {list(_ROW_ALIGN_STICKY)}"
             )
-        if isinstance(child, Spacer):
-            weight = child._weight
+        if isinstance(child, Space) and child._width is None:
+            weight = child._weight if child._weight is not None else 1
             sticky = ""
         else:
-            main_fill = child._width_policy == "fill" and not has_spacer
+            if isinstance(child, Space) and child._weight is not None:
+                raise ValueError(
+                    "Space.weight() requires an elastic main axis "
+                    "(no fixed height in Column / no fixed width in Row)"
+                )
+            main_fill = child._width_policy == "fill" and not has_space
             cross_fill = child._height_policy == "fill"
             if child._weight is not None and not main_fill:
                 raise ValueError(
                     "fill(weight=...) only works when the child fills the "
                     "container's main axis (fit children or fills downgraded "
-                    "by a Spacer cannot use weight)"
+                    "by an elastic Space cannot use weight)"
                 )
             weight = (child._weight if child._weight is not None else 1) if main_fill else 0
             sticky = _compose_sticky(
@@ -178,6 +193,11 @@ def _resolve_zstack_slots(children, default_align, padding):
     """Resolve each ZStack child to (sticky, padx, pady) in the shared cell."""
     slots = []
     for child in children:
+        if isinstance(child, Space) and child._width is None and child._height is None:
+            raise ValueError(
+                "elastic Space needs a fixed width/height in ZStack; "
+                "use Space().width(...) / Space().height(...)"
+            )
         if child._weight is not None:
             raise ValueError("fill(weight=...) is only for Row/Column main-axis fills")
         align = child._align if child._align is not None else default_align
@@ -200,11 +220,32 @@ def _resolve_zstack_slots(children, default_align, padding):
     return slots
 
 
-class Empty(BaseWidget["Empty"]):
-    """A fixed-size transparent placeholder used for spacing."""
+class Space(BaseWidget["Space"]):
+    """A transparent placeholder that is elastic by default or rigid with a fixed size.
+
+    ``Space()`` absorbs the container's remaining main-axis space (multiple
+    Spaces split it by their ``weight``). Setting a fixed pixel size turns it
+    into a rigid transparent block instead::
+
+        ltk.Space()                # elastic spring (absorbs leftover space)
+        ltk.Space().weight(2)      # elastic, 2 shares of the leftover space
+        ltk.Space().width(10)      # rigid 10px block (Row main axis)
+        ltk.Space().height(10)     # rigid 10px block (Column main axis)
+    """
 
     def __init__(self) -> None:
         super().__init__()
+        # None = weight not explicitly set (elastic default 1); this lets the
+        # layout engine distinguish "default elastic" from "user-set weight".
+        self._weight = None
+
+    def weight(self, w: int) -> Space:
+        """Set the space-sharing weight (positive integer, default 1)."""
+        if isinstance(w, int) and not isinstance(w, bool) and w >= 1:
+            self._weight = w
+        else:
+            raise ValueError("Space.weight() expects a positive integer")
+        return self
 
     def build(self, parent, *, width=None, height=None):
         effective_width = width if width is not None else self._width
@@ -214,34 +255,10 @@ class Empty(BaseWidget["Empty"]):
             "width": effective_width if effective_width else 0,
             "height": effective_height if effective_height else 0,
         }
-        frame = self._create_container("Empty", parent, props)
+        frame = self._create_container("Space", parent, props)
         frame.pack_propagate(False)
         frame.grid_propagate(False)
         return frame
-
-
-class Spacer(BaseWidget["Spacer"]):
-    """An elastic spring that consumes the container's remaining main-axis space.
-
-    When multiple Spacers share a container, they split the leftover space by
-    their ``weight`` ratio.
-    """
-
-    def __init__(self) -> None:
-        super().__init__()
-        self._weight = 1
-
-    def weight(self, w: int) -> Spacer:
-        """Set the space-sharing weight (positive integer, default 1)."""
-        if isinstance(w, int) and w >= 1:
-            self._weight = w
-        else:
-            raise ValueError("Spacer.weight() expects a positive integer")
-        return self
-
-    def build(self, parent, *, width=None, height=None):
-        props = {"fg_color": "transparent", "width": 0, "height": 0}
-        return self._create_container("Spacer", parent, props)
 
 
 class Column(BaseWidget["Column"]):

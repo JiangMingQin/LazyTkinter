@@ -8,7 +8,7 @@ class App:
         ltk.set_theme(ltk.Theme.Catppuccin)
 
     # event
-    def search_something(self, value=None):
+    def search_something(self):
         print("search....")
 
     def turn_to_page(self, page):
@@ -27,12 +27,6 @@ class App:
     def on_combo_change(self, value):
         print(f"Combo chosen: {value}")
 
-    def on_tree_select(self, value):
-        print(f"Treeview selected: {value}")
-
-    def on_list_select(self, value):
-        print(f"Listbox selected: {value}")
-
     # layout
     def main(self):
         # create app
@@ -43,7 +37,7 @@ class App:
             # Top Bar
             ltk.Row().gap(10).padding(10).radius(10).align("center").height(60).width().fill().add(
                 ltk.Label().text("LazyTkinter").font(family="Arial", size=16, weight="bold"),
-                ltk.Empty().width(10),  # fixed placeholder
+                ltk.Space().width(10),  # fixed placeholder
                 ltk.Entry().width().fill().height(35).radius(100).placeholder_text("entry..."),
                 ltk.Button().height(35).text("search").event(self.search_something),
             ),
@@ -54,7 +48,7 @@ class App:
                     ltk.Button().height(30).text("Page 1").event(lambda: self.turn_to_page(1)),
                     ltk.Button().height(30).text("Page 2").event(lambda: self.turn_to_page(2)),
                     ltk.Button().height(30).text("Disabled").state("disabled"),
-                    ltk.Spacer(),
+                    ltk.Space(),
                     ltk.Switch().height(30).radius(10).text("Dark/Light").event(self.switch_mode),
                 ),
                 # Right Main Content
@@ -87,13 +81,11 @@ class App:
                     # ProgressBar
                     ltk.ProgressBar().value(0.7).height(10).width().fill(),
                     # SegmentedButton
-                    ltk.Row().height(30).width().fill().add(
-                        ltk.SegmentedButton().radius(100).fill().values([
-                            "Option A",
-                            "Option B",
-                            "Option C",
-                        ]).event(self.on_segment_click).set_value("Option A"),
-                    ),
+                    ltk.SegmentedButton().radius(100).height(30).width().fill().values([
+                        "Option A",
+                        "Option B",
+                        "Option C",
+                    ]).event(self.on_segment_click).set_value("Option A"),
                     # ComboBox & OptionMenu
                     ltk.Row().height(30).width().fill().transparent().gap(10).add(
                         ltk.ComboBox().width().fill().values([
@@ -105,35 +97,17 @@ class App:
                             "Menu 2",
                         ]),
                     ),
-                    # Data widgets: Treeview & Listbox
-                    ltk.Row().gap(10).height().fill().width().fill().add(
-                        ltk.Treeview()
-                            .columns(["Item", "Value"])
-                            .rows([
-                                ("Item 1", "10"),
-                                ("Item 2", "20"),
-                                ("Item 3", "30"),
-                                ("Item 4", "40"),
-                                ("Item 5", "50"),
-                                ("Item 6", "60"),
-                                ("Item 7", "70"),
-                            ])
-                            .width().fill(weight=1)
-                            .height().fill()
-                            .event(self.on_tree_select),
-                        ltk.Listbox()
-                            .items([
-                                "Item 1",
-                                "Item 2",
-                                "Item 3",
-                                "Item 4",
-                                "Item 5",
-                                "Item 6",
-                                "Item 7",
-                            ])
-                            .width().fill(weight=1)
-                            .height().fill()
-                            .event(self.on_list_select),
+                    # Scrollable list
+                    ltk.Scroll(
+                        ltk.Column().gap(10).add(
+                            ltk.Button().width().fill().radius(10).text("Item 1"),
+                            ltk.Button().width().fill().radius(10).text("Item 2"),
+                            ltk.Button().width().fill().radius(10).text("Item 3"),
+                            ltk.Button().width().fill().radius(10).text("Item 4"),
+                            ltk.Button().width().fill().radius(10).text("Item 5"),
+                            ltk.Button().width().fill().radius(10).text("Item 6"),
+                            ltk.Button().width().fill().radius(10).text("Item 7"),
+                        ),
                     ),
                 ),
             ),

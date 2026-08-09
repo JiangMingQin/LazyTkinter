@@ -9,7 +9,7 @@ from lazytkinter.containers import (
     Column,
     Row,
     Scroll,
-    Spacer,
+    Space,
     ZStack,
     _frame_props,
     _resolve_column_slots,
@@ -142,10 +142,10 @@ class FillWeightTests(unittest.TestCase):
                 padding=0,
             )
 
-    def test_weight_downgraded_by_spacer_raises(self):
+    def test_weight_downgraded_by_elastic_space_raises(self):
         with self.assertRaises(ValueError):
             _resolve_column_slots(
-                [ltk.Button().height().fill(weight=2), ltk.Spacer()],
+                [ltk.Button().height().fill(weight=2), ltk.Space()],
                 default_align="left",
                 gap=0,
                 padding=0,
@@ -230,8 +230,8 @@ class JustifyTests(unittest.TestCase):
             [ltk.Button()], default_align="left", gap=0, padding=0, justify="center"
         )
         self.assertEqual(len(slots), 3)
-        self.assertIsInstance(slots[0]["child"], ltk.Spacer)
-        self.assertIsInstance(slots[2]["child"], ltk.Spacer)
+        self.assertIsInstance(slots[0]["child"], ltk.Space)
+        self.assertIsInstance(slots[2]["child"], ltk.Space)
         self.assertEqual(slots[0]["weight"], 1)
         self.assertEqual(slots[1]["weight"], 0)
         self.assertEqual(slots[2]["weight"], 1)
@@ -241,7 +241,7 @@ class JustifyTests(unittest.TestCase):
             [ltk.Button()], default_align="left", gap=0, padding=0, justify="end"
         )
         self.assertEqual(len(slots), 2)
-        self.assertIsInstance(slots[0]["child"], ltk.Spacer)
+        self.assertIsInstance(slots[0]["child"], ltk.Space)
         self.assertEqual(slots[0]["weight"], 1)
 
     def test_fill_downgraded_with_implicit_spacer(self):
@@ -261,7 +261,7 @@ class JustifyTests(unittest.TestCase):
         self.assertEqual(len(slots), 3)
         self.assertEqual(slots[0]["weight"], 1)
         self.assertEqual(slots[2]["weight"], 1)
-        self.assertIsInstance(slots[0]["child"], ltk.Spacer)
+        self.assertIsInstance(slots[0]["child"], ltk.Space)
 
 
 class CenterShortcutTests(unittest.TestCase):
@@ -361,11 +361,11 @@ class ColumnSlotTests(unittest.TestCase):
         )
         self.assertEqual([slot["weight"] for slot in slots], [1, 1])
 
-    def test_spacer_takes_priority_over_fill(self):
+    def test_elastic_space_takes_priority_over_fill(self):
         slots = _resolve_column_slots(
             [
                 ltk.Button().height("fill"),
-                ltk.Spacer().weight(2),
+                ltk.Space().weight(2),
                 ltk.Button().height("fill"),
             ],
             default_align="left",
@@ -486,16 +486,78 @@ class ScrollTests(unittest.TestCase):
             Scroll(ltk.Button()).direction("both")
 
 
-class SpacerTests(unittest.TestCase):
+class SpaceTests(unittest.TestCase):
     def test_default_weight(self):
-        self.assertEqual(Spacer()._weight, 1)
+        self.assertIsNone(Space()._weight)
 
     def test_weight_setter(self):
-        self.assertEqual(Spacer().weight(3)._weight, 3)
+        self.assertEqual(Space().weight(3)._weight, 3)
         with self.assertRaises(ValueError):
-            Spacer().weight(0)
+            Space().weight(0)
         with self.assertRaises(ValueError):
-            Spacer().weight("x")
+            Space().weight("x")
+        with self.assertRaises(ValueError):
+            Space().weight(True)
+
+    def test_elastic_space_slots(self):
+        slots = _resolve_column_slots(
+            [ltk.Button(), ltk.Space()], default_align="left", gap=0, padding=0
+        )
+        self.assertEqual(slots[1]["weight"], 1)
+        self.assertEqual(slots[1]["sticky"], "")
+        row_slots = _resolve_row_slots(
+            [ltk.Button(), ltk.Space().weight(2)],
+            default_align="top",
+            gap=0,
+            padding=0,
+        )
+        self.assertEqual(row_slots[1]["weight"], 2)
+
+    def test_rigid_space_slots(self):
+        column_slots = _resolve_column_slots(
+            [ltk.Space().height(10)], default_align="left", gap=0, padding=0
+        )
+        self.assertEqual(column_slots[0]["weight"], 0)
+        self.assertEqual(column_slots[0]["sticky"], "w")
+        row_slots = _resolve_row_slots(
+            [ltk.Space().width(10)], default_align="top", gap=0, padding=0
+        )
+        self.assertEqual(row_slots[0]["weight"], 0)
+        self.assertEqual(row_slots[0]["sticky"], "n")
+
+    def test_rigid_space_with_weight_raises(self):
+        with self.assertRaises(ValueError):
+            _resolve_column_slots(
+                [ltk.Space().height(10).weight(2)],
+                default_align="left",
+                gap=0,
+                padding=0,
+            )
+        with self.assertRaises(ValueError):
+            _resolve_row_slots(
+                [ltk.Space().width(10).weight(2)],
+                default_align="top",
+                gap=0,
+                padding=0,
+            )
+
+    def test_rigid_space_does_not_downgrade_fill(self):
+        slots = _resolve_column_slots(
+            [ltk.Button().height("fill"), ltk.Space().height(10)],
+            default_align="left",
+            gap=0,
+            padding=0,
+        )
+        self.assertEqual(slots[0]["weight"], 1)
+        self.assertEqual(slots[1]["weight"], 0)
+
+    def test_space_in_zstack(self):
+        rigid_slots = _resolve_zstack_slots(
+            [ltk.Space().width(10)], default_align="center", padding=0
+        )
+        self.assertEqual(len(rigid_slots), 1)
+        with self.assertRaises(ValueError):
+            _resolve_zstack_slots([ltk.Space()], default_align="center", padding=0)
 
 
 class ComponentConsistencyTests(unittest.TestCase):

@@ -119,9 +119,19 @@ class RendererFlowTests(unittest.TestCase):
         Column().build(None)
         Scroll(ltk.Button().text("x")).build(None)
         ZStack().add(ltk.Button()).build(None)
-        ltk.Spacer().build(None)
+        ltk.Space().build(None)
         kinds = [call[0] for call in self.fake.container_calls]
-        self.assertEqual(kinds, ["Column", "Scroll", "ZStack", "Spacer"])
+        self.assertEqual(kinds, ["Column", "Scroll", "ZStack", "Space"])
+
+    def test_space_build_props(self):
+        ltk.Space().build(None)
+        _, props = self.fake.container_calls[0]
+        self.assertEqual(props, {"fg_color": "transparent", "width": 0, "height": 0})
+
+    def test_fixed_space_build_props(self):
+        ltk.Space().width(10).height(20).build(None)
+        _, props = self.fake.container_calls[0]
+        self.assertEqual(props, {"fg_color": "transparent", "width": 10, "height": 20})
 
     def test_column_clamps_child_without_mutating(self):
         child = ltk.Button().width(300).height(60)
@@ -275,8 +285,8 @@ class ApplicationLayoutTests(unittest.TestCase):
     def test_justify_center_insets_implicit_spacers_at_root(self):
         app = ltk.Application()
         app.justify("center").column(ltk.Button().text("x"))
-        spacer_kinds = [call[0] for call in self.fake.container_calls].count("Spacer")
-        self.assertEqual(spacer_kinds, 2)
+        space_kinds = [call[0] for call in self.fake.container_calls].count("Space")
+        self.assertEqual(space_kinds, 2)
         self.assertEqual(len(self.fake.widget_calls), 1)
 
     def test_application_get_and_ids(self):

@@ -26,9 +26,8 @@ from .widgets import Divider
 from .containers import Row
 from .containers import Column
 from .containers import ZStack
-from .containers import Spacer
+from .containers import Space
 from .containers import Scroll
-from .containers import Empty
 from .containers import SplitPanel
 
 from .data_widgets import Treeview
@@ -71,9 +70,8 @@ __all__ = [
     "Row", 
     "Column", 
     "ZStack",
-    "Spacer",
+    "Space",
     "Scroll",
-    "Empty",
     "SplitPanel",
     # data widgets
     "Treeview",
