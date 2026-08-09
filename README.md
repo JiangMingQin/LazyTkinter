@@ -62,7 +62,11 @@ It replaces traditional grid and pack methods with Row/Column/ZStack containers,
 
 - **零依赖感 (Zero Dependency Feeling)**: 直接通过 `lazytkinter` 导出常用变量 (`StringVar`) 和工具，无需额外导入 `customtkinter`。
 
+- **事件约定 (Event Convention)**: 所有控件的 `event()` 回调统一接收“当前值”——`Button` 收到 `None`，选择类控件收到选中值。
+
 - **内置主题 (Built-in Themes)**: 开箱即用的 `Catppuccin`, `Gruvbox`, `Nord` 等配色方案。
+
+- **语义化主题 token (Semantic Tokens)**: 颜色可用语义名（如 `fg_color("primary")`），`ltk.color("primary")` / `ltk.Tokens.radius` 可读取当前主题的值。
 
 - **自动滚动 (Auto Scroll)**: `Scroll` 包装任意单个子元素，长列表布局变得极其简单。
 
@@ -130,6 +134,12 @@ LazyTkinter 内置了以下社区热门主题，无需下载 JSON 文件即可�
 
 * 🎯 `ProgressBar`
 
+**数据组件 / Data Widgets**
+
+* 📊 `Treeview` (表格)
+
+* 📊 `Listbox` (列表)
+
 ---
 
 ## 📖 布局 API 速查 / Layout API Quick Reference
@@ -171,6 +181,7 @@ ltk.ZStack().add(bg, fg.align("top-right"))  # 重叠 + 锚点
 ltk.Spacer().weight(2)                    # 弹性弹簧（吃剩余空间）
 ltk.Scroll(ltk.Column().add(*items))      # 滚动包装（v1 仅垂直）
 ltk.Empty().width(10)                     # 固定尺寸占位
+ltk.Button().id("btn")                    # 注册 id，app.get("btn") 获取原生控件
 ```
 
 **外观 / Appearance**：
@@ -179,6 +190,15 @@ ltk.Empty().width(10)                     # 固定尺寸占位
 ltk.Column().fg_color("#313244").radius(10)  # 背景色 + 圆角（默认主题色）
 ltk.Column().transparent()                  # 显式透明
 ltk.Label().font(family="Arial", size=20, weight="bold")  # 字体关键字形式
+ltk.Button().fg_color("primary")            # 颜色可用语义 token 名
+ltk.color("primary")                        # 读取当前主题的 token 值
+```
+
+**数据型控件 / Data Widgets**（大列表性能优先，原生外观）：
+
+```python
+ltk.Treeview().columns(["Item", "Value"]).rows([("a", 1), ("b", 2)]).event(cb)
+ltk.Listbox().items(["a", "b"]).event(cb)
 ```
 
 **窗口 / Window**：

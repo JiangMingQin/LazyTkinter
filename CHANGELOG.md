@@ -18,11 +18,16 @@
 - **字体**：`font(family=..., size=..., weight=..., slant=..., underline=..., overstrike=...)` 关键字/字典形式，支持 IDE 自动补全；旧元组写法兼容。
 - **测试**：新增纯逻辑单测与隐藏窗口冒烟用例（`tests/test_logic.py`、`tests/test_renderer.py`、`tests/test_smoke_gui.py`），无显示环境自动跳过冒烟。
 - **打包与工程化**：新增 `pyproject.toml`（`pip install -e .` 一键安装并自动拉取 `customtkinter`）、`py.typed` 类型标记、GitHub Actions CI（Windows/Linux × Python 3.10–3.13 全矩阵自动运行测试）。
+- **数据型控件**：新增 `Treeview`（`.columns([...]).rows([...])`）与 `Listbox`（`.items([...])`），基于 ttk/tk 原生控件并内建垂直滚动条，大列表从“每行一个控件”变为“单控件 + 数据”。
+- **控件引用**：`.id("name")` 注册构建后的原生控件，`app.get(name)` / `app.ids()` 访问；`app.layout_tree()` 输出构建后的控件树（类名 + id），便于调试。
+- **语义化主题 token**：新增 `ltk.color("token")` 与 `ltk.Tokens`；颜色 setter（`fg_color`/`bg_color`/`text_color`/`hover_color`/`border_color`/`progress_color` 等）支持 token 名并在构建时解析。
 
 ### 修改 (Changed)
 
 - 示例 `example00/01/02` 与 README 全面适配 v2 API；README 新增「布局 API 速查」章节。
 - 示例移除 `sys.path.append` 临时路径 hack，安装包后可直接运行。
+- **破坏性变更**：所有 `event()` 回调统一接收“当前值”——`Button` 收到 `None`，`CheckBox`/`RadioButton` 收到 `get()`，其余控件保持传值；示例同步更新。
+- example00 改为计数器示例（`.id("count")` + `app.get("count").configure(...)` 验证运行时更新）；example02 的 Scroll 列表替换为 Treeview + Listbox 展示。
 - `docs/ARCHITECTURE.md` 新增布局引擎 v2 章节。
 - 主题加载改用 `logging`；找不到主题时 `set_theme` 抛 `ValueError`（原为 print 输出后继续）。
 - 容器布局从双层 Frame 改为单层 Frame；容器 `build` 不再自我 grid，统一由父容器放置，消除重复 grid。
@@ -36,6 +41,9 @@
 - `ScrollableColumn` 漏过滤不支持的参数（`font` / `text_color` 等），现与 Row/Column 共用统一过滤。
 - example01 按钮组未居中：`Row().align("center")` 是交叉轴（垂直）语义，水平居中需由父容器 `align` 决定。
 - example02 主区域 Row 未撑满窗口导致右侧内容挤压：补 `.width().fill()`。
+- `set_value("")` 不再被跳过（`if self._default_value:` 改为 `is not None`）。
+- `values()` 不再持有外部列表引用（改为拷贝）。
+- `ProgressBar.value()` 增加 0~1 范围校验，越界抛 `ValueError`。
 
 ### 删除 (Removed)
 
