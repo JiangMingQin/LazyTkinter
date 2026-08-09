@@ -28,6 +28,7 @@ from .containers import ZStack
 from .containers import Spacer
 from .containers import Scroll
 from .containers import Empty
+from .containers import PanedWindow
 
 from .data_widgets import Treeview
 from .data_widgets import Listbox
@@ -71,6 +72,7 @@ __all__ = [
     "Spacer",
     "Scroll",
     "Empty",
+    "PanedWindow",
     # data widgets
     "Treeview",
     "Listbox",

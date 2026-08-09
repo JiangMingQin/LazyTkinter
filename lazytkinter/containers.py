@@ -1,7 +1,9 @@
 from __future__ import annotations
+from tkinter import ttk
 from typing import Any
 
 from .base import BaseWidget
+from .renderer import get_renderer
 
 # Keys that the container frames do NOT support. All containers share this
 # filter so no container accidentally forwards widget-only options
@@ -583,3 +585,98 @@ class Scroll(BaseWidget["Scroll"]):
         the_ele = self._child.build(frame, width=effective_w, height=effective_h)
         the_ele.grid(row=0, column=0, sticky="nsew")
         return frame
+
+
+def _configure_paned_style(parent, colors, sash_width) -> None:
+    """Apply the CTk-derived palette to the shared ttk Panedwindow style."""
+    if parent is None:
+        return
+    style = ttk.Style(parent)
+    style.configure(
+        "LTk.TPanedwindow",
+        background=colors["border"],
+        sashwidth=sash_width,
+        sashrelief="flat",
+    )
+
+
+class PanedWindow(BaseWidget["PanedWindow"]):
+    """A resizable split container backed by ``ttk.Panedwindow``.
+
+    Children are arranged side by side (``orientation("horizontal")``, the
+    default, like Row) or stacked top-to-bottom (``orientation("vertical")``,
+    like Column); the draggable sash between panes is themed with the CTk
+    palette at build time.
+
+    Usage Example:
+        ltk.PanedWindow(
+            ltk.Column().add(ltk.Label().text("left")),
+            ltk.Column().add(ltk.Label().text("right")),
+        ).orientation("vertical")
+    """
+
+    def __init__(self, *children) -> None:
+        """Initialize the PanedWindow container.
+
+        Args:
+            *children: Optional pane widgets, equivalent to calling add().
+        """
+        super().__init__()
+        self._width_policy = "fill"
+        self._height_policy = "fill"
+        self._orientation = "horizontal"
+        self._sash_width = 5
+        self._args = children
+        for child in children:
+            self._check_child(child)
+
+    @staticmethod
+    def _check_child(child) -> None:
+        if not hasattr(child, "build"):
+            raise TypeError(
+                "PanedWindow children must be LazyTkinter widgets with build(), "
+                f"got {type(child).__name__}"
+            )
+
+    def add(self, *args) -> PanedWindow:
+        """Append pane widgets to the container."""
+        for child in args:
+            self._check_child(child)
+        self._args = self._args + args
+        return self
+
+    def orientation(self, orient: str) -> PanedWindow:
+        """Set the split direction: "horizontal" (left/right) or "vertical" (top/bottom)."""
+        if orient not in ("horizontal", "vertical"):
+            raise ValueError(
+                "PanedWindow.orientation() expects 'horizontal' or 'vertical', "
+                f"got {orient!r}"
+            )
+        self._orientation = orient
+        return self
+
+    def sash_width(self, width: int) -> PanedWindow:
+        """Set the draggable sash thickness (non-negative integer)."""
+        if not isinstance(width, int) or isinstance(width, bool) or width < 0:
+            raise ValueError("PanedWindow.sash_width() expects a non-negative integer")
+        self._sash_width = width
+        return self
+
+    def build(self, parent, *, width=None, height=None):
+        if len(self._args) < 2:
+            raise ValueError(
+                "PanedWindow needs at least two panes, e.g. "
+                "PanedWindow(Column(...), Column(...))"
+            )
+        _configure_paned_style(
+            parent, get_renderer().native_theme_colors(), self._sash_width
+        )
+        paned = self._create_container(
+            "PanedWindow",
+            parent,
+            {"orient": self._orientation, "style": "LTk.TPanedwindow"},
+        )
+        for child in self._args:
+            the_ele = child.build(paned)
+            paned.add(the_ele, weight=1)
+        return paned

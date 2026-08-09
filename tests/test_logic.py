@@ -666,3 +666,29 @@ class CanvasLogicTests(unittest.TestCase):
     def test_canvas_rejects_non_callable_draw(self):
         with self.assertRaises(ValueError):
             ltk.Canvas().draw("not callable")
+
+
+class PanedWindowLogicTests(unittest.TestCase):
+    def test_constructor_and_add(self):
+        paned = ltk.PanedWindow(Column(), Column())
+        self.assertEqual(len(paned._args), 2)
+        paned.add(Column())
+        self.assertEqual(len(paned._args), 3)
+
+    def test_orientation_validation(self):
+        with self.assertRaises(ValueError):
+            ltk.PanedWindow().orientation("diagonal")
+
+    def test_sash_width_validation(self):
+        with self.assertRaises(ValueError):
+            ltk.PanedWindow().sash_width(-1)
+        with self.assertRaises(ValueError):
+            ltk.PanedWindow().sash_width(2.5)
+        with self.assertRaises(ValueError):
+            ltk.PanedWindow().sash_width(True)
+
+    def test_non_widget_child_raises(self):
+        with self.assertRaises(TypeError):
+            ltk.PanedWindow(object())
+        with self.assertRaises(TypeError):
+            ltk.PanedWindow().add(object())

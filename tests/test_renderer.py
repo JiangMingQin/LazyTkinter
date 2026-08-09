@@ -18,6 +18,7 @@ class Stub:
         self.configured = {}
         self.set_calls = []
         self.inserted = []
+        self.added = []
         self.value = 1
 
     def get(self):
@@ -32,6 +33,11 @@ class Stub:
     def insert(self, *args, **kwargs):
         self.inserted.append((args, kwargs))
 
+    def add(self, *args, **kwargs):
+        """Mimic ttk.Panedwindow.add(): return a pane stub."""
+        self.added.append((args, kwargs))
+        return Stub()
+
     def __getattr__(self, name):
         def _noop(*args, **kwargs):
             return None
@@ -44,6 +50,7 @@ class FakeRenderer(Renderer):
         self.widget_calls = []
         self.container_calls = []
         self.created_widgets = []
+        self.created_containers = []
         self.window = Stub()
 
     def create_window(self):
@@ -56,14 +63,28 @@ class FakeRenderer(Renderer):
         return stub
 
     def create_container(self, kind, parent, props):
+        stub = Stub()
         self.container_calls.append((kind, dict(props)))
-        return Stub()
+        self.created_containers.append(stub)
+        return stub
 
     def set_theme(self, theme_name):
         pass
 
     def set_mode(self, mode):
         pass
+
+    def native_theme_colors(self):
+        return {
+            "surface": "#101010",
+            "text": "#eeeeee",
+            "border": "#333333",
+            "primary": "#3355aa",
+            "primary_text": "#ffffff",
+            "field_bg": "#202020",
+            "field_text": "#eeeeee",
+            "field_border": "#333333",
+        }
 
 
 class RendererFlowTests(unittest.TestCase):
@@ -283,6 +304,23 @@ class ThemeTests(unittest.TestCase):
 
         CTkRenderer().set_theme("blue")
 
+    def test_native_theme_palette_keys(self):
+        from lazytkinter.renderer import CTkRenderer
+
+        colors = CTkRenderer().native_theme_colors()
+        for key in (
+            "surface",
+            "text",
+            "border",
+            "primary",
+            "primary_text",
+            "field_bg",
+            "field_text",
+            "field_border",
+        ):
+            self.assertIn(key, colors)
+            self.assertIsInstance(colors[key], str)
+
 
 class CanvasFlowTests(unittest.TestCase):
     def setUp(self):
@@ -324,3 +362,30 @@ class CanvasFlowTests(unittest.TestCase):
     def test_canvas_rejects_non_callable_draw(self):
         with self.assertRaises(ValueError):
             ltk.Canvas().draw("not callable")
+
+
+class PanedWindowFlowTests(unittest.TestCase):
+    def setUp(self):
+        self.fake = FakeRenderer()
+        set_renderer(self.fake)
+
+    def tearDown(self):
+        set_renderer(_real_renderer)
+
+    def test_panedwindow_creates_container_and_panes(self):
+        ltk.PanedWindow(ltk.Column(), ltk.Column()).build(None)
+        kind, props = self.fake.container_calls[0]
+        self.assertEqual(kind, "PanedWindow")
+        self.assertEqual(props["orient"], "horizontal")
+        self.assertEqual(props["style"], "LTk.TPanedwindow")
+        stub = self.fake.created_containers[0]
+        self.assertEqual(len(stub.added), 2)
+
+    def test_panedwindow_orientation_vertical(self):
+        ltk.PanedWindow(ltk.Column(), ltk.Column()).orientation("vertical").build(None)
+        _, props = self.fake.container_calls[0]
+        self.assertEqual(props["orient"], "vertical")
+
+    def test_panedwindow_requires_two_panes(self):
+        with self.assertRaises(ValueError):
+            ltk.PanedWindow(ltk.Column()).build(None)

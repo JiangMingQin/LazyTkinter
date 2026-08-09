@@ -16,6 +16,8 @@ from typing import Any, Dict, Type
 
 import customtkinter as ctk
 
+from .tokens import color as _token_color
+
 logger = logging.getLogger(__name__)
 
 THEME_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "themes")
@@ -39,6 +41,10 @@ class Renderer:
         raise NotImplementedError
 
     def create_container(self, kind: str, parent, props: Dict[str, Any]):
+        raise NotImplementedError
+
+    def native_theme_colors(self) -> Dict[str, str]:
+        """Return a palette of the current theme's colors for native widgets."""
         raise NotImplementedError
 
     def set_theme(self, theme_name: str) -> None:
@@ -78,6 +84,7 @@ class CTkRenderer(Renderer):
             "Row": ctk.CTkFrame,
             "ZStack": ctk.CTkFrame,
             "Scroll": ctk.CTkScrollableFrame,
+            "PanedWindow": ttk.Panedwindow,
         }
 
     def create_window(self):
@@ -97,6 +104,9 @@ class CTkRenderer(Renderer):
             raise ValueError(f"Unknown container kind: {kind!r}") from None
         return container_cls(parent, **props)
 
+    def native_theme_colors(self) -> Dict[str, str]:
+        return _native_theme_palette()
+
     def set_theme(self, theme_name: str) -> None:
         filename = theme_name if theme_name.endswith(".json") else f"{theme_name}.json"
         internal_path = os.path.join(THEME_DIR, filename)
@@ -113,6 +123,45 @@ class CTkRenderer(Renderer):
 
     def set_mode(self, mode: str) -> None:
         ctk.set_appearance_mode(mode)
+
+
+def _pick_theme_color(widget: str, option: str, fallback: str) -> str:
+    """Read a color from the active CTk theme, resolving [light, dark] pairs."""
+    try:
+        value = ctk.ThemeManager.theme[widget][option]
+    except (KeyError, AttributeError, TypeError):
+        return fallback
+    if isinstance(value, (list, tuple)) and len(value) == 2:
+        return value[1] if ctk.get_appearance_mode() == "Dark" else value[0]
+    return value
+
+
+def _native_theme_palette() -> Dict[str, str]:
+    """Build the native-widget palette from the active CTk theme.
+
+    Falls back to semantic tokens when a widget class/option is missing, so
+    native widgets stay consistent with the application theme.
+    """
+    fallback = {
+        "surface": _token_color("surface"),
+        "text": _token_color("text"),
+        "border": _token_color("border"),
+        "primary": _token_color("primary"),
+        "primary_text": _token_color("text"),
+        "field_bg": _token_color("surface"),
+        "field_text": _token_color("text"),
+        "field_border": _token_color("border"),
+    }
+    return {
+        "surface": _pick_theme_color("CTkFrame", "fg_color", fallback["surface"]),
+        "text": _pick_theme_color("CTkLabel", "text_color", fallback["text"]),
+        "border": _pick_theme_color("CTkFrame", "border_color", fallback["border"]),
+        "primary": _pick_theme_color("CTkButton", "fg_color", fallback["primary"]),
+        "primary_text": _pick_theme_color("CTkButton", "text_color", fallback["primary_text"]),
+        "field_bg": _pick_theme_color("CTkEntry", "fg_color", fallback["field_bg"]),
+        "field_text": _pick_theme_color("CTkEntry", "text_color", fallback["field_text"]),
+        "field_border": _pick_theme_color("CTkEntry", "border_color", fallback["field_border"]),
+    }
 
 
 _renderer: Renderer = CTkRenderer()
