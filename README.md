@@ -102,6 +102,8 @@ LazyTkinter 内置了以下社区热门主题，无需下载 JSON 文件即可�
 
 * 📐 `Empty` (占位符)
 
+* 📐 `PanedWindow` (可拖拽分栏)
+
 **基础组件 / Basic Widgets**
 
 * 🎯 `Button`
@@ -186,12 +188,15 @@ ltk.Empty().width(10)                     # 固定尺寸占位
 ltk.Canvas().width(400).height(300).fg_color("surface_alt").draw(
     lambda c: c.create_rectangle(10, 10, 100, 100, fill=ltk.color("primary"))
 )
+ltk.PanedWindow(ltk.Column(...), ltk.Column(...))  # 可拖拽分栏（左右/上下）
 ltk.Button().id("btn")                    # 注册 id，app.get("btn") 可继续链式设置
 app.get("btn").config(ltk.Label).text("新文本")  # .config(类型) 收窄类型 + 运行时校验
 app.native("btn")                         # 需要时获取原生控件
 ```
 
 > **Canvas 说明**：基于 `CTkCanvas`（即 `tk.Canvas` 子类，绘图性能一致）；`.draw(func)` 在构建后把原生画布交给回调绘制（可多次注册、按序执行），`.fg_color()` 设置画布背景，交互通过 `.id()` + `app.native(id).bind(...)`。
+
+> **PanedWindow 说明**：基于 `ttk.Panedwindow`，构建时从当前 CTk 主题取色（`ctk.ThemeManager`，语义 token 兜底）设置分隔条颜色；切换主题或明暗后需重建窗口生效。
 
 **外观 / Appearance**：
 
