@@ -194,7 +194,7 @@ ltk.SplitPanel().vertical()                       # 纵向切割=左右分栏
     .add(ltk.Column(...)).min_width(120).max_width(400).transparent()
     .add(ltk.Column(...)).min_width(200)
 ltk.Divider()                                     # 水平分隔线（默认，主题 border 色）
-ltk.Divider().vertical().thickness(2)             # 垂直分隔线（链式方向）
+ltk.Divider().vertical().line_width(2)            # 垂直分隔线（line_width 设粗细）
 ltk.Button().id("btn")                    # 注册 id，app.get("btn") 可继续链式设置
 app.get("btn").config(ltk.Label).text("新文本")  # .config(类型) 收窄类型 + 运行时校验
 app.native("btn")                         # 需要时获取原生控件
@@ -209,7 +209,7 @@ app.native("btn")                         # 需要时获取原生控件
 | `.vertical()` | 竖线（左右分栏） | `min_width` / `max_width` | `horizontal` |
 | `.horizontal()` | 横线（上下分栏） | `min_height` / `max_height` | `vertical` |
 
-> **Divider 说明**：基于 `CTkFrame` 的薄层分隔线，默认色为当前主题 border（可用 `.fg_color()` 覆盖）；`.orientation().horizontal()/.vertical()` 链式设置方向（字符串形式保留），`.thickness()` 设置粗细。
+> **Divider 说明**：基于 `CTkFrame` 的薄层分隔线，默认色为当前主题 border（可用 `.fg_color()` 覆盖）；`.orientation().horizontal()/.vertical()` 链式设置方向（字符串形式保留），`.line_width()` 设置粗细。
 
 **外观 / Appearance**：
 

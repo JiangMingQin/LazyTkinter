@@ -8,7 +8,7 @@
 
 - **新组件（v0.7.0）**：
   - `SplitPanel`（原 PanedWindow，可拖拽分栏，`ttk.Panedwindow`）：链式 `add()` + 面板属性——`min_width/max_width`（纵向切割）、`min_height/max_height`（横向切割）、`transparent()`；方向按**切割线方向**定义（`vertical()` = 左右分栏、`horizontal()` = 上下分栏，`orientation()` 字符串形式保留）；最小/最大尺寸用 `sashpos` 拖动后回夹实现（ttk 无原生支持）；`sash_width()`、`proxy_sash()`（默认幽灵分隔条）；每实例 ttk style + 主题调色板缓存。
-  - `Divider`（分隔线，CTkFrame 薄层）：`orientation()` 链式、`thickness()`；默认色取当前 CTk 主题 border（`ctk.ThemeManager`，语义 token 兜底）。
+  - `Divider`（分隔线，CTkFrame 薄层）：`orientation()` 链式、`line_width()`；默认色取当前 CTk 主题 border（`ctk.ThemeManager`，语义 token 兜底）。
   - 新增 `examples/example04.py` 演示。
 - **新组件（v0.6.0）**：`Canvas`（画布）——基于 `CTkCanvas`（`tk.Canvas` 子类，绘图性能一致）；`.draw(func)` 注册绘制回调（可多次，构建后按序执行，收到原生画布）；`.fg_color()` 映射为画布背景（tk `bg`）；交互通过 `.id()` + `app.native(id).bind(...)`。新增 `examples/example03.py` 演示。
 - **渲染层解耦**：新增 `lazytkinter/renderer.py`（`Renderer` 协议 + `CTkRenderer`），成为包内唯一直接依赖 `customtkinter` 的模块；控件/容器改为“描述对象 → build → 渲染器”三层结构，为后续接入其他后端留好扩展点。
