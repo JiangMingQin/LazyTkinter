@@ -38,6 +38,7 @@ class Button(BaseWidget["Button"]):
         # Must return self, which is the core of implementing chainable methods.
         # Allows users to write fluent code like btn.text("A").event(func).
         self._text = text
+        self._apply("text", text)
         return self
 
     def event(self, command=lambda value: None) -> Button:
@@ -46,12 +47,15 @@ class Button(BaseWidget["Button"]):
 
     def hover_color(self, color: str) -> Button:
         self._hover_color = color
+        self._apply("hover_color", color)
         return self
 
     def border(self, width: int, color: str | None = None) -> Button:
         self._border_width = width
+        self._apply("border_width", width)
         if color:
             self._border_color = color
+            self._apply("border_color", color)
         return self
 
     def image(self, img: Any) -> Button:
@@ -96,6 +100,7 @@ class Label(BaseWidget["Label"]):
 
     def text(self, text: str = "Label") -> Label:
         self._text = text
+        self._apply("text", text)
         return self
 
     def variable(self, var: Any) -> Label:
@@ -105,10 +110,12 @@ class Label(BaseWidget["Label"]):
     # Layout Control
     def justify(self, mode: Literal["left", "center", "right"]) -> Label:
         self._justify = mode
+        self._apply("justify", mode)
         return self
 
     def wrap_length(self, length: int) -> Label:
         self._wraplength = length
+        self._apply("wraplength", length)
         return self
 
     def image(self, img: Any) -> Label:
@@ -138,17 +145,21 @@ class Entry(BaseWidget["Entry"]):
 
     def placeholder_text(self, text: str = "Entry") -> Entry:
         self._placeholder_text = text
+        self._apply("placeholder_text", text)
         return self
 
     # Used for password fields e.g. show("*")
     def show(self, char: str) -> Entry:
         self._show = char
+        self._apply("show", char)
         return self
 
     def border(self, width: int, color: str | None = None) -> Entry:
         self._border_width = width
+        self._apply("border_width", width)
         if color:
             self._border_color = color
+            self._apply("border_color", color)
         return self
 
     def variable(self, var: Any) -> Entry:
@@ -179,6 +190,7 @@ class Switch(BaseWidget["Switch"]):
 
     def text(self, text: str = "") -> Switch:
         self._text = text
+        self._apply("text", text)
         return self
 
     def event(self, command=lambda value: None) -> Switch:
@@ -188,6 +200,8 @@ class Switch(BaseWidget["Switch"]):
     def values(self, on_val: Any, off_val: Any) -> Switch:
         self._on_value = on_val
         self._off_value = off_val
+        self._apply("onvalue", on_val)
+        self._apply("offvalue", off_val)
         return self
 
     def variable(self, var: Any) -> Switch:
@@ -196,6 +210,7 @@ class Switch(BaseWidget["Switch"]):
 
     def progress_color(self, color: str) -> Switch:
         self._progress_color = color
+        self._apply("progress_color", color)
         return self
 
     def build(self, parent, *, width=None, height=None):
@@ -228,6 +243,7 @@ class CheckBox(BaseWidget["CheckBox"]):
 
     def text(self, text: str) -> CheckBox:
         self._text = text
+        self._apply("text", text)
         return self
 
     def event(self, command=lambda value: None) -> CheckBox:
@@ -241,6 +257,8 @@ class CheckBox(BaseWidget["CheckBox"]):
     def values(self, on_val: Any, off_val: Any) -> CheckBox:
         self._on_value = on_val
         self._off_value = off_val
+        self._apply("onvalue", on_val)
+        self._apply("offvalue", off_val)
         return self
 
     def build(self, parent, *, width=None, height=None):
@@ -270,10 +288,12 @@ class RadioButton(BaseWidget["RadioButton"]):
 
     def text(self, text: str) -> RadioButton:
         self._text = text
+        self._apply("text", text)
         return self
 
     def value(self, val: Any) -> RadioButton:
         self._value = val
+        self._apply("value", val)
         return self
 
     def variable(self, var: Any) -> RadioButton:
@@ -286,10 +306,12 @@ class RadioButton(BaseWidget["RadioButton"]):
 
     def radiobutton_width(self, rw: int = 20) -> RadioButton:
         self._radiobutton_width = rw
+        self._apply("radiobutton_width", rw)
         return self
 
     def radiobutton_height(self, rh: int = 20) -> RadioButton:
         self._radiobutton_height = rh
+        self._apply("radiobutton_height", rh)
         return self
 
     def build(self, parent, *, width=None, height=None):
@@ -318,12 +340,15 @@ class Textbox(BaseWidget["Textbox"]):
 
     def border(self, width: int, spacing: int | None = None) -> Textbox:
         self._border_width = width
+        self._apply("border_width", width)
         if spacing is not None:
             self._border_spacing = spacing
+            self._apply("border_spacing", spacing)
         return self
 
     def wrap(self, mode: Literal["char", "word", "none"]) -> Textbox:
         self._wrap = mode
+        self._apply("wrap", mode)
         return self
 
     def scrollbar(self, active: bool) -> Textbox:
@@ -360,11 +385,14 @@ class Slider(BaseWidget["Slider"]):
         """set the range of the slider, default is 0 to 1"""
         self._from_ = start
         self._to = end
+        self._apply("from_", start)
+        self._apply("to", end)
         return self
 
     def steps(self, steps: int) -> Slider:
         """set the step size (if not set, it will be a smooth slide)"""
         self._number_of_steps = steps
+        self._apply("number_of_steps", steps)
         return self
 
     def variable(self, var: Any) -> Slider:
@@ -380,18 +408,22 @@ class Slider(BaseWidget["Slider"]):
     def orientation(self, orient: Literal["horizontal", "vertical"]) -> Slider:
         """set the orientation of the slider"""
         self._orientation = orient
+        self._apply("orientation", orient)
         return self
 
     def button_color(self, color: str) -> Slider:
         self._button_color = color
+        self._apply("button_color", color)
         return self
 
     def progress_color(self, color: str) -> Slider:
         self._progress_color = color
+        self._apply("progress_color", color)
         return self
 
     def button_hover_color(self, color: str) -> Slider:
         self._button_hover_color = color
+        self._apply("button_hover_color", color)
         return self
 
     def build(self, parent, *, width=None, height=None):
@@ -424,16 +456,20 @@ class ProgressBar(BaseWidget["ProgressBar"]):
 
     def orientation(self, orient: Literal["horizontal", "vertical"]) -> ProgressBar:
         self._orientation = orient
+        self._apply("orientation", orient)
         return self
 
     def mode(self, mode: Literal["determinate", "indeterminate"]) -> ProgressBar:
         self._mode = mode
+        self._apply("mode", mode)
         return self
 
     def value(self, val: float) -> ProgressBar:
         if isinstance(val, bool) or not isinstance(val, (int, float)) or not (0 <= val <= 1):
             raise ValueError("ProgressBar.value() expects a number between 0 and 1")
         self._value = val
+        if self._built is not None:
+            self._built.set(val)
         return self
 
     def build(self, parent, *, width=None, height=None):
@@ -458,10 +494,13 @@ class SegmentedButton(BaseWidget["SegmentedButton"]):
 
     def values(self, values: list) -> SegmentedButton:
         self._values = list(values)
+        self._apply("values", self._values)
         return self
 
     def set_value(self, val: str) -> SegmentedButton:
         self._default_value = val
+        if self._built is not None:
+            self._built.set(val)
         return self
 
     def event(self, command=lambda value: None) -> SegmentedButton:
@@ -493,10 +532,13 @@ class ComboBox(BaseWidget["ComboBox"]):
 
     def values(self, values: list) -> ComboBox:
         self._values = list(values)
+        self._apply("values", self._values)
         return self
 
     def set_value(self, val: str) -> ComboBox:
         self._default_value = val
+        if self._built is not None:
+            self._built.set(val)
         return self
 
     def event(self, command=lambda value: None) -> ComboBox:
@@ -525,10 +567,13 @@ class OptionMenu(BaseWidget["OptionMenu"]):
 
     def values(self, values: list) -> OptionMenu:
         self._values = list(values)
+        self._apply("values", self._values)
         return self
 
     def set_value(self, val: str) -> OptionMenu:
         self._default_value = val
+        if self._built is not None:
+            self._built.set(val)
         return self
 
     def event(self, command=lambda value: None) -> OptionMenu:

@@ -591,19 +591,18 @@ class RegistryTests(unittest.TestCase):
         registry.clear()
 
     def test_register_and_get(self):
-        widget = object()
-        registry.register("btn", widget)
-        self.assertIs(registry.get("btn"), widget)
+        wrapper = object()
+        registry.register("btn", wrapper, object())
+        self.assertIs(registry.get("btn"), wrapper)
 
     def test_duplicate_raises(self):
-        widget = object()
-        registry.register("btn", widget)
+        registry.register("btn", object(), object())
         with self.assertRaises(ValueError):
-            registry.register("btn", widget)
+            registry.register("btn", object(), object())
 
     def test_ids_and_clear(self):
-        registry.register("a", object())
-        registry.register("b", object())
+        registry.register("a", object(), object())
+        registry.register("b", object(), object())
         self.assertEqual(set(registry.ids()), {"a", "b"})
         registry.clear()
         self.assertEqual(registry.ids(), [])

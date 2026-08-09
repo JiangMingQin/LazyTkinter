@@ -181,7 +181,9 @@ ltk.ZStack().add(bg, fg.align("top-right"))  # 重叠 + 锚点
 ltk.Spacer().weight(2)                    # 弹性弹簧（吃剩余空间）
 ltk.Scroll(ltk.Column().add(*items))      # 滚动包装（v1 仅垂直）
 ltk.Empty().width(10)                     # 固定尺寸占位
-ltk.Button().id("btn")                    # 注册 id，app.get("btn") 获取原生控件
+ltk.Button().id("btn")                    # 注册 id，app.get("btn") 可继续链式设置
+app.get("btn").text("新文本")              # 构建后仍可用链式 setter 实时更新
+app.native("btn")                         # 需要时获取原生控件
 ```
 
 **外观 / Appearance**：

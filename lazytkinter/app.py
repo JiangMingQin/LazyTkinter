@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import tkinter as tk
+from typing import TYPE_CHECKING
 
 from .containers import (
     _COLUMN_ALIGN_STICKY,
@@ -12,6 +13,9 @@ from .renderer import get_renderer
 from .registry import get as _registry_get
 from .registry import ids as _registry_ids
 from .tokens import set_theme as _set_token_theme
+
+if TYPE_CHECKING:
+    from .base import BaseWidget
 
 _WINDOW_PRESETS = {"large": "1200x800", "medium": "900x600", "small": "600x400"}
 _WINDOW_ALIGNMENTS = ("left", "center", "right", "top", "bottom")
@@ -248,9 +252,17 @@ class Application:
         self.build()
         self._window.mainloop()
 
-    def get(self, name: str) -> tk.Widget:
-        """Return the native widget registered under an id (see ``.id()``)."""
+    def get(self, name: str) -> "BaseWidget":
+        """Return the config wrapper registered under an id (see ``.id()``).
+
+        The wrapper keeps fluent setters working after build: they push
+        updates to the built native widget.
+        """
         return _registry_get(name)
+
+    def native(self, name: str) -> tk.Widget:
+        """Return the raw native widget registered under an id."""
+        return _registry_get(name)._built
 
     def ids(self) -> list[str]:
         """Return all ids registered via ``.id()``."""

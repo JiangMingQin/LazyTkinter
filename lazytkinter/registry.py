@@ -1,23 +1,28 @@
-"""Runtime registry mapping widget ids to their built native widgets."""
+"""Runtime registry mapping widget ids to their config wrappers."""
 
 import tkinter as tk
+from typing import Any
 
-_registry: dict[str, tk.Widget] = {}
+_registry: dict[str, Any] = {}
 
 
-def register(name: str, widget) -> None:
-    """Register a native widget under an id; duplicate ids raise ValueError."""
+def register(name: str, wrapper, native: tk.Widget) -> None:
+    """Register a config wrapper under an id; duplicate ids raise ValueError.
+
+    The wrapper keeps fluent setters working after build (they push to the
+    native widget), and the native widget is tagged with the id for debugging.
+    """
     if name in _registry:
         raise ValueError(f"duplicate widget id: {name!r}")
-    _registry[name] = widget
+    _registry[name] = wrapper
     try:
-        widget._ltk_id = name
+        native._ltk_id = name
     except Exception:
         pass
 
 
-def get(name: str) -> tk.Widget:
-    """Return the native widget registered under ``name`` (KeyError if missing)."""
+def get(name: str) -> Any:
+    """Return the config wrapper registered under ``name`` (KeyError if missing)."""
     return _registry[name]
 
 

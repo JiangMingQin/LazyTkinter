@@ -1,4 +1,5 @@
 from __future__ import annotations
+from tkinter import TclError
 from typing import TypeVar, Generic, Literal, Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -111,6 +112,7 @@ class BaseWidget(Generic[T]):
         self._pending_size_axis = None  # "width" / "height" / None
         self._weight = None  # fill(weight=...), None means the default 1
         self._id = None  # registered via .id("name"), retrievable with app.get()
+        self._built = None  # native widget after build(), enables live updates
 
     def id(self, name: str) -> T:
         """Give this widget a name so its native widget is retrievable via app.get()."""
@@ -120,16 +122,31 @@ class BaseWidget(Generic[T]):
     def _create_widget(self, kind, parent, kwargs):
         """Create a native widget through the renderer and register its id."""
         widget = get_renderer().create_widget(kind, parent, kwargs)
+        self._built = widget
         if self._id is not None:
-            _register_id(self._id, widget)
+            _register_id(self._id, self, widget)
         return widget
 
     def _create_container(self, kind, parent, kwargs):
         """Create a native container through the renderer and register its id."""
         widget = get_renderer().create_container(kind, parent, kwargs)
+        self._built = widget
         if self._id is not None:
-            _register_id(self._id, widget)
+            _register_id(self._id, self, widget)
         return widget
+
+    def _apply(self, key: str, value) -> None:
+        """Push a property to the built native widget (no-op before build).
+
+        Runtime updates apply only when the native widget supports the option;
+        unsupported ones are skipped so build-time configuration stays the
+        source of truth.
+        """
+        if self._built is not None and value is not None:
+            try:
+                self._built.configure(**{key: value})
+            except TclError:
+                pass
 
     def _inject_base_args(
         self, kwargs: dict[str, Any], *, width=None, height=None
@@ -275,22 +292,26 @@ class BaseWidget(Generic[T]):
             T: Returns self for method chaining.
         """
         self._radius = r
+        self._apply("corner_radius", r)
         return self  # type: ignore
 
     # Colors
     def fg_color(self, color: str) -> T:
         """Set foreground color."""
         self._fg_color = color
+        self._apply("fg_color", color)
         return self  # type: ignore
 
     def bg_color(self, color: str) -> T:
         """Set background color."""
         self._bg_color = color
+        self._apply("bg_color", color)
         return self  # type: ignore
 
     def text_color(self, color: str) -> T:
         """Set text color."""
         self._text_color = color
+        self._apply("text_color", color)
         return self  # type: ignore
 
     # Font
@@ -371,17 +392,20 @@ class BaseWidget(Generic[T]):
             raise ValueError("font() overstrike must be a bool")
 
         self._font = _build_font_tuple(config) if config else None
+        self._apply("font", self._font)
         return self  # type: ignore
 
     # Interaction
     def state(self, state: Literal["normal", "disabled"]) -> T:
         """Set widget state."""
         self._state = state
+        self._apply("state", state)
         return self  # type: ignore
 
     def cursor(self, cursor: str) -> T:
         """Set cursor style."""
         self._cursor = cursor
+        self._apply("cursor", cursor)
         return self  # type: ignore
 
     # Layout

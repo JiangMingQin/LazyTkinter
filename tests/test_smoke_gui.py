@@ -209,9 +209,8 @@ class SmokeTests(unittest.TestCase):
         app.build()
         app._window.update_idletasks()
 
-        native = app.get("count")
-        native.configure(text="5")
-        self.assertEqual(native.cget("text"), "5")
+        app.get("count").text("5")
+        self.assertEqual(app.native("count").cget("text"), "5")
 
         tree = app.layout_tree()
         # CTk widgets are Tk Frames internally; ids are attached to them

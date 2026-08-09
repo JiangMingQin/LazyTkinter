@@ -161,9 +161,21 @@ class RendererFlowTests(unittest.TestCase):
     def test_id_registers_built_widget(self):
         registry.clear()
         try:
-            widget = ltk.Button().id("btn").build(None)
-            self.assertIs(registry.get("btn"), widget)
-            self.assertEqual(widget._ltk_id, "btn")
+            wrapper = ltk.Button().id("btn")
+            built = wrapper.build(None)
+            self.assertIs(registry.get("btn"), wrapper)
+            self.assertIs(wrapper._built, built)
+            self.assertEqual(built._ltk_id, "btn")
+        finally:
+            registry.clear()
+
+    def test_live_setter_updates_built_widget(self):
+        registry.clear()
+        try:
+            wrapper = ltk.Label().id("label")
+            built = wrapper.build(None)
+            wrapper.text("hi")
+            self.assertEqual(built.configured.get("text"), "hi")
         finally:
             registry.clear()
 
@@ -254,6 +266,7 @@ class ApplicationLayoutTests(unittest.TestCase):
             app.build()
             self.assertIn("btn", app.ids())
             self.assertIsNotNone(app.get("btn"))
+            self.assertIsNotNone(app.native("btn"))
         finally:
             registry.clear()
 
