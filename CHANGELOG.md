@@ -29,6 +29,7 @@
 
 ### 修改 (Changed)
 
+- `Spacer` 与 `Empty` 合并为 `Space`：`Space()` 默认弹性（等价旧 `Spacer`，按 `weight` 分配剩余空间），显式 `width()` / `height()` 固定像素时变为刚性透明占位（等价旧 `Empty`）；固定尺寸的 `Space` 不再触发 fill 子元素降级，仅弹性 `Space` 生效；ZStack 中弹性 `Space` 抛 `ValueError`、固定尺寸可用；显式 `weight()` 与主轴固定尺寸同用抛 `ValueError`。
 - 示例 `example00/01/02` 与 README 全面适配 v2 API；README 新增「布局 API 速查」章节。
 - 示例移除 `sys.path.append` 临时路径 hack，安装包后可直接运行。
 - **破坏性变更**：所有 `event()` 回调统一接收“当前值”——`Button` 收到 `None`，`CheckBox`/`RadioButton` 收到 `get()`，其余控件保持传值；示例同步更新。
@@ -55,6 +56,7 @@
 
 ### 删除 (Removed)
 
+- `Spacer`、`Empty` 类与导出移除，由 `Space` 取代（破坏性变更）。
 - 旧布局 API：`weight()`、`sticky()`、`row_span()`、`col_span()`、`margin()` / `margin_x()` / `margin_y()`、`spacing()`、`ScrollableColumn`、`window_size()`。
 - 容器与窗口 `padding` 的元组形式（仅接受整数像素）。
 - 容器默认透明背景（改为默认主题色，透明需显式 `transparent()`）。

@@ -6,9 +6,9 @@
 
 ---
 
-**LazyTkinter** 是一个基于 CustomTkinter 的 Python 界面库，旨在通过声明式编程简化 Tkinter 的布局和开发流程。它去除了传统的 grid 和 pack 方法，引入了 `Row` / `Column` / `ZStack` 容器，配合 `fit` / `fill` 尺寸策略、`gap` / `padding` 间距和 `Spacer` 弹性占位，使布局像搭积木一样直观。
+**LazyTkinter** 是一个基于 CustomTkinter 的 Python 界面库，旨在通过声明式编程简化 Tkinter 的布局和开发流程。它去除了传统的 grid 和 pack 方法，引入了 `Row` / `Column` / `ZStack` 容器，配合 `fit` / `fill` 尺寸策略、`gap` / `padding` 间距和 `Space` 占位（弹性/固定），使布局像搭积木一样直观。
 > LazyTkinter is a Python UI library built on CustomTkinter, designed to simplify Tkinter layout and development workflows via Declarative Programming. 
-It replaces traditional grid and pack methods with Row/Column/ZStack containers, fit/fill size policies, gap/padding spacing and Spacer springs to make layouts more intuitive.
+It replaces traditional grid and pack methods with Row/Column/ZStack containers, fit/fill size policies, gap/padding spacing and Space placeholders to make layouts more intuitive.
 
 **目标受众**：适合希望快速开发简单 GUI 应用的开发者，尤其是对命令式编程感到繁琐，但又不想使用 PySide 或 QT 等大型框架的用户。
 > Ideal for developers looking to quickly build simple GUI applications — especially those who find Imperative Programming cumbersome, but don’t want to use heavyweight frameworks like PySide or QT.
@@ -96,11 +96,9 @@ LazyTkinter 内置了以下社区热门主题，无需下载 JSON 文件即可�
 
 * 📐 `ZStack` (重叠层叠)
 
-* 📐 `Spacer` (弹性占位)
+* 📐 `Space` (弹性/固定占位)
 
 * 📐 `Scroll` (滚动包装器)
-
-* 📐 `Empty` (占位符)
 
 * 📐 `SplitPanel` (可拖拽分栏)
 
@@ -184,9 +182,9 @@ app.center().column(...)          # 窗口根布局同样支持
 ltk.Row(ltk.Button(), ltk.Label())        # 构造参数直接传子元素
 ltk.Column().add(a).add(b)                # 或追加
 ltk.ZStack().add(bg, fg.align("top-right"))  # 重叠 + 锚点
-ltk.Spacer().weight(2)                    # 弹性弹簧（吃剩余空间）
+ltk.Space().weight(2)                     # 弹性弹簧（吃剩余空间）
 ltk.Scroll(ltk.Column().add(*items))      # 滚动包装（v1 仅垂直）
-ltk.Empty().width(10)                     # 固定尺寸占位
+ltk.Space().width(10)                     # 固定尺寸占位
 ltk.Canvas().width(400).height(300).fg_color("surface_alt").draw(
     lambda c: c.create_rectangle(10, 10, 100, 100, fill=ltk.color("primary"))
 )
