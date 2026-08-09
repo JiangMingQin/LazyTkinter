@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import Any, Literal
 
 from .base import BaseWidget
+from .tokens import resolve as _resolve_token
 
 
 class Button(BaseWidget["Button"]):
@@ -67,9 +68,9 @@ class Button(BaseWidget["Button"]):
         # If not set (is None), we don't pass this parameter,
         # so the native widget uses its own default styles.
         if self._text is not None: kwargs["text"] = self._text
-        if self._hover_color is not None: kwargs["hover_color"] = self._hover_color
+        if self._hover_color is not None: kwargs["hover_color"] = _resolve_token(self._hover_color)
         if self._border_width is not None: kwargs["border_width"] = self._border_width
-        if self._border_color is not None: kwargs["border_color"] = self._border_color
+        if self._border_color is not None: kwargs["border_color"] = _resolve_token(self._border_color)
         if self._image is not None: kwargs["image"] = self._image
 
         # [Code Reuse]:
@@ -159,7 +160,7 @@ class Entry(BaseWidget["Entry"]):
         if self._placeholder_text is not None: kwargs["placeholder_text"] = self._placeholder_text
         if self._show is not None: kwargs["show"] = self._show
         if self._border_width is not None: kwargs["border_width"] = self._border_width
-        if self._border_color is not None: kwargs["border_color"] = self._border_color
+        if self._border_color is not None: kwargs["border_color"] = _resolve_token(self._border_color)
         if self._variable is not None: kwargs["textvariable"] = self._variable
 
         self._inject_base_args(kwargs, width=width, height=height)
@@ -203,7 +204,7 @@ class Switch(BaseWidget["Switch"]):
         if self._on_value is not None: kwargs["onvalue"] = self._on_value
         if self._off_value is not None: kwargs["offvalue"] = self._off_value
         if self._variable is not None: kwargs["variable"] = self._variable
-        if self._progress_color is not None: kwargs["progress_color"] = self._progress_color
+        if self._progress_color is not None: kwargs["progress_color"] = _resolve_token(self._progress_color)
 
         self._inject_base_args(kwargs, width=width, height=height)
         switch = self._create_widget("Switch", parent, kwargs)
@@ -406,9 +407,9 @@ class Slider(BaseWidget["Slider"]):
         if self._command is not None: kwargs["command"] = self._command
 
         # color style parameters
-        if self._button_color is not None: kwargs["button_color"] = self._button_color
-        if self._progress_color is not None: kwargs["progress_color"] = self._progress_color
-        if self._button_hover_color is not None: kwargs["button_hover_color"] = self._button_hover_color
+        if self._button_color is not None: kwargs["button_color"] = _resolve_token(self._button_color)
+        if self._progress_color is not None: kwargs["progress_color"] = _resolve_token(self._progress_color)
+        if self._button_hover_color is not None: kwargs["button_hover_color"] = _resolve_token(self._button_hover_color)
 
         self._inject_base_args(kwargs, width=width, height=height)
         return self._create_widget("Slider", parent, kwargs)

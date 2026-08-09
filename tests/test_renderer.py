@@ -4,6 +4,7 @@ import unittest
 
 import lazytkinter as ltk
 from lazytkinter import registry
+from lazytkinter import tokens as token_mod
 from lazytkinter.containers import Column, Scroll, ZStack
 from lazytkinter.renderer import Renderer, get_renderer, set_renderer
 
@@ -82,6 +83,16 @@ class RendererFlowTests(unittest.TestCase):
         self.assertEqual(props["height"], 30)
         self.assertEqual(props["fg_color"], "red")
         self.assertNotIn("font", props)
+
+    def test_fg_color_token_resolved_at_build(self):
+        token_mod.set_theme("catppuccin-mocha")
+        try:
+            ltk.Button().fg_color("primary").build(None)
+            self.assertEqual(
+                self.fake.widget_calls[0][1]["fg_color"], token_mod.color("primary")
+            )
+        finally:
+            token_mod.set_theme("catppuccin-mocha")
 
     def test_container_kinds(self):
         Column().build(None)

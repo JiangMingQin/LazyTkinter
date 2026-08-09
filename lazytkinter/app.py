@@ -9,6 +9,7 @@ from .containers import (
 from .renderer import get_renderer
 from .registry import get as _registry_get
 from .registry import ids as _registry_ids
+from .tokens import set_theme as _set_token_theme
 
 _WINDOW_PRESETS = {"large": "1200x800", "medium": "900x600", "small": "600x400"}
 _WINDOW_ALIGNMENTS = ("left", "center", "right", "top", "bottom")
@@ -51,6 +52,7 @@ def set_theme(theme_name: str) -> None:
         ValueError: When the theme file cannot be found.
     """
     get_renderer().set_theme(theme_name)
+    _set_token_theme(theme_name)
 
 
 class Theme:

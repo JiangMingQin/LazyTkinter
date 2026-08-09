@@ -6,6 +6,7 @@ if TYPE_CHECKING:
 
 from .registry import register as _register_id
 from .renderer import get_renderer
+from .tokens import resolve as _resolve_token
 
 T = TypeVar('T', bound='BaseWidget')
 
@@ -147,9 +148,9 @@ class BaseWidget(Generic[T]):
         if effective_height is not None: kwargs['height'] = effective_height
         if self._radius is not None: kwargs['corner_radius'] = self._radius
 
-        if self._fg_color is not None: kwargs['fg_color'] = self._fg_color
-        if self._bg_color is not None: kwargs['bg_color'] = self._bg_color
-        if self._text_color is not None: kwargs['text_color'] = self._text_color
+        if self._fg_color is not None: kwargs['fg_color'] = _resolve_token(self._fg_color)
+        if self._bg_color is not None: kwargs['bg_color'] = _resolve_token(self._bg_color)
+        if self._text_color is not None: kwargs['text_color'] = _resolve_token(self._text_color)
 
         if self._font is not None: kwargs['font'] = self._font
         if self._state is not None: kwargs['state'] = self._state

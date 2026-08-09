@@ -40,6 +40,9 @@ from .utils import Font
 from .utils import select_file
 from .utils import select_directory
 
+from .tokens import Tokens
+from .tokens import color
+
 __all__ = [
     # app
     "Application", 
@@ -77,5 +80,8 @@ __all__ = [
     "Image", 
     "Font", 
     "select_file", 
-    "select_directory"
+    "select_directory",
+    # theme tokens
+    "Tokens",
+    "color",
 ]

@@ -17,6 +17,7 @@ from lazytkinter.containers import (
     _resolve_zstack_slots,
 )
 from lazytkinter import registry
+from lazytkinter import tokens as token_mod
 
 
 class SizePolicyTests(unittest.TestCase):
@@ -606,3 +607,36 @@ class RegistryTests(unittest.TestCase):
         self.assertEqual(set(registry.ids()), {"a", "b"})
         registry.clear()
         self.assertEqual(registry.ids(), [])
+
+
+class TokenTests(unittest.TestCase):
+    def setUp(self):
+        self._saved = token_mod._current
+
+    def tearDown(self):
+        token_mod._current = self._saved
+
+    def test_color_and_tokens_export(self):
+        self.assertTrue(token_mod.color("primary").startswith("#"))
+        self.assertEqual(ltk.color("primary"), token_mod.color("primary"))
+        self.assertEqual(ltk.Tokens.radius, token_mod.Tokens.radius)
+
+    def test_unknown_token_raises(self):
+        with self.assertRaises(ValueError):
+            token_mod.color("nope")
+
+    def test_theme_switch_changes_tokens(self):
+        before = token_mod.color("primary")
+        token_mod.set_theme("gruvbox-theme")
+        after = token_mod.color("primary")
+        self.assertNotEqual(before, after)
+
+    def test_resolve_token_and_pass_through(self):
+        primary = token_mod.color("primary")
+        self.assertEqual(token_mod.resolve("primary"), primary)
+        self.assertEqual(token_mod.resolve("#123456"), "#123456")
+
+    def test_set_theme_syncs_tokens(self):
+        ltk.set_theme("gruvbox-theme")
+        self.assertEqual(token_mod._current, "gruvbox-theme")
+        ltk.set_theme("catppuccin-mocha")
