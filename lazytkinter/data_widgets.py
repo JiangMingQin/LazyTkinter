@@ -4,18 +4,17 @@ from __future__ import annotations
 from typing import Any
 
 from .base import BaseWidget
-from .renderer import get_renderer
 
 
 def _new_scroll_frame(wrapper, parent, *, width=None, height=None):
     """Create the wrapper frame and its vertical scrollbar (grid-based)."""
-    frame = get_renderer().create_container("Column", parent, {})
+    frame = wrapper._create_container("Column", parent, {})
     limit_w = width if width is not None else wrapper._width
     limit_h = height if height is not None else wrapper._height
     if limit_w is not None or limit_h is not None:
         frame.grid_propagate(False)
 
-    scrollbar = get_renderer().create_widget("Scrollbar", frame, {"orient": "vertical"})
+    scrollbar = wrapper._create_widget("Scrollbar", frame, {"orient": "vertical"})
     frame.grid_columnconfigure(0, weight=1)
     frame.grid_rowconfigure(0, weight=1)
     return frame, scrollbar
@@ -62,7 +61,7 @@ class Treeview(BaseWidget["Treeview"]):
         props: dict[str, Any] = {}
         self._inject_base_args(props, width=width, height=height)
         frame, scrollbar = _new_scroll_frame(self, parent, width=width, height=height)
-        tree = get_renderer().create_widget("Treeview", frame, props)
+        tree = self._create_widget("Treeview", frame, props)
 
         columns = self._columns or ["Column"]
         tree.configure(columns=columns, show="headings")
@@ -107,7 +106,7 @@ class Listbox(BaseWidget["Listbox"]):
         props: dict[str, Any] = {}
         self._inject_base_args(props, width=width, height=height)
         frame, scrollbar = _new_scroll_frame(self, parent, width=width, height=height)
-        listbox = get_renderer().create_widget("Listbox", frame, props)
+        listbox = self._create_widget("Listbox", frame, props)
 
         for item in self._items:
             listbox.insert("end", item)

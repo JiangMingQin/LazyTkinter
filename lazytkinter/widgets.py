@@ -2,7 +2,6 @@ from __future__ import annotations
 from typing import Any, Literal
 
 from .base import BaseWidget
-from .renderer import get_renderer
 
 
 class Button(BaseWidget["Button"]):
@@ -78,7 +77,7 @@ class Button(BaseWidget["Button"]):
         # is extracted to the _inject_base_args method in BaseWidget.
         self._inject_base_args(kwargs, width=width, height=height)
 
-        btn = get_renderer().create_widget("Button", parent, kwargs)
+        btn = self._create_widget("Button", parent, kwargs)
         if self._command is not None:
             user_cmd = self._command
             btn.configure(command=lambda: user_cmd(None))
@@ -124,7 +123,7 @@ class Label(BaseWidget["Label"]):
         if self._variable is not None: kwargs["textvariable"] = self._variable
 
         self._inject_base_args(kwargs, width=width, height=height)
-        return get_renderer().create_widget("Label", parent, kwargs)
+        return self._create_widget("Label", parent, kwargs)
 
 
 class Entry(BaseWidget["Entry"]):
@@ -164,7 +163,7 @@ class Entry(BaseWidget["Entry"]):
         if self._variable is not None: kwargs["textvariable"] = self._variable
 
         self._inject_base_args(kwargs, width=width, height=height)
-        return get_renderer().create_widget("Entry", parent, kwargs)
+        return self._create_widget("Entry", parent, kwargs)
 
 
 class Switch(BaseWidget["Switch"]):
@@ -207,7 +206,7 @@ class Switch(BaseWidget["Switch"]):
         if self._progress_color is not None: kwargs["progress_color"] = self._progress_color
 
         self._inject_base_args(kwargs, width=width, height=height)
-        switch = get_renderer().create_widget("Switch", parent, kwargs)
+        switch = self._create_widget("Switch", parent, kwargs)
 
         # Event wrapping logic (for passing arguments)
         if self._command is not None:
@@ -251,7 +250,7 @@ class CheckBox(BaseWidget["CheckBox"]):
         if self._off_value is not None: kwargs["offvalue"] = self._off_value
 
         self._inject_base_args(kwargs, width=width, height=height)
-        check_box = get_renderer().create_widget("CheckBox", parent, kwargs)
+        check_box = self._create_widget("CheckBox", parent, kwargs)
         if self._command is not None:
             user_cmd = self._command
             check_box.configure(command=lambda: user_cmd(check_box.get()))
@@ -301,7 +300,7 @@ class RadioButton(BaseWidget["RadioButton"]):
         if self._radiobutton_height is not None: kwargs["radiobutton_height"] = self._radiobutton_height
 
         self._inject_base_args(kwargs, width=width, height=height)
-        radio_button = get_renderer().create_widget("RadioButton", parent, kwargs)
+        radio_button = self._create_widget("RadioButton", parent, kwargs)
         if self._command is not None:
             user_cmd = self._command
             radio_button.configure(command=lambda: user_cmd(radio_button.get()))
@@ -338,7 +337,7 @@ class Textbox(BaseWidget["Textbox"]):
         kwargs["activate_scrollbars"] = self._activate_scrollbars
 
         self._inject_base_args(kwargs, width=width, height=height)
-        return get_renderer().create_widget("Textbox", parent, kwargs)
+        return self._create_widget("Textbox", parent, kwargs)
 
 
 class Slider(BaseWidget["Slider"]):
@@ -412,7 +411,7 @@ class Slider(BaseWidget["Slider"]):
         if self._button_hover_color is not None: kwargs["button_hover_color"] = self._button_hover_color
 
         self._inject_base_args(kwargs, width=width, height=height)
-        return get_renderer().create_widget("Slider", parent, kwargs)
+        return self._create_widget("Slider", parent, kwargs)
 
 
 class ProgressBar(BaseWidget["ProgressBar"]):
@@ -444,7 +443,7 @@ class ProgressBar(BaseWidget["ProgressBar"]):
         kwargs["orientation"] = self._orientation
         kwargs["mode"] = self._mode
 
-        progress = get_renderer().create_widget("ProgressBar", parent, kwargs)
+        progress = self._create_widget("ProgressBar", parent, kwargs)
         progress.set(self._value)  # set default value
         return progress
 
@@ -475,7 +474,7 @@ class SegmentedButton(BaseWidget["SegmentedButton"]):
         if self._values: kwargs["values"] = self._values
         if self._command: kwargs["command"] = self._command
 
-        seg_btn = get_renderer().create_widget("SegmentedButton", parent, kwargs)
+        seg_btn = self._create_widget("SegmentedButton", parent, kwargs)
         if self._default_value is not None:
             seg_btn.set(self._default_value)
         elif self._values:
@@ -510,7 +509,7 @@ class ComboBox(BaseWidget["ComboBox"]):
         if self._values: kwargs["values"] = self._values
         if self._command: kwargs["command"] = self._command
 
-        combo = get_renderer().create_widget("ComboBox", parent, kwargs)
+        combo = self._create_widget("ComboBox", parent, kwargs)
         if self._default_value is not None:
             combo.set(self._default_value)
         return combo
@@ -542,7 +541,7 @@ class OptionMenu(BaseWidget["OptionMenu"]):
         if self._values: kwargs["values"] = self._values
         if self._command: kwargs["command"] = self._command
 
-        opt = get_renderer().create_widget("OptionMenu", parent, kwargs)
+        opt = self._create_widget("OptionMenu", parent, kwargs)
         if self._default_value is not None:
             opt.set(self._default_value)
         return opt

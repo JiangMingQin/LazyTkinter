@@ -7,6 +7,8 @@ from .containers import (
     _resolve_row_slots,
 )
 from .renderer import get_renderer
+from .registry import get as _registry_get
+from .registry import ids as _registry_ids
 
 _WINDOW_PRESETS = {"large": "1200x800", "medium": "900x600", "small": "600x400"}
 _WINDOW_ALIGNMENTS = ("left", "center", "right", "top", "bottom")
@@ -241,3 +243,26 @@ class Application:
         """Runs the application main loop."""
         self.build()
         self._window.mainloop()
+
+    def get(self, name: str):
+        """Return the native widget registered under an id (see ``.id()``)."""
+        return _registry_get(name)
+
+    def ids(self) -> list[str]:
+        """Return all ids registered via ``.id()``."""
+        return _registry_ids()
+
+    def layout_tree(self) -> str:
+        """Return a tree of the built widgets (class names and registered ids)."""
+        lines = []
+
+        def walk(widget, depth):
+            cls = widget.winfo_class()
+            ltk_id = getattr(widget, "_ltk_id", None)
+            label = cls + (f"[{ltk_id}]" if ltk_id else "")
+            lines.append("  " * depth + label)
+            for child in widget.winfo_children():
+                walk(child, depth + 1)
+
+        walk(self.base_frame, 0)
+        return "\n".join(lines)

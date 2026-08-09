@@ -6,6 +6,7 @@ import unittest
 
 import lazytkinter as ltk
 import lazytkinter.renderer as renderer_mod
+from lazytkinter import registry
 
 _real_create_window = renderer_mod.CTkRenderer.create_window
 _real_run = ltk.Application.run
@@ -20,6 +21,7 @@ def _has_display():
 @unittest.skipUnless(_has_display(), "no display available")
 class SmokeTests(unittest.TestCase):
     def setUp(self):
+        registry.clear()
         orig_create_window = renderer_mod.CTkRenderer.create_window
         orig_run = ltk.Application.run
 
@@ -36,6 +38,7 @@ class SmokeTests(unittest.TestCase):
         ltk.Application.run = _auto_run
 
     def tearDown(self):
+        registry.clear()
         renderer_mod.CTkRenderer.create_window = _real_create_window
         ltk.Application.run = _real_run
 
@@ -192,6 +195,28 @@ class SmokeTests(unittest.TestCase):
         tree.event_generate("<<TreeviewSelect>>")
         app._window.update_idletasks()
         self.assertEqual(len(selected), 1)
+        app._window.destroy()
+
+    def test_id_get_and_layout_tree(self):
+        app = ltk.Application()
+        app.size("small")
+        app.column(
+            ltk.Column().gap(8).add(
+                ltk.Label().id("count").text("0"),
+                ltk.Button().id("btn").text("+1"),
+            ),
+        )
+        app.build()
+        app._window.update_idletasks()
+
+        native = app.get("count")
+        native.configure(text="5")
+        self.assertEqual(native.cget("text"), "5")
+
+        tree = app.layout_tree()
+        # CTk widgets are Tk Frames internally; ids are attached to them
+        self.assertIn("Frame[count]", tree)
+        self.assertIn("Frame[btn]", tree)
         app._window.destroy()
 
     def test_invalid_api_raises(self):

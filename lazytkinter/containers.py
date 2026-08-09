@@ -2,7 +2,6 @@ from __future__ import annotations
 from typing import Any
 
 from .base import BaseWidget
-from .renderer import get_renderer
 
 # Keys that the container frames do NOT support. All containers share this
 # filter so no container accidentally forwards widget-only options
@@ -212,7 +211,7 @@ class Empty(BaseWidget["Empty"]):
             "width": effective_width if effective_width else 0,
             "height": effective_height if effective_height else 0,
         }
-        frame = get_renderer().create_container("Empty", parent, props)
+        frame = self._create_container("Empty", parent, props)
         frame.pack_propagate(False)
         frame.grid_propagate(False)
         return frame
@@ -239,7 +238,7 @@ class Spacer(BaseWidget["Spacer"]):
 
     def build(self, parent, *, width=None, height=None):
         props = {"fg_color": "transparent", "width": 0, "height": 0}
-        return get_renderer().create_container("Spacer", parent, props)
+        return self._create_container("Spacer", parent, props)
 
 
 class Column(BaseWidget["Column"]):
@@ -322,7 +321,7 @@ class Column(BaseWidget["Column"]):
         return self
 
     def build(self, parent, *, width=None, height=None):
-        frame = get_renderer().create_container(
+        frame = self._create_container(
             "Column", parent, _frame_props(self, width=width, height=height)
         )
         limit_w = width if width is not None else self._width
@@ -429,7 +428,7 @@ class Row(BaseWidget["Row"]):
         return self
 
     def build(self, parent, *, width=None, height=None):
-        frame = get_renderer().create_container(
+        frame = self._create_container(
             "Row", parent, _frame_props(self, width=width, height=height)
         )
         limit_w = width if width is not None else self._width
@@ -506,7 +505,7 @@ class ZStack(BaseWidget["ZStack"]):
         return self
 
     def build(self, parent, *, width=None, height=None):
-        frame = get_renderer().create_container(
+        frame = self._create_container(
             "ZStack", parent, _frame_props(self, width=width, height=height)
         )
         limit_w = width if width is not None else self._width
@@ -571,7 +570,7 @@ class Scroll(BaseWidget["Scroll"]):
         return self
 
     def build(self, parent, *, width=None, height=None):
-        frame = get_renderer().create_container(
+        frame = self._create_container(
             "Scroll", parent, _frame_props(self, width=width, height=height)
         )
         limit_w = width if width is not None else self._width

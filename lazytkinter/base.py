@@ -4,6 +4,9 @@ from typing import TypeVar, Generic, Literal, Any, TYPE_CHECKING
 if TYPE_CHECKING:
     from .app import Application
 
+from .registry import register as _register_id
+from .renderer import get_renderer
+
 T = TypeVar('T', bound='BaseWidget')
 
 _SIZE_POLICIES = ("fit", "fill")
@@ -106,6 +109,26 @@ class BaseWidget(Generic[T]):
         self._align = None  # per-widget override, resolved by the parent container
         self._pending_size_axis = None  # "width" / "height" / None
         self._weight = None  # fill(weight=...), None means the default 1
+        self._id = None  # registered via .id("name"), retrievable with app.get()
+
+    def id(self, name: str) -> T:
+        """Give this widget a name so its native widget is retrievable via app.get()."""
+        self._id = name
+        return self  # type: ignore
+
+    def _create_widget(self, kind, parent, kwargs):
+        """Create a native widget through the renderer and register its id."""
+        widget = get_renderer().create_widget(kind, parent, kwargs)
+        if self._id is not None:
+            _register_id(self._id, widget)
+        return widget
+
+    def _create_container(self, kind, parent, kwargs):
+        """Create a native container through the renderer and register its id."""
+        widget = get_renderer().create_container(kind, parent, kwargs)
+        if self._id is not None:
+            _register_id(self._id, widget)
+        return widget
 
     def _inject_base_args(
         self, kwargs: dict[str, Any], *, width=None, height=None

@@ -16,6 +16,7 @@ from lazytkinter.containers import (
     _resolve_row_slots,
     _resolve_zstack_slots,
 )
+from lazytkinter import registry
 
 
 class SizePolicyTests(unittest.TestCase):
@@ -579,3 +580,29 @@ class SingleLayoutGuardTests(unittest.TestCase):
             app.column()
         with self.assertRaises(RuntimeError):
             app.row()
+
+
+class RegistryTests(unittest.TestCase):
+    def setUp(self):
+        registry.clear()
+
+    def tearDown(self):
+        registry.clear()
+
+    def test_register_and_get(self):
+        widget = object()
+        registry.register("btn", widget)
+        self.assertIs(registry.get("btn"), widget)
+
+    def test_duplicate_raises(self):
+        widget = object()
+        registry.register("btn", widget)
+        with self.assertRaises(ValueError):
+            registry.register("btn", widget)
+
+    def test_ids_and_clear(self):
+        registry.register("a", object())
+        registry.register("b", object())
+        self.assertEqual(set(registry.ids()), {"a", "b"})
+        registry.clear()
+        self.assertEqual(registry.ids(), [])

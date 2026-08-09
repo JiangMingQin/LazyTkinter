@@ -3,6 +3,7 @@
 import unittest
 
 import lazytkinter as ltk
+from lazytkinter import registry
 from lazytkinter.containers import Column, Scroll, ZStack
 from lazytkinter.renderer import Renderer, get_renderer, set_renderer
 
@@ -146,6 +147,15 @@ class RendererFlowTests(unittest.TestCase):
         widget = ltk.ComboBox().values(["a", "b"]).set_value("").build(None)
         self.assertEqual(widget.set_calls, [""])
 
+    def test_id_registers_built_widget(self):
+        registry.clear()
+        try:
+            widget = ltk.Button().id("btn").build(None)
+            self.assertIs(registry.get("btn"), widget)
+            self.assertEqual(widget._ltk_id, "btn")
+        finally:
+            registry.clear()
+
     def test_treeview_build_inserts_rows(self):
         ltk.Treeview().columns(["A", "B"]).rows([("1", "2"), ("3", "4")]).build(None)
         kinds = [call[0] for call in self.fake.widget_calls]
@@ -224,6 +234,17 @@ class ApplicationLayoutTests(unittest.TestCase):
         spacer_kinds = [call[0] for call in self.fake.container_calls].count("Spacer")
         self.assertEqual(spacer_kinds, 2)
         self.assertEqual(len(self.fake.widget_calls), 1)
+
+    def test_application_get_and_ids(self):
+        registry.clear()
+        try:
+            app = ltk.Application()
+            app.column(ltk.Button().id("btn").text("x"))
+            app.build()
+            self.assertIn("btn", app.ids())
+            self.assertIsNotNone(app.get("btn"))
+        finally:
+            registry.clear()
 
 
 class ThemeTests(unittest.TestCase):
