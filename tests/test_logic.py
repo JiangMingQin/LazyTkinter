@@ -687,6 +687,15 @@ class SplitPanelLogicTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             ltk.SplitPanel().sash_width(True)
 
+    def test_proxy_sash_validation(self):
+        with self.assertRaises(ValueError):
+            ltk.SplitPanel().proxy_sash("yes")
+
+    def test_style_name_unique_per_instance(self):
+        first = ltk.SplitPanel()
+        second = ltk.SplitPanel()
+        self.assertNotEqual(first._style_name, second._style_name)
+
     def test_non_widget_child_raises(self):
         with self.assertRaises(TypeError):
             ltk.SplitPanel(object())

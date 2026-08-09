@@ -321,6 +321,26 @@ class ThemeTests(unittest.TestCase):
             self.assertIn(key, colors)
             self.assertIsInstance(colors[key], str)
 
+    def test_native_theme_palette_cached_and_invalidated(self):
+        from lazytkinter.renderer import CTkRenderer
+
+        renderer = CTkRenderer()
+        try:
+            first = renderer.native_theme_colors()
+            second = renderer.native_theme_colors()
+            self.assertIs(first, second)
+
+            renderer.set_theme("gruvbox-theme")
+            third = renderer.native_theme_colors()
+            self.assertIsNot(first, third)
+
+            renderer.set_mode("light")
+            fourth = renderer.native_theme_colors()
+            self.assertIsNot(third, fourth)
+        finally:
+            renderer.set_theme("catppuccin-mocha")
+            renderer.set_mode("dark")
+
 
 class CanvasFlowTests(unittest.TestCase):
     def setUp(self):
@@ -377,7 +397,8 @@ class SplitPanelFlowTests(unittest.TestCase):
         kind, props = self.fake.container_calls[0]
         self.assertEqual(kind, "SplitPanel")
         self.assertEqual(props["orient"], "horizontal")
-        self.assertEqual(props["style"], "LTk.TPanedwindow")
+        self.assertTrue(props["style"].startswith("LTkSplitPanel"))
+        self.assertTrue(props["style"].endswith(".TPanedwindow"))
         stub = self.fake.created_containers[0]
         self.assertEqual(len(stub.added), 2)
 
@@ -389,3 +410,18 @@ class SplitPanelFlowTests(unittest.TestCase):
     def test_split_panel_requires_two_panes(self):
         with self.assertRaises(ValueError):
             ltk.SplitPanel(ltk.Column()).build(None)
+
+    def test_split_panel_per_instance_styles(self):
+        ltk.SplitPanel(ltk.Column(), ltk.Column()).build(None)
+        ltk.SplitPanel(ltk.Column(), ltk.Column()).build(None)
+        styles = [
+            props["style"]
+            for kind, props in self.fake.container_calls
+            if kind == "SplitPanel"
+        ]
+        self.assertNotEqual(styles[0], styles[1])
+
+    def test_split_panel_proxy_sash_off_builds(self):
+        ltk.SplitPanel(ltk.Column(), ltk.Column()).proxy_sash(False).build(None)
+        kind, props = self.fake.container_calls[0]
+        self.assertEqual(kind, "SplitPanel")

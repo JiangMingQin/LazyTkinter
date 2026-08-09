@@ -86,6 +86,7 @@ class CTkRenderer(Renderer):
             "Scroll": ctk.CTkScrollableFrame,
             "SplitPanel": ttk.Panedwindow,
         }
+        self._palette_cache: Dict[str, str] | None = None
 
     def create_window(self):
         return ctk.CTk()
@@ -105,9 +106,12 @@ class CTkRenderer(Renderer):
         return container_cls(parent, **props)
 
     def native_theme_colors(self) -> Dict[str, str]:
-        return _native_theme_palette()
+        if self._palette_cache is None:
+            self._palette_cache = _native_theme_palette()
+        return self._palette_cache
 
     def set_theme(self, theme_name: str) -> None:
+        self._palette_cache = None
         filename = theme_name if theme_name.endswith(".json") else f"{theme_name}.json"
         internal_path = os.path.join(THEME_DIR, filename)
         if os.path.exists(internal_path):
@@ -122,6 +126,7 @@ class CTkRenderer(Renderer):
             ) from None
 
     def set_mode(self, mode: str) -> None:
+        self._palette_cache = None
         ctk.set_appearance_mode(mode)
 
 

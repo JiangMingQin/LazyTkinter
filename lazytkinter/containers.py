@@ -1,4 +1,5 @@
 from __future__ import annotations
+from itertools import count
 from tkinter import ttk
 from typing import Any
 
@@ -587,17 +588,27 @@ class Scroll(BaseWidget["Scroll"]):
         return frame
 
 
-def _configure_split_panel_style(parent, colors, sash_width) -> None:
-    """Apply the CTk-derived palette to the shared ttk Panedwindow style."""
+_SPLIT_STYLE_SEQ = count(1)
+
+
+def _configure_split_panel_style(parent, colors, sash_width, proxysash, style_name) -> None:
+    """Apply the CTk-derived palette to this SplitPanel's ttk style.
+
+    Each SplitPanel gets its own ``LTkSplitPanel<N>.TPanedwindow`` style so
+    per-instance options (sash width, proxy sash) never leak across panels.
+    """
     if parent is None:
         return
     style = ttk.Style(parent)
-    style.configure(
-        "LTk.TPanedwindow",
-        background=colors["border"],
-        sashwidth=sash_width,
-        sashrelief="flat",
-    )
+    opts = {
+        "background": colors["border"],
+        "sashwidth": sash_width,
+        "sashrelief": "flat",
+    }
+    if proxysash:
+        # drag a ghost sash and only split on release, reducing redraw cost
+        opts["proxysash"] = 1
+    style.configure(style_name, **opts)
 
 
 class SplitPanel(BaseWidget["SplitPanel"]):
@@ -626,6 +637,8 @@ class SplitPanel(BaseWidget["SplitPanel"]):
         self._height_policy = "fill"
         self._orientation = "horizontal"
         self._sash_width = 5
+        self._proxy_sash = True
+        self._style_name = f"LTkSplitPanel{next(_SPLIT_STYLE_SEQ)}.TPanedwindow"
         self._args = children
         for child in children:
             self._check_child(child)
@@ -662,6 +675,13 @@ class SplitPanel(BaseWidget["SplitPanel"]):
         self._sash_width = width
         return self
 
+    def proxy_sash(self, active: bool = True) -> SplitPanel:
+        """Toggle the ghost-sash drag behavior (default True, performance-first)."""
+        if not isinstance(active, bool):
+            raise ValueError("SplitPanel.proxy_sash() expects a bool")
+        self._proxy_sash = active
+        return self
+
     def build(self, parent, *, width=None, height=None):
         if len(self._args) < 2:
             raise ValueError(
@@ -669,12 +689,16 @@ class SplitPanel(BaseWidget["SplitPanel"]):
                 "SplitPanel(Column(...), Column(...))"
             )
         _configure_split_panel_style(
-            parent, get_renderer().native_theme_colors(), self._sash_width
+            parent,
+            get_renderer().native_theme_colors(),
+            self._sash_width,
+            self._proxy_sash,
+            self._style_name,
         )
         paned = self._create_container(
             "SplitPanel",
             parent,
-            {"orient": self._orientation, "style": "LTk.TPanedwindow"},
+            {"orient": self._orientation, "style": self._style_name},
         )
         for child in self._args:
             the_ele = child.build(paned)
