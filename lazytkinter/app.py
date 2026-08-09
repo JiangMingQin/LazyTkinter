@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import tkinter as tk
+from tkinter import ttk
 from typing import TYPE_CHECKING
 
 from .containers import (
@@ -19,6 +20,23 @@ if TYPE_CHECKING:
 
 _WINDOW_PRESETS = {"large": "1200x800", "medium": "900x600", "small": "600x400"}
 _WINDOW_ALIGNMENTS = ("left", "center", "right", "top", "bottom")
+
+
+def _enable_clam_theme(window) -> None:
+    """Ensure the global ttk theme is "clam".
+
+    The default Windows "vista" ttk theme ignores ``style.configure`` colors
+    for Treeview/Scrollbar; "clam" honors them. Must run before any ttk style
+    is configured (``theme_use`` resets configured styles). CustomTkinter
+    resets the ttk theme whenever a CTk window is created, so this must run on
+    every Application creation, not just once. Non-Tk windows (e.g.
+    FakeRenderer in tests) are skipped.
+    """
+    if not isinstance(window, tk.Misc):
+        return
+    style = ttk.Style(window)
+    if style.theme_use() != "clam":
+        style.theme_use("clam")
 
 
 def _resolve_window_size(size):
@@ -93,6 +111,7 @@ class Application:
     def __init__(self) -> None:
         """Initializes the application."""
         self._window = get_renderer().create_window()
+        _enable_clam_theme(self._window)
         self._ipadx = 0
         self._ipady = 0
         self._layout_set = False

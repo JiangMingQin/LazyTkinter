@@ -221,11 +221,25 @@ class SmokeTests(unittest.TestCase):
         app._window.update_idletasks()
 
         palette = renderer_mod.get_renderer().native_theme_colors()
+        style = ttk.Style(app._window)
+        self.assertEqual(style.theme_use(), "clam")
         tree_style = app.native("t").cget("style")
         self.assertTrue(tree_style.startswith("LTkData"))
         self.assertTrue(tree_style.endswith(".Treeview"))
-        configured = ttk.Style(app._window).configure(tree_style)
+        configured = style.configure(tree_style)
         self.assertEqual(configured["background"], palette["surface"])
+        self.assertEqual(style.lookup(tree_style, "background"), palette["surface"])
+
+        scrollbar = next(
+            c
+            for c in app.native("t").master.winfo_children()
+            if c.winfo_class() == "TScrollbar"
+        )
+        scroll_style = scrollbar.cget("style")
+        self.assertTrue(scroll_style.endswith(".Vertical.TScrollbar"))
+        self.assertEqual(
+            style.configure(scroll_style)["troughcolor"], palette["border"]
+        )
         self.assertEqual(app.native("l").cget("bg"), palette["surface"])
         app._window.destroy()
 
