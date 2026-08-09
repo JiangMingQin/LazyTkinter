@@ -226,7 +226,7 @@ ltk.Treeview().columns(["Item", "Value"]).rows([("a", 1), ("b", 2)]).event(cb)
 ltk.Listbox().items(["a", "b"]).event(cb)
 ```
 
-> **Treeview / Listbox 主题化**：保留 `ttk.Treeview` / `tk.Listbox` 原生控件（性能优先），构建时用 `native_theme_colors()` 调色板为每个实例生成唯一的 ttk style（`LTkData<N>.Treeview` 等）：表面/文字/边框/选中色跟随当前 CTk 主题；Listbox 为 tk 控件，同一调色板通过控件选项上色。切换主题或明暗后需重建窗口生效；个别平台对 Treeview 背景上色支持受限（Windows 正常）。
+> **Treeview / Listbox 主题化**：保留 `ttk.Treeview` / `tk.Listbox` 原生控件（性能优先），构建时用 `native_theme_colors()` 调色板为每个实例生成唯一的 ttk style（`LTkData<N>.Treeview` 等）：表面/文字/边框/选中色跟随当前 CTk 主题；Listbox 为 tk 控件，同一调色板通过控件选项上色。应用每次创建时会自动把全局 ttk 主题切到 `clam`（Windows 默认 `vista` 主题忽略 Treeview/滚动条颜色，且 CustomTkinter 每次建窗都会重置 ttk 主题），因此所有 ttk 控件外观更扁平；切换主题或明暗后需重建窗口生效。
 
 **窗口 / Window**：
 

@@ -45,6 +45,7 @@
 
 ### 修复 (Fixed)
 
+- Treeview 背景与数据控件滚动条主题色不生效：Windows 默认 ttk 主题 `vista` 忽略 `style.configure` 的颜色选项；改为每次创建 `Application` 时自动确保全局 ttk 主题为 `clam`（CustomTkinter 每次建窗都会重置 ttk 主题，需反复确认）。
 - 容器固定宽/高被内容撑塌：`pack_propagate` 对 grid 布局无效，改为 `grid_propagate(False)`。
 - `window padding` 产生可见边框：padding 改为作用于根布局槽，根帧铺满窗口。
 - `Application.padding((h, v))` 元组形式此前因类型判断错误而静默失效。
