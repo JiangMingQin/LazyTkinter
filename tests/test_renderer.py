@@ -425,3 +425,54 @@ class SplitPanelFlowTests(unittest.TestCase):
         ltk.SplitPanel(ltk.Column(), ltk.Column()).proxy_sash(False).build(None)
         kind, props = self.fake.container_calls[0]
         self.assertEqual(kind, "SplitPanel")
+
+    def test_split_panel_orientation_chain(self):
+        ltk.SplitPanel(ltk.Column(), ltk.Column()).orientation().vertical().build(None)
+        _, props = self.fake.container_calls[0]
+        self.assertEqual(props["orient"], "vertical")
+
+
+class DividerFlowTests(unittest.TestCase):
+    def setUp(self):
+        self.fake = FakeRenderer()
+        set_renderer(self.fake)
+
+    def tearDown(self):
+        set_renderer(_real_renderer)
+
+    def test_divider_horizontal_default(self):
+        ltk.Divider().build(None)
+        kind, props = self.fake.widget_calls[0]
+        self.assertEqual(kind, "Divider")
+        self.assertEqual(props["height"], 1)
+        self.assertNotIn("width", props)
+        self.assertEqual(props["fg_color"], self.fake.native_theme_colors()["border"])
+
+    def test_divider_vertical(self):
+        ltk.Divider().orientation().vertical().build(None)
+        kind, props = self.fake.widget_calls[0]
+        self.assertEqual(kind, "Divider")
+        self.assertEqual(props["width"], 1)
+        self.assertNotIn("height", props)
+
+    def test_divider_thickness_and_token_color(self):
+        token_mod.set_theme("catppuccin-mocha")
+        try:
+            ltk.Divider().thickness(3).fg_color("primary").build(None)
+            _, props = self.fake.widget_calls[0]
+            self.assertEqual(props["height"], 3)
+            self.assertEqual(props["fg_color"], token_mod.color("primary"))
+        finally:
+            token_mod.set_theme("catppuccin-mocha")
+
+    def test_divider_fixed_pixels(self):
+        ltk.Divider().width(200).build(None)
+        _, props = self.fake.widget_calls[0]
+        self.assertEqual(props["width"], 200)
+        self.assertEqual(props["height"], 1)
+
+    def test_divider_main_axis_fit_raises(self):
+        with self.assertRaises(ValueError):
+            ltk.Divider().width().fit().build(None)
+        with self.assertRaises(ValueError):
+            ltk.Divider().orientation("vertical").height().fit().build(None)

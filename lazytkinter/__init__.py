@@ -21,6 +21,7 @@ from .widgets import ComboBox
 from .widgets import OptionMenu
 from .widgets import Textbox
 from .widgets import Canvas
+from .widgets import Divider
 
 from .containers import Row
 from .containers import Column
@@ -65,6 +66,7 @@ __all__ = [
     "OptionMenu", 
     "Textbox",
     "Canvas",
+    "Divider",
     # containers
     "Row", 
     "Column", 

@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import Any, Literal
 
 from .base import BaseWidget
+from .renderer import get_renderer
 from .tokens import resolve as _resolve_token
 
 
@@ -640,3 +641,83 @@ class Canvas(BaseWidget["Canvas"]):
         for func in self._draws:
             func(canvas)
         return canvas
+
+
+class Divider(BaseWidget["Divider"]):
+    """A thin themed separator line backed by a CTkFrame.
+
+    Horizontal by default (spans the container width at a fixed height); use
+    ``.orientation().vertical()`` for a vertical line. The color comes from the
+    active CTk theme's border color unless overridden with ``.fg_color()``.
+
+    Usage Example:
+        ltk.Column().gap(8).add(
+            ltk.Label().text("above"),
+            ltk.Divider(),
+            ltk.Label().text("below"),
+        )
+    """
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._orientation = "horizontal"
+        self._thickness = 1
+        self._width_policy = "fill"
+
+    def orientation(self, orient=None) -> Divider:
+        """Set the direction; chainable via ``.orientation().horizontal()``."""
+        if orient is None:
+            return self
+        if orient not in ("horizontal", "vertical"):
+            raise ValueError(
+                "Divider.orientation() expects 'horizontal' or 'vertical', "
+                f"got {orient!r}"
+            )
+        self._orientation = orient
+        # the main axis spans the container; the cross axis stays at thickness
+        if orient == "horizontal":
+            self._width_policy = "fill"
+        else:
+            self._height_policy = "fill"
+        return self
+
+    def horizontal(self) -> Divider:
+        """Set the divider horizontal (default)."""
+        return self.orientation("horizontal")
+
+    def vertical(self) -> Divider:
+        """Set the divider vertical."""
+        return self.orientation("vertical")
+
+    def thickness(self, n: int) -> Divider:
+        """Set the cross-axis thickness in pixels (positive integer)."""
+        if not isinstance(n, int) or isinstance(n, bool) or n < 1:
+            raise ValueError("Divider.thickness() expects a positive integer")
+        self._thickness = n
+        return self
+
+    def build(self, parent, *, width=None, height=None):
+        palette = get_renderer().native_theme_colors()
+        color = (
+            _resolve_token(self._fg_color)
+            if self._fg_color is not None
+            else palette["border"]
+        )
+        props: dict[str, Any] = {"fg_color": color}
+        if self._orientation == "horizontal":
+            if self._width is None and self._width_policy == "fit":
+                raise ValueError(
+                    "Divider's main axis cannot be fit; use fill() or a fixed width"
+                )
+            props["height"] = self._thickness
+            if self._width is not None:
+                props["width"] = self._width
+        else:
+            if self._height is None and self._height_policy == "fit":
+                raise ValueError(
+                    "Divider's main axis cannot be fit; use fill() or a fixed height"
+                )
+            props["width"] = self._thickness
+            if self._height is not None:
+                props["height"] = self._height
+        return self._create_widget("Divider", parent, props)

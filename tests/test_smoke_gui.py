@@ -236,6 +236,10 @@ class SmokeTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             ltk.SplitPanel().sash_width(-1)
         with self.assertRaises(ValueError):
+            ltk.Divider().thickness(0)
+        with self.assertRaises(ValueError):
+            ltk.Divider().orientation("diagonal")
+        with self.assertRaises(ValueError):
             ltk.set_theme("no-such-theme-xyz")
 
         app = ltk.Application()
@@ -281,6 +285,24 @@ class SmokeTests(unittest.TestCase):
         app.build()
         app._window.update_idletasks()
         self.assertEqual(len(app._window.winfo_children()), 1)
+        app._window.destroy()
+
+    def test_divider(self):
+        app = ltk.Application()
+        app.size((500, 360)).window_title("smoke").column(
+            ltk.Column().gap(8).padding(8).add(
+                ltk.Label().text("above"),
+                ltk.Divider(),
+                ltk.Label().text("below"),
+            ),
+            ltk.Row().gap(8).padding(8).add(
+                ltk.Label().text("left"),
+                ltk.Divider().vertical(),
+                ltk.Label().text("right"),
+            ),
+        )
+        app.build()
+        app._window.update_idletasks()
         app._window.destroy()
 
     def test_example04(self):

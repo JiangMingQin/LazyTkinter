@@ -658,14 +658,32 @@ class SplitPanel(BaseWidget["SplitPanel"]):
         self._args = self._args + args
         return self
 
-    def orientation(self, orient: str) -> SplitPanel:
-        """Set the split direction: "horizontal" (left/right) or "vertical" (top/bottom)."""
+    def orientation(self, orient=None) -> SplitPanel:
+        """Set the split direction.
+
+        Chainable form mirrors ``width().fill()``:
+        ``SplitPanel(...).orientation().vertical()``; the string form
+        ``.orientation("horizontal")`` is also accepted. Calling without an
+        argument is a no-op prefix for ``.horizontal()`` / ``.vertical()``.
+        """
+        if orient is None:
+            return self
         if orient not in ("horizontal", "vertical"):
             raise ValueError(
                 "SplitPanel.orientation() expects 'horizontal' or 'vertical', "
                 f"got {orient!r}"
             )
         self._orientation = orient
+        return self
+
+    def horizontal(self) -> SplitPanel:
+        """Split left/right (like Row)."""
+        self._orientation = "horizontal"
+        return self
+
+    def vertical(self) -> SplitPanel:
+        """Split top/bottom (like Column)."""
+        self._orientation = "vertical"
         return self
 
     def sash_width(self, width: int) -> SplitPanel:

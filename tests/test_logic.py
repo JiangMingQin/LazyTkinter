@@ -679,6 +679,22 @@ class SplitPanelLogicTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             ltk.SplitPanel().orientation("diagonal")
 
+    def test_orientation_chain_and_string(self):
+        panel = ltk.SplitPanel()
+        panel.orientation().vertical()
+        self.assertEqual(panel._orientation, "vertical")
+        panel.horizontal()
+        self.assertEqual(panel._orientation, "horizontal")
+        self.assertEqual(
+            ltk.SplitPanel().orientation("vertical")._orientation, "vertical"
+        )
+        self.assertEqual(ltk.SplitPanel().vertical()._orientation, "vertical")
+
+    def test_no_arg_orientation_is_noop(self):
+        panel = ltk.SplitPanel()
+        self.assertIs(panel.orientation(), panel)
+        self.assertEqual(panel._orientation, "horizontal")
+
     def test_sash_width_validation(self):
         with self.assertRaises(ValueError):
             ltk.SplitPanel().sash_width(-1)
@@ -701,3 +717,43 @@ class SplitPanelLogicTests(unittest.TestCase):
             ltk.SplitPanel(object())
         with self.assertRaises(TypeError):
             ltk.SplitPanel().add(object())
+
+
+class DividerLogicTests(unittest.TestCase):
+    def test_default_horizontal(self):
+        divider = ltk.Divider()
+        self.assertEqual(divider._orientation, "horizontal")
+        self.assertEqual(divider._thickness, 1)
+        self.assertEqual(divider._width_policy, "fill")
+
+    def test_orientation_chain_and_string(self):
+        divider = ltk.Divider()
+        divider.orientation().vertical()
+        self.assertEqual(divider._orientation, "vertical")
+        self.assertEqual(divider._height_policy, "fill")
+        divider.horizontal()
+        self.assertEqual(divider._orientation, "horizontal")
+        self.assertEqual(divider._width_policy, "fill")
+        self.assertEqual(
+            ltk.Divider().orientation("vertical")._orientation, "vertical"
+        )
+        self.assertEqual(ltk.Divider().vertical()._orientation, "vertical")
+
+    def test_no_arg_orientation_is_noop(self):
+        divider = ltk.Divider()
+        self.assertIs(divider.orientation(), divider)
+        self.assertEqual(divider._orientation, "horizontal")
+
+    def test_orientation_validation(self):
+        with self.assertRaises(ValueError):
+            ltk.Divider().orientation("diagonal")
+
+    def test_thickness_validation(self):
+        with self.assertRaises(ValueError):
+            ltk.Divider().thickness(0)
+        with self.assertRaises(ValueError):
+            ltk.Divider().thickness(-1)
+        with self.assertRaises(ValueError):
+            ltk.Divider().thickness(2.5)
+        with self.assertRaises(ValueError):
+            ltk.Divider().thickness(True)
