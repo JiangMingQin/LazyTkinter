@@ -591,3 +591,52 @@ class OptionMenu(BaseWidget["OptionMenu"]):
         if self._default_value is not None:
             opt.set(self._default_value)
         return opt
+
+
+class Canvas(BaseWidget["Canvas"]):
+    """A drawing surface backed by ``ctk.CTkCanvas`` (a ``tk.Canvas`` subclass).
+
+    The drawing background is controlled with ``.fg_color()`` (mapped to the
+    tk canvas ``bg`` option); ``.draw(func)`` registers callbacks that receive
+    the native canvas after build, so arbitrary tk canvas drawing is possible.
+    Interaction (clicks, drags, ...) is done through ``.id()`` +
+    ``app.native(id).bind(...)``.
+
+    Usage Example:
+        canvas = ltk.Canvas() \
+            .width(400).height(300) \
+            .fg_color("surface_alt") \
+            .draw(lambda c: c.create_rectangle(10, 10, 100, 100, fill="primary"))
+    """
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._draws: list = []
+
+    def draw(self, func) -> Canvas:
+        """Register a drawing callback; run in order with the native canvas."""
+        if not callable(func):
+            raise ValueError(
+                "Canvas.draw() expects a callable, e.g. "
+                "lambda c: c.create_line(0, 0, 100, 100)"
+            )
+        self._draws.append(func)
+        return self
+
+    def build(self, parent, *, width=None, height=None):
+        kwargs: dict[str, Any] = {}
+        effective_width = width if width is not None else self._width
+        effective_height = height if height is not None else self._height
+        if effective_width is not None:
+            kwargs["width"] = effective_width
+        if effective_height is not None:
+            kwargs["height"] = effective_height
+        if self._fg_color is not None:
+            kwargs["bg"] = _resolve_token(self._fg_color)
+        if self._cursor is not None:
+            kwargs["cursor"] = self._cursor
+
+        canvas = self._create_widget("Canvas", parent, kwargs)
+        for func in self._draws:
+            func(canvas)
+        return canvas

@@ -65,6 +65,7 @@ class CTkRenderer(Renderer):
             "ComboBox": ctk.CTkComboBox,
             "OptionMenu": ctk.CTkOptionMenu,
             "Textbox": ctk.CTkTextbox,
+            "Canvas": ctk.CTkCanvas,
             "Treeview": ttk.Treeview,
             "Listbox": tk.Listbox,
             "Scrollbar": ttk.Scrollbar,

@@ -282,3 +282,45 @@ class ThemeTests(unittest.TestCase):
         from lazytkinter.renderer import CTkRenderer
 
         CTkRenderer().set_theme("blue")
+
+
+class CanvasFlowTests(unittest.TestCase):
+    def setUp(self):
+        self.fake = FakeRenderer()
+        set_renderer(self.fake)
+
+    def tearDown(self):
+        set_renderer(_real_renderer)
+
+    def test_canvas_creates_widget_and_runs_draw(self):
+        token_mod.set_theme("catppuccin-mocha")
+        drawn = []
+        try:
+            ltk.Canvas().width(200).height(100).fg_color("primary").draw(
+                lambda c: drawn.append(c)
+            ).build(None)
+        finally:
+            token_mod.set_theme("catppuccin-mocha")
+
+        kind, props = self.fake.widget_calls[0]
+        self.assertEqual(kind, "Canvas")
+        self.assertEqual(props["width"], 200)
+        self.assertEqual(props["height"], 100)
+        self.assertEqual(props["bg"], token_mod.color("primary"))
+        self.assertNotIn("fg_color", props)
+        self.assertEqual(len(drawn), 1)
+        self.assertIs(drawn[0], self.fake.created_widgets[0])
+
+    def test_canvas_draws_in_order(self):
+        order = []
+        canvas = (
+            ltk.Canvas()
+            .draw(lambda c: order.append("first"))
+            .draw(lambda c: order.append("second"))
+        )
+        canvas.build(None)
+        self.assertEqual(order, ["first", "second"])
+
+    def test_canvas_rejects_non_callable_draw(self):
+        with self.assertRaises(ValueError):
+            ltk.Canvas().draw("not callable")

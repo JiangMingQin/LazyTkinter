@@ -20,6 +20,7 @@ from .widgets import SegmentedButton
 from .widgets import ComboBox
 from .widgets import OptionMenu
 from .widgets import Textbox
+from .widgets import Canvas
 
 from .containers import Row
 from .containers import Column
@@ -62,6 +63,7 @@ __all__ = [
     "ComboBox",
     "OptionMenu", 
     "Textbox",
+    "Canvas",
     # containers
     "Row", 
     "Column", 

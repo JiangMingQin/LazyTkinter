@@ -650,3 +650,19 @@ class ConfigNarrowingTests(unittest.TestCase):
         button = ltk.Button().id("btn")
         with self.assertRaises(TypeError):
             button.config(ltk.Label)
+
+
+class CanvasLogicTests(unittest.TestCase):
+    def test_canvas_collects_draw_callbacks(self):
+        def one(c):
+            pass
+
+        def two(c):
+            pass
+
+        canvas = ltk.Canvas().draw(one).draw(two)
+        self.assertEqual(canvas._draws, [one, two])
+
+    def test_canvas_rejects_non_callable_draw(self):
+        with self.assertRaises(ValueError):
+            ltk.Canvas().draw("not callable")
