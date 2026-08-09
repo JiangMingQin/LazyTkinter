@@ -668,27 +668,27 @@ class CanvasLogicTests(unittest.TestCase):
             ltk.Canvas().draw("not callable")
 
 
-class PanedWindowLogicTests(unittest.TestCase):
+class SplitPanelLogicTests(unittest.TestCase):
     def test_constructor_and_add(self):
-        paned = ltk.PanedWindow(Column(), Column())
+        paned = ltk.SplitPanel(Column(), Column())
         self.assertEqual(len(paned._args), 2)
         paned.add(Column())
         self.assertEqual(len(paned._args), 3)
 
     def test_orientation_validation(self):
         with self.assertRaises(ValueError):
-            ltk.PanedWindow().orientation("diagonal")
+            ltk.SplitPanel().orientation("diagonal")
 
     def test_sash_width_validation(self):
         with self.assertRaises(ValueError):
-            ltk.PanedWindow().sash_width(-1)
+            ltk.SplitPanel().sash_width(-1)
         with self.assertRaises(ValueError):
-            ltk.PanedWindow().sash_width(2.5)
+            ltk.SplitPanel().sash_width(2.5)
         with self.assertRaises(ValueError):
-            ltk.PanedWindow().sash_width(True)
+            ltk.SplitPanel().sash_width(True)
 
     def test_non_widget_child_raises(self):
         with self.assertRaises(TypeError):
-            ltk.PanedWindow(object())
+            ltk.SplitPanel(object())
         with self.assertRaises(TypeError):
-            ltk.PanedWindow().add(object())
+            ltk.SplitPanel().add(object())

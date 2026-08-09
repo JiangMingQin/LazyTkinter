@@ -84,7 +84,7 @@ class CTkRenderer(Renderer):
             "Row": ctk.CTkFrame,
             "ZStack": ctk.CTkFrame,
             "Scroll": ctk.CTkScrollableFrame,
-            "PanedWindow": ttk.Panedwindow,
+            "SplitPanel": ttk.Panedwindow,
         }
 
     def create_window(self):

@@ -364,7 +364,7 @@ class CanvasFlowTests(unittest.TestCase):
             ltk.Canvas().draw("not callable")
 
 
-class PanedWindowFlowTests(unittest.TestCase):
+class SplitPanelFlowTests(unittest.TestCase):
     def setUp(self):
         self.fake = FakeRenderer()
         set_renderer(self.fake)
@@ -372,20 +372,20 @@ class PanedWindowFlowTests(unittest.TestCase):
     def tearDown(self):
         set_renderer(_real_renderer)
 
-    def test_panedwindow_creates_container_and_panes(self):
-        ltk.PanedWindow(ltk.Column(), ltk.Column()).build(None)
+    def test_split_panel_creates_container_and_panes(self):
+        ltk.SplitPanel(ltk.Column(), ltk.Column()).build(None)
         kind, props = self.fake.container_calls[0]
-        self.assertEqual(kind, "PanedWindow")
+        self.assertEqual(kind, "SplitPanel")
         self.assertEqual(props["orient"], "horizontal")
         self.assertEqual(props["style"], "LTk.TPanedwindow")
         stub = self.fake.created_containers[0]
         self.assertEqual(len(stub.added), 2)
 
-    def test_panedwindow_orientation_vertical(self):
-        ltk.PanedWindow(ltk.Column(), ltk.Column()).orientation("vertical").build(None)
+    def test_split_panel_orientation_vertical(self):
+        ltk.SplitPanel(ltk.Column(), ltk.Column()).orientation("vertical").build(None)
         _, props = self.fake.container_calls[0]
         self.assertEqual(props["orient"], "vertical")
 
-    def test_panedwindow_requires_two_panes(self):
+    def test_split_panel_requires_two_panes(self):
         with self.assertRaises(ValueError):
-            ltk.PanedWindow(ltk.Column()).build(None)
+            ltk.SplitPanel(ltk.Column()).build(None)

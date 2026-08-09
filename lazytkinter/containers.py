@@ -587,7 +587,7 @@ class Scroll(BaseWidget["Scroll"]):
         return frame
 
 
-def _configure_paned_style(parent, colors, sash_width) -> None:
+def _configure_split_panel_style(parent, colors, sash_width) -> None:
     """Apply the CTk-derived palette to the shared ttk Panedwindow style."""
     if parent is None:
         return
@@ -600,7 +600,7 @@ def _configure_paned_style(parent, colors, sash_width) -> None:
     )
 
 
-class PanedWindow(BaseWidget["PanedWindow"]):
+class SplitPanel(BaseWidget["SplitPanel"]):
     """A resizable split container backed by ``ttk.Panedwindow``.
 
     Children are arranged side by side (``orientation("horizontal")``, the
@@ -609,14 +609,14 @@ class PanedWindow(BaseWidget["PanedWindow"]):
     palette at build time.
 
     Usage Example:
-        ltk.PanedWindow(
+        ltk.SplitPanel(
             ltk.Column().add(ltk.Label().text("left")),
             ltk.Column().add(ltk.Label().text("right")),
         ).orientation("vertical")
     """
 
     def __init__(self, *children) -> None:
-        """Initialize the PanedWindow container.
+        """Initialize the SplitPanel container.
 
         Args:
             *children: Optional pane widgets, equivalent to calling add().
@@ -634,45 +634,45 @@ class PanedWindow(BaseWidget["PanedWindow"]):
     def _check_child(child) -> None:
         if not hasattr(child, "build"):
             raise TypeError(
-                "PanedWindow children must be LazyTkinter widgets with build(), "
+                "SplitPanel children must be LazyTkinter widgets with build(), "
                 f"got {type(child).__name__}"
             )
 
-    def add(self, *args) -> PanedWindow:
+    def add(self, *args) -> SplitPanel:
         """Append pane widgets to the container."""
         for child in args:
             self._check_child(child)
         self._args = self._args + args
         return self
 
-    def orientation(self, orient: str) -> PanedWindow:
+    def orientation(self, orient: str) -> SplitPanel:
         """Set the split direction: "horizontal" (left/right) or "vertical" (top/bottom)."""
         if orient not in ("horizontal", "vertical"):
             raise ValueError(
-                "PanedWindow.orientation() expects 'horizontal' or 'vertical', "
+                "SplitPanel.orientation() expects 'horizontal' or 'vertical', "
                 f"got {orient!r}"
             )
         self._orientation = orient
         return self
 
-    def sash_width(self, width: int) -> PanedWindow:
+    def sash_width(self, width: int) -> SplitPanel:
         """Set the draggable sash thickness (non-negative integer)."""
         if not isinstance(width, int) or isinstance(width, bool) or width < 0:
-            raise ValueError("PanedWindow.sash_width() expects a non-negative integer")
+            raise ValueError("SplitPanel.sash_width() expects a non-negative integer")
         self._sash_width = width
         return self
 
     def build(self, parent, *, width=None, height=None):
         if len(self._args) < 2:
             raise ValueError(
-                "PanedWindow needs at least two panes, e.g. "
-                "PanedWindow(Column(...), Column(...))"
+                "SplitPanel needs at least two panes, e.g. "
+                "SplitPanel(Column(...), Column(...))"
             )
-        _configure_paned_style(
+        _configure_split_panel_style(
             parent, get_renderer().native_theme_colors(), self._sash_width
         )
         paned = self._create_container(
-            "PanedWindow",
+            "SplitPanel",
             parent,
             {"orient": self._orientation, "style": "LTk.TPanedwindow"},
         )
