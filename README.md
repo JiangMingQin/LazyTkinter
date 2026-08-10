@@ -6,15 +6,11 @@
 
 ---
 
-**LazyTkinter** 是一个基于 CustomTkinter 的 Python 界面库，旨在通过声明式编程简化 Tkinter 的布局和开发流程。它去除了传统的 grid 和 pack 方法，引入了 `Row` / `Column` / `ZStack` 容器，配合 `fit` / `fill` 尺寸策略、`gap` / `padding` 间距和 `Space` 占位（弹性/固定），使布局像搭积木一样直观。
-> LazyTkinter is a Python UI library built on CustomTkinter, designed to simplify Tkinter layout and development workflows via Declarative Programming. 
-It replaces traditional grid and pack methods with Row/Column/ZStack containers, fit/fill size policies, gap/padding spacing and Space placeholders to make layouts more intuitive.
+**LazyTkinter** 是一个基于 CustomTkinter 的 Python 界面库，通过声明式编程简化 Tkinter 的布局与开发流程：去除了手写 `grid` / `pack`，用 `Row` / `Column` / `ZStack` 容器配合 `fit` / `fill` 尺寸策略、`gap` / `padding` 间距和 `Space` 占位，像搭积木一样搭界面。
+> LazyTkinter is a Python UI library built on CustomTkinter that simplifies layout and development via declarative programming, replacing hand-written `grid` / `pack` with `Row` / `Column` / `ZStack` containers, `fit` / `fill` size policies, `gap` / `padding` spacing and `Space` placeholders.
 
-**目标受众**：适合希望快速开发简单 GUI 应用的开发者，尤其是对命令式编程感到繁琐，但又不想使用 PySide 或 QT 等大型框架的用户。
-> Ideal for developers looking to quickly build simple GUI applications — especially those who find Imperative Programming cumbersome, but don’t want to use heavyweight frameworks like PySide or QT.
-
-**未来计划**：宽高设置问题已修复，锚点功能已通过 `align` / `ZStack` 实现。接下来会优先补充数据型控件（`Treeview` / `Listbox`）解决大列表性能问题，再增加控件引用机制（`.id()` + `app.get()`）与语义化主题 token，最后扩展更多组件。
-> Width/height configuration is fixed and Anchor Functionality is now provided via `align` / `ZStack`. Next steps: data widgets (Treeview/Listbox) for large lists, widget references (`.id()` + `app.get()`), semantic theme tokens, and more widgets.
+**目标受众**：适合希望快速开发简单 GUI 应用的开发者，尤其是觉得命令式编程繁琐、但又不想使用 PySide 或 QT 等大型框架的用户。
+> Ideal for developers who want to build simple GUI applications quickly — especially those who find imperative programming cumbersome but don't want heavyweight frameworks like PySide or QT.
 
 ![light](assets/gruvbox-light.png)
 
@@ -22,271 +18,77 @@ It replaces traditional grid and pack methods with Row/Column/ZStack containers,
 
 ## ⚠️ 免责声明 / Disclaimer
 
-**这是一个实验性项目。** 
+**这是一个实验性项目。**
 **This is an experimental project.**
 
 这是我个人开发的第一个开源项目，LazyTkinter 主要用于探索声明式 UI 在 Python 中的实现。
 
-- ❌ **不保证** 长期维护或更新。
-- ❌ **不建议** 在生产环境中使用。
-- ✅ **欢迎** 学习、Fork 或作为灵感参考。
+- ❌ **不保证**长期维护或更新；日常更新随缘，仅在出现严重 bug 且收到实际反馈时才会投入维护。
+- ❌ **不建议**在生产环境中使用。
+- ✅ **欢迎**学习、Fork 或作为灵感参考。
 
 如果你对项目感兴趣，可以关注后续更新~
 
 ---
 
-## ✨ 核心特性 / Core Features
+## 📌 项目现状与兼容性 / Status & Compatibility
 
-- **链式调用 (Fluent Interface)**: 简化属性设置，一行代码搞定。
-  
+| 项目 | 说明 |
+| --- | --- |
+| 当前版本 | 0.12.0（变更记录见 [CHANGELOG.md](CHANGELOG.md)） |
+| 项目状态 | 实验性（Experimental），不建议生产环境使用 |
+| Python | >= 3.10 |
+| 平台 | Windows / Linux（GitHub Actions 全矩阵 CI） |
+| 依赖 | `customtkinter>=5.2.0`（安装时自动拉取） |
+| 试验功能 | `Treeview` / `Listbox`（原生控件渲染，可能与 CTk 主题风格不完全统一；切换主题或明暗后需重建窗口生效） |
+| 已实现 | 声明式布局 v2、`.id()` + `app.config()` 类型化访问、统一值 API、语义化主题 token、数据控件、`View` / `SplitPanel` / `Scroll` 等 |
+
+---
+
+## ✨ 核心特色 / Core Features
+
+- **声明式布局（Declarative Layout）**：`Row` / `Column` / `ZStack` 容器 + `fit` / `fill` 尺寸策略 + `gap` / `padding` / `align` / `justify`，无需理解 `grid` 的 row/column/span。
+
   ```python
-  ltk.Button().text("Click").width(100).event(func)
+  ltk.Column().gap(8).padding(16).add(
+      ltk.Row().width().fill().add(
+          ltk.Button().text("OK").fill(weight=1),
+          ltk.Button().text("Cancel").fill(weight=1),
+      ),
+      ltk.Label().text("done"),
+  )
   ```
 
-- **可发现的尺寸策略 (Discoverable Size Policy)**: `width()` / `height()` 后可继续链出 `.fill()` / `.fit()`，配合 IDE 补全无需查文档；也支持固定像素 `width(120)`。控件与布局容器统一可用。
-  
+- **链式 API + 统一值 API（Fluent & Unified Value API）**：每个 setter 返回自身，一行配置到底；`get()` / `set()` / `clear()` 全组件统一；`.id()` + `app.config(类型).aim_id(名字)` 让构建后仍可类型安全地实时更新。
+
   ```python
-  ltk.Button().width().fill()   # 宽度 fill，高度保持 fit
-  ltk.Column().width().fit()    # 覆盖 Column 默认 fill，改为包裹内容
-  ltk.Button().fill()           # 两轴都 fill
-  ltk.Button().fill(weight=2)   # fill 且按 2 份参与主轴空间分配（默认等分）
+  ltk.Button().text("add").width(100).event(on_click).id("btn")
+  app.config(ltk.Button).aim_id("btn").text("added")  # 构建后继续链式更新
+  app.config(ltk.Entry).aim_id("entry").set("hello")  # 统一值 API（写）
+  app.read("entry")                        # 统一值 API（快速读）
   ```
 
-- **声明式布局(Declarative Layout)**: 提供 `Row` 和 `Column` 容器，无需手写复杂的 `grid` 参数。
-  
+- **内置主题 + 语义化 token（Themes & Semantic Tokens）**：Catppuccin / Gruvbox / Dracula / EVA02 与 CustomTkinter 原生主题开箱即用；颜色写语义名（如 `"primary"`），`ltk.color()` / `ltk.Tokens` 可读取当前值。
+
   ```python
-  ltk.Row(ltk.Button(), ltk.Label())
+  ltk.set_theme(ltk.Theme.Catppuccin)
+  ltk.Button().fg_color("primary").text_color("white")
+  ltk.color("primary")   # '#cba6f7'
   ```
 
-- **对齐语义 (Alignment Semantics)**: `align` 控制**交叉轴**（Column 管左右、Row 管上下），`justify` 控制**主轴**（Column 管上下、Row 管左右，`center`/`end` 会自动把该轴转为 `fill` 以产生可分配空间），`.center()` 一步上下左右居中。`Application` 同样支持 `gap`/`align`/`justify`/`center()`，直接作用于根 `column()`/`row()`，无需再包一层容器。
+- **轻量快速上手（Lightweight & Fast Start）**：只依赖 CustomTkinter，无重量级框架；安装后十几行就能出一个窗口。
 
-- **零依赖感 (Zero Dependency Feeling)**: 直接通过 `lazytkinter` 导出常用变量 (`StringVar`) 和工具，无需额外导入 `customtkinter`。
-
-- **事件约定 (Event Convention)**: 所有控件的 `event()` 回调统一接收“当前值”——`Button` 收到 `None`，选择类控件收到选中值。
-
-- **内置主题 (Built-in Themes)**: 开箱即用的 `Catppuccin`, `Gruvbox`, `Nord` 等配色方案。
-
-- **语义化主题 token (Semantic Tokens)**: 颜色可用语义名（如 `fg_color("primary")`），`ltk.color("primary")` / `ltk.Tokens.radius` 可读取当前主题的值。
-
-- **自动滚动 (Auto Scroll)**: `Scroll` 包装任意单个子元素，长列表布局变得极其简单。
+  ```python
+  app = ltk.Application()
+  app.size("small").center().column(ltk.Button().text("Hi"))
+  app.run()
+  ```
 
 ---
 
-## 🎨 内置主题 / Built-in Themes
+## 📦 快速安装 / Quick Install
 
-LazyTkinter 内置了以下社区热门主题，无需下载 JSON 文件即可直接使用：
-
-- `ltk.Theme.Catppuccin` (Catppuccin Mocha) 温馨且现代的配色方案。
-  ![Catppuccin](assets/catppucin.png)
-
-- `ltk.Theme.Gruvbox` 经典的复古风格配色。
-  ![Gruvbox](assets/gruvbox-dark.png)
-
-- 以及 CustomTkinter 原生的 `Blue`, `Green`, `DarkBlue`
-
----
-
-## 🛠️ 组件支持 / Widget Support
-
-**布局组件 / Layout Widgets**
-
-* 📐 `Row`
-
-* 📐 `Column`
-
-* 📐 `ZStack` (重叠层叠)
-
-* 📐 `Space` (弹性/固定占位)
-
-* 📐 `Scroll` (滚动包装器)
-
-* 📐 `SplitPanel` (可拖拽分栏)
-
-* 📐 `Divider` (分隔线)
-
-**基础组件 / Basic Widgets**
-
-* 🎯 `Button`
-
-* 🎯 `Label`
-
-* 🎯 `Entry`
-
-* 🎯 `Textbox`
-
-* 🎯 `Canvas` (画布)
-
-**选择组件 / Selection Widgets**
-
-* 🎯 `Switch`
-
-* 🎯 `CheckBox`
-
-* 🎯 `RadioButton`
-
-* 🎯 `SegmentedButton`
-
-**选择列表组件 / Selection List Widgets**
-
-* 🎯 `ComboBox`
-
-* 🎯 `OptionMenu`
-
-**数值组件 / Numeric Widgets**
-
-* 🎯 `Slider`
-
-* 🎯 `ProgressBar`
-
-**数据组件 / Data Widgets**（试验功能：系统控件渲染，可能与主题风格不统一）
-
-* 📊 `Treeview` (表格, 试验)
-
-* 📊 `Listbox` (列表, 试验)
-
----
-
-## 📖 布局 API 速查 / Layout API Quick Reference
-
-**尺寸策略 / Size Policy** — `width` / `height` 接受 `int`（固定像素）、`"fit"`（包裹内容）或 `"fill"`（撑满父容器）：
-
-```python
-ltk.Button().width(120)           # 固定像素
-ltk.Button().width("fill")        # 字符串形式
-ltk.Button().width().fill()       # 链式形式（IDE 补全友好）
-ltk.Button().fill(weight=2)       # 撑满并按 2 份参与主轴空间分配
-```
-
-默认：控件 `fit`；Column 宽度 `fill`；ZStack / Scroll 宽高 `fill`。
-
-**间距 / Spacing** — 全部为整数像素：
-
-```python
-ltk.Column().gap(12).padding(16)  # 子元素间距 / 内边距
-app.gap(8).padding(20)            # 窗口根布局的间距 / 内边距
-```
-
-**对齐 / Alignment**：
-
-```python
-ltk.Column().align("center")      # 交叉轴：Column 管左右（left/center/right）
-ltk.Row().align("center")         # 交叉轴：Row 管上下（top/center/bottom）
-ltk.Row().justify("center")       # 主轴：Row 管左右（start/center/end）
-ltk.Column().center()             # = justify("center") + align("center")
-app.center().column(...)          # 窗口根布局同样支持
-```
-
-**布局原语 / Layout Primitives**：
-
-```python
-ltk.Row(ltk.Button(), ltk.Label())        # 构造参数直接传子元素
-ltk.Column().add(a).add(b)                # 或追加
-ltk.ZStack().add(bg, fg.align("top-right"))  # 重叠 + 锚点
-ltk.Space().weight(2)                     # 弹性弹簧（吃剩余空间）
-ltk.Scroll(ltk.Column().add(*items))      # 滚动包装（v1 仅垂直）
-ltk.Space().width(10)                     # 固定尺寸占位
-ltk.View(("home", ltk.Column(...)), ("settings", ...)).id("main")  # 命名页面容器
-app.get("main").show("settings")          # 外部控件驱动切换
-ltk.Canvas().width(400).height(300).fg_color("surface_alt").draw(
-    lambda c: c.create_rectangle(10, 10, 100, 100, fill=ltk.color("primary"))
-)
-ltk.SplitPanel().vertical()                       # 纵向切割=左右分栏
-    .add(ltk.Column(...)).min_width(120).max_width(400).transparent()
-    .add(ltk.Column(...)).min_width(200)
-ltk.Divider()                                     # 水平分隔线（默认，主题 border 色）
-ltk.Divider().vertical().line_width(2)            # 垂直分隔线（line_width 设粗细）
-ltk.Button().id("btn")                    # 注册 id，app.get("btn") 可继续链式设置
-app.get("btn").config(ltk.Label).text("新文本")  # .config(类型) 收窄类型 + 运行时校验
-app.native("btn")                         # 需要时获取原生控件
-app.get("btn").visible(False)             # 构建后运行时显隐（grid/grid_remove）
-```
-
-> **Canvas 说明**：基于 `CTkCanvas`（即 `tk.Canvas` 子类，绘图性能一致）；`.draw(func)` 在构建后把原生画布交给回调绘制（可多次注册、按序执行），`.fg_color()` 设置画布背景，交互通过 `.id()` + `app.native(id).bind(...)`。
-
-> **SplitPanel 说明**：基于 `ttk.Panedwindow`，方向按**切割线方向**定义（见下表）；构建时从当前 CTk 主题取色（`ctk.ThemeManager`，语义 token 兜底）设置分隔条颜色；默认开启 `proxy_sash`（拖动时显示幽灵分隔条、松开才落位，`.proxy_sash(False)` 关闭）；面板最小/最大尺寸在拖动结束后用 `sashpos` 自动回夹（ttk 无原生支持）；切换主题或明暗后需重建窗口生效。
-
-| 方向 | 切割线 | 面板可用属性 | 底层 ttk orient |
-| --- | --- | --- | --- |
-| `.vertical()` | 竖线（左右分栏） | `min_width` / `max_width` | `horizontal` |
-| `.horizontal()` | 横线（上下分栏） | `min_height` / `max_height` | `vertical` |
-
-> **Divider 说明**：基于 `CTkFrame` 的薄层分隔线，默认色为当前主题 border（可用 `.fg_color()` 覆盖）；`.orientation().horizontal()/.vertical()` 链式设置方向（字符串形式保留），`.line_width()` 设置粗细。
-
-**外观 / Appearance**：
-
-```python
-ltk.Column().fg_color("#313244").radius(10)  # 背景色 + 圆角（默认主题色）
-ltk.Column().transparent()                  # 显式透明
-ltk.Label().font(family="Arial", size=20, weight="bold")  # 字体关键字形式
-ltk.Button().fg_color("primary")            # 颜色可用语义 token 名
-ltk.Button().padding(8)                     # 内边距（映射 CTk border_spacing）
-ltk.Button().width(100).height(30).fix_size()  # 锁定显式尺寸，防大字体撑大
-ltk.Button().fg_color("blue")               # 常用色 token（red/orange/yellow/...）
-ltk.Button().hover_color("blue_hover")      # hover 自动按主题明暗生成
-ltk.Label().anchor("w")                     # 文字在标签内左对齐（tk 锚点）
-ltk.Button().image(img).compound("left")    # 图标+文字 左右排布
-ltk.color("primary")                        # 读取当前主题的 token 值
-```
-
-> **常用色 token**：每个主题内置 `red / orange / yellow / green / cyan / blue / purple / black / white / gray` 及各自的 `*_hover`。深色主题的 hover 自动变浅、浅色主题自动变深（HSL 亮度 ±12%）；可直接用于 `fg_color("blue")`、`text_color("red")`、`ltk.color("blue")`、`ltk.Tokens.red`。注意：token 名（如 `red`/`blue`/`green`）会覆盖同名的 CSS 颜色字面量。
-
-> **View 说明**：纯内容切换容器（**无内置选择器**，区别于 Tabview）——命名页面共享同一区域、同一时刻只显示一个，用 `.show(name)` 由外部控件（侧边栏按钮 / SegmentedButton 等）驱动；`.get()` 返回当前页名，`.event(cb)` 回传页名；页面构建一次、切换间状态保留。
-
-**数据型控件 / Data Widgets**（大列表性能优先，原生控件 + 主题化调色板）：
-
-```python
-ltk.Treeview().columns(["Item", "Value"]).rows([("a", 1), ("b", 2)]).event(cb)
-ltk.Listbox().items(["a", "b"]).event(cb)
-```
-
-> **Treeview / Listbox（试验功能）**：使用系统控件（`ttk.Treeview` / `tk.Listbox`）渲染，性能优先，但**可能与 CTk 主题风格不完全统一**。构建时用 `native_theme_colors()` 调色板为每个实例生成唯一的 ttk style（`LTkData<N>.Treeview` 等）：表面/文字/边框/选中色跟随当前 CTk 主题；Listbox 为 tk 控件，同一调色板通过控件选项上色。应用每次创建时会自动把全局 ttk 主题切到 `clam`（Windows 默认 `vista` 主题忽略 Treeview/滚动条颜色，且 CustomTkinter 每次建窗都会重置 ttk 主题），因此所有 ttk 控件外观更扁平；切换主题或明暗后需重建窗口生效。
-
-**值 API / Value API**：
-
-```python
-ltk.Entry().set("默认值")                 # 构建前 = 默认值
-app.get("entry").set("hello")             # 构建后 = 实时更新
-app.get("entry").get()                    # 读当前值
-app.get("entry").clear()                  # 清空（Entry/Textbox/Treeview/Listbox）
-ltk.Slider().range(0, 100).set(40)        # 滑块初始值
-ltk.CheckBox().set(True)                  # 默认勾选
-app.get("tree").set([("a", 1)])           # 数据控件运行时换数据
-```
-
-> **值 API 约定**：`get()` 读当前值、`set(v)` 写值（构建前=默认值，构建后=实时生效）、`clear()` 清空（仅文本/数据类）。覆盖 Entry / Textbox / Switch / CheckBox / RadioButton / Slider / ProgressBar / ComboBox / OptionMenu / SegmentedButton / Treeview / Listbox；`ComboBox().set_value("x")` 与 `ProgressBar().value(0.5)` 保留为等价写法。布局属性（`width`/`align` 等）需在构建前设置。
-
-**窗口 / Window**：
-
-```python
-app.size("large").window_title("App").padding(10).gap(5).center().column(...)
-# size: "fill" / "large" / "medium" / "small" / (w, h)
-app.size((800, 600)).min_size(400, 300).max_size(1200, 900).resizable(False, False)
-app.fixed_size()                            # 固定窗口大小（等价 resizable(False, False)）
-app.center_window()                         # 窗口在屏幕居中（size() 后调用）
-app.icon("app.ico")                         # 设置窗口图标（Windows 用 .ico）
-app.on_close(on_quit)                       # 关闭回调（回调内需自行 destroy()）
-```
-
----
-
-## 📂 项目结构
-
-```Plaintext
-lazytkinter/
-├── __init__.py      # Unified export interface
-├── app.py           # Application & Window wrapper
-├── widgets.py       # Basic widget wrapper
-├── containers.py    # Layout container wrapper
-├── renderer.py      # Renderer protocol & CTk implementation
-├── utils.py         # Utility classes (Image, StringVar)
-└── themes/          # Built-in JSON theme files
-```
-
----
-
-## 📦 安装 / Installation
-
-将项目克隆到本地后安装（自动拉取 `customtkinter` 依赖）：
+克隆仓库后安装（自动拉取 `customtkinter` 依赖）：
 
 ```bash
 git clone https://github.com/JiangMingQin/lazytkinter.git
@@ -298,100 +100,132 @@ pip install -e .          # 开发模式安装（含依赖）
 
 ---
 
-## 🚀 示例程序 / Example Program
+## 🚀 快速上手 / Quick Start
 
-以下是一个简单的示例程序，展示如何使用 LazyTkinter 创建一个带有按钮的窗口：
-
-1. **设置主题 / Set Theme**：
-   
-   ```python
-   import lazytkinter as ltk 
-   ltk.set_theme(ltk.Theme.Gruvbox) 
-   ```
-
-2. **创建应用实例 / Create Application Instance**：
-   
-   ```python
-   app = ltk.Application() 
-   ```
-
-3. **定义事件函数 / Define Event Function**：
-   
-   ```python
-   def on_click():
-       print("click!")
-   ```
-
-4. **构建 UI / Build UI**：
-   
-   ```python
-   app.size( # set window size: "fill" / "large" / "medium" / "small" / (w, h)
-           "small"
-       ).window_title( # set title
-           "My first app"
-       ).center().column( # center on both axes at the window root
-           ltk.Button().text("Click!").event(on_click),
-       )
-   ```
-
-5. **运行应用 / Run Application**：
-   
-   ```python
-   app.run()
-   ```
-
-**完整示例**
+一个完整的计数器示例（也见 `examples/example00.py`）：
 
 ```python
-import lazytkinter as ltk 
+import lazytkinter as ltk
 
-ltk.set_theme(ltk.Theme.Gruvbox) # set theme
+ltk.set_theme(ltk.Theme.Gruvbox)
 
-# create program
 app = ltk.Application()
+count = 0
 
-# creat event
-def on_click():
-    print("click!")
+def on_click(value=None):
+    global count
+    count += 1
+    app.config(ltk.Label).aim_id("count").text(f"{count}")
 
-# build UI
-app.size( # set window size: "fill" / "large" / "medium" / "small" / (w, h)
-        "small"
-    ).window_title( # set title
-        "My first app"
-    ).center().column( # center on both axes at the window root
-        ltk.Button().text("Click!").event(on_click),
-    )
+app.size("small").window_title("Counter").center().gap(10).column(
+    ltk.Label().id("count").text("0").font(family="Arial", size=28, weight="bold"),
+    ltk.Button().text("add count").event(on_click),
+)
 
-# run
 app.run()
 ```
 
-运行后你会看到这样的窗口：
+运行后你会看到这样的窗口，点击按钮计数递增：
 
 ![example00](assets/example00.png)
 
-当你点击按钮的时候，终端应该会输出：
+---
 
-```bash
-> click!
+## 🧩 组件速查表 / Widget Quick Reference
+
+| 分类 | 组件 | 说明 |
+| --- | --- | --- |
+| 布局 | `Row` | 水平排列子元素 |
+| 布局 | `Column` | 垂直排列子元素 |
+| 布局 | `ZStack` | 重叠层叠 + 九宫格锚点 |
+| 布局 | `Space` | 弹性 / 固定占位 |
+| 布局 | `Scroll` | 滚动包装（v1 仅垂直） |
+| 布局 | `View` | 命名页面容器（无内置选择器） |
+| 布局 | `SplitPanel` | 可拖拽分栏 |
+| 布局 | `Divider` | 分隔线 |
+| 基础 | `Button` | 按钮 |
+| 基础 | `Label` | 文本标签 |
+| 基础 | `Entry` | 单行输入框 |
+| 基础 | `Textbox` | 多行文本框 |
+| 基础 | `Canvas` | 画布 |
+| 选择 | `Switch` | 开关 |
+| 选择 | `CheckBox` | 复选框 |
+| 选择 | `RadioButton` | 单选按钮 |
+| 选择 | `SegmentedButton` | 分段选择按钮 |
+| 选择列表 | `ComboBox` | 下拉选择框 |
+| 选择列表 | `OptionMenu` | 下拉菜单 |
+| 数值 | `Slider` | 滑块 |
+| 数值 | `ProgressBar` | 进度条 |
+| 数据（试验） | `Treeview` | 表格（原生控件，性能优先） |
+| 数据（试验） | `Listbox` | 列表（原生控件，性能优先） |
+
+完整方法签名与示例见 [API_REFERENCE.md](docs/API_REFERENCE.md)。
+
+---
+
+## 🎨 内置主题 / Built-in Themes
+
+- `ltk.Theme.Catppuccin`（Catppuccin Mocha）——温馨且现代。
+  ![Catppuccin](assets/catppucin.png)
+- `ltk.Theme.Gruvbox` —— 经典复古风格。
+  ![Gruvbox](assets/gruvbox-dark.png)
+- 另有 `ltk.Theme.Dracula`、`ltk.Theme.EVA02` 与 CustomTkinter 原生 `Blue` / `Green` / `DarkBlue`，共 7 个枚举。
+- 附带 `nord-theme.json`：可用 `ltk.set_theme("nord-theme")` 按文件名加载，但 `Theme` 枚举暂未提供 `Nord`。
+
+---
+
+## 📖 布局小抄 / Layout Cheat Sheet
+
+```python
+ltk.Button().width().fill(weight=2)           # 与兄弟控件按 2 份分剩余宽度
+ltk.Row().width().fill().justify("center")    # 主轴（水平）居中
+ltk.Column().add(ltk.Button(), ltk.Space(), ltk.Button())   # 上下弹开
+```
+
+> 完整规则（主轴/交叉轴、fill 降级、隐式 Space、常见误区等）见 [LAYOUT.md](docs/LAYOUT.md)。
+
+---
+
+## 📂 项目结构 / Project Structure
+
+```Plaintext
+lazytkinter/
+├── __init__.py      # 统一导出接口
+├── app.py           # Application / Theme / set_theme / set_mode
+├── base.py          # BaseWidget 公共属性与链式 API
+├── widgets.py       # 基础控件描述
+├── containers.py    # Row / Column / ZStack / Space / Scroll / View / SplitPanel
+├── data_widgets.py  # Treeview / Listbox
+├── renderer.py      # Renderer 协议 + CTkRenderer（唯一依赖 customtkinter）
+├── tokens.py        # 语义化主题 token
+├── registry.py      # id 注册表
+├── utils.py         # StringVar / Image / Font / 文件对话框
+└── themes/          # 内置主题 JSON
 ```
 
 ---
 
-## 🤝 贡献 (Contributing)
+## 📚 文档导航 / Documentation
 
-欢迎 Fork 本项目并根据自己的想法进行修改！如果你发现 Bug 或有改进建议，可以通过以下方式参与：
-
-1. **提交 Issue / Submit Issue**：描述问题或建议改进的功能。
-
-2. **提交 PR / Submit PR**：修复 Bug 或添加新功能。请确保代码风格一致，并附上测试用例。
-
-虽然我可能无法立即处理每个 PR，但我会尽力回复每条 Issue 和讨论！感谢你的支持！
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) —— 架构设计与布局引擎说明
+- [docs/API_REFERENCE.md](docs/API_REFERENCE.md) —— 全部公开组件 API 速查
+- [docs/LAYOUT.md](docs/LAYOUT.md) —— Row / Column 布局规则专题
+- [docs/EXAMPLES.md](docs/EXAMPLES.md) —— 示例文档规划（内容待补充）
 
 ---
 
-## 📄 许可证 (License)
+## 🤝 贡献 / Contributing
+
+欢迎 Fork 本项目并根据自己的想法进行修改！如果你发现 Bug 或有改进建议，可以通过以下方式参与：
+
+1. **提交 Issue**：描述问题或建议改进的功能。
+2. **提交 PR**：修复 Bug 或添加新功能。请确保代码风格一致，并附上测试用例。
+
+这是一个实验性项目，维护随缘——我可能无法立即处理每个 PR，但会尽力回复每条 Issue 和讨论。感谢你的支持！
+
+---
+
+## 📄 许可证 / License
 
 本项目基于 [MIT License](https://opensource.org/licenses/MIT) 开源。底层依赖 CustomTkinter 遵循其原有协议。这意味着你可以自由使用、修改和分发本项目，但需保留原许可证声明。
 

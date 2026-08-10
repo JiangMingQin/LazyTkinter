@@ -2,6 +2,12 @@
 
 本项目所有重要变更都会记录在此文件中。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本遵循 [Semantic Versioning](https://semver.org/lang/zh-CN/)。
 
+## [0.13.0] - 2026-08-11
+
+### 修改 (Changed)
+
+- **破坏性变更**：运行时访问重构——移除 `app.get(name)` 与 `BaseWidget.config(类型)`；新增 `app.config(类型).aim_id(name)`（类型化主通道：缺 id 抛 `KeyError`、类型不匹配抛 `TypeError`）与 `app.read(name)`（快速读值，控件无 `get()` 时抛 `TypeError`）；`app.native(name)` / `app.ids()` 保留。示例 00/01/05/06 与文档同步迁移。
+
 ## [0.12.0] - 2026-08-10
 
 ### 新增 (Added)
