@@ -18,6 +18,8 @@
 
 **主要内容**：`Application` / `set_theme` / `Label` / `Button` / `event` / `.id()` + `app.config(类型).aim_id()`。
 
+![example00](../assets/example00.png)
+
 应用骨架与注册 id：
 
 ```python
@@ -46,6 +48,8 @@ Tips：
 ## example01 — 控件全览（16 个控件 + 运行时更新）
 
 **主要内容**：全部控件的事件反馈写法、`Scroll` 包装长列表、图标按钮、`app.config(类型).aim_id` / `app.read` / `visible`、窗口 API、主题/明暗切换。
+
+![example01](../assets/example01.png)
 
 滑块实时驱动进度条（跨控件运行时更新）：
 
@@ -82,6 +86,8 @@ Tips：
 ## example02 — 布局与容器（fit / fill / weight 与各容器）
 
 **主要内容**：Row / Column / ZStack / Scroll / Space / View / SplitPanel / Divider 的组合用法。
+
+![example02](../assets/example02.png)
 
 fill 按权重分配主轴剩余空间：
 
@@ -146,6 +152,8 @@ Tips：
 ## example03 — 计算器（逻辑与 UI 分离的完整应用）
 
 **主要内容**：把“纯逻辑”与“声明式 UI”分开写的完整应用；UI 只负责把按键转发给状态机并刷新显示。
+
+![example03](../assets/example03.png)
 
 按键转发 + 刷新：
 
