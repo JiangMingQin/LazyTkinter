@@ -2,22 +2,17 @@
 
 本项目所有重要变更都会记录在此文件中。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本遵循 [Semantic Versioning](https://semver.org/lang/zh-CN/)。
 
-## [Unreleased]
+## [0.13.0] - 2026-08-11
 
 ### 修改 (Changed)
 
+- **破坏性变更**：运行时访问重构——移除 `app.get(name)` 与 `BaseWidget.config(类型)`；新增 `app.config(类型).aim_id(name)`（类型化主通道：缺 id 抛 `KeyError`、类型不匹配抛 `TypeError`）与 `app.read(name)`（快速读值，控件无 `get()` 时抛 `TypeError`）；`app.native(name)` / `app.ids()` 保留。示例与文档同步迁移。
 - 示例重构：`examples/` 收敛为 4 个并按教程顺序排列——`example00` 快速上手（计数器）、`example01` 控件全览（全部控件 + 统一 print 事件反馈 + 运行时更新 + 主题切换）、`example02` 布局与容器（全部容器原语，View 分页演示）、`example03` 完整应用（iOS 计算器，压轴，按钮配色改用语义 token）；删除 `example04/05/06`，其内容并入 01/02。`docs/EXAMPLES.md` 由占位改为正式示例索引。
 
 ### 修复 (Fixed)
 
 - `RadioButton` 事件回调与 `get()` 不再调用原生 `CTkRadioButton.get()`（customtkinter 6.0 中该方法不存在）：有共享变量时返回变量当前值，否则返回该单选按钮自身的 `value`；此前点击单选按钮会抛 `AttributeError`。
 - `Application` 创建时清空 id 注册表，每个应用从空注册表开始：同一进程内销毁后重建窗口（如切换主题后重建）不再因重复 id 抛 `ValueError`。
-
-## [0.13.0] - 2026-08-11
-
-### 修改 (Changed)
-
-- **破坏性变更**：运行时访问重构——移除 `app.get(name)` 与 `BaseWidget.config(类型)`；新增 `app.config(类型).aim_id(name)`（类型化主通道：缺 id 抛 `KeyError`、类型不匹配抛 `TypeError`）与 `app.read(name)`（快速读值，控件无 `get()` 时抛 `TypeError`）；`app.native(name)` / `app.ids()` 保留。示例 00/01/05/06 与文档同步迁移。
 
 ## [0.12.0] - 2026-08-10
 
