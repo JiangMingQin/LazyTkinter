@@ -11,6 +11,7 @@
 ### 修复 (Fixed)
 
 - `RadioButton` 事件回调与 `get()` 不再调用原生 `CTkRadioButton.get()`（customtkinter 6.0 中该方法不存在）：有共享变量时返回变量当前值，否则返回该单选按钮自身的 `value`；此前点击单选按钮会抛 `AttributeError`。
+- `Application` 创建时清空 id 注册表，每个应用从空注册表开始：同一进程内销毁后重建窗口（如切换主题后重建）不再因重复 id 抛 `ValueError`。
 
 ## [0.13.0] - 2026-08-11
 

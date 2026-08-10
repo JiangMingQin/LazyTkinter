@@ -443,6 +443,11 @@ class ApplicationLayoutTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             app.gap(-1)
 
+    def test_application_creation_clears_registry(self):
+        registry.register("stale", object(), object())
+        ltk.Application()
+        self.assertEqual(registry.ids(), [])
+
     def test_align_axis_validated_at_root_call(self):
         app = ltk.Application()
         app.align("left")

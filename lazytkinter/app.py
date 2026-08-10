@@ -12,6 +12,7 @@ from .containers import (
     _resolve_row_slots,
 )
 from .renderer import get_renderer
+from .registry import clear as _registry_clear
 from .registry import get as _registry_get
 from .registry import ids as _registry_ids
 from .tokens import set_theme as _set_token_theme
@@ -134,6 +135,9 @@ class Application:
 
     def __init__(self) -> None:
         """Initializes the application."""
+        # 每个 Application 从空的 id 注册表开始：支持同一进程内销毁后重建窗口
+        # （例如切换主题后重建），也避免上一个窗口的 id 泄漏到新窗口。
+        _registry_clear()
         self._window = get_renderer().create_window()
         _enable_clam_theme(self._window)
         self._window_size = None

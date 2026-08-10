@@ -24,7 +24,7 @@
 ## example02 — 控件全览（Widget Gallery）
 
 - 目标：一个窗口看完所有控件，并示范"事件反馈怎么写"。
-- 关键点：每个控件都带 `.id()`；所有 `event()` 回调统一 `print("[控件名] ...")` 输出，与 API_REFERENCE 的事件约定表一一对应；Entry / Textbox / ProgressBar 等无事件的控件用 `app.read()` / `config(类型).aim_id()` 演示读取与更新；Slider 拖动实时驱动 ProgressBar；顶部工具条演示 `set_theme` / `set_mode`；底部面板演示 `visible()` / `on_close()` / `center_window()`。
+- 关键点：每个控件都带 `.id()`；所有 `event()` 回调统一 `print("[控件名] ...")` 输出，与 API_REFERENCE 的事件约定表一一对应；Entry / Textbox / ProgressBar 等无事件的控件用 `app.read()` / `config(类型).aim_id()` 演示读取与更新；Slider 拖动实时驱动 ProgressBar；顶部工具条演示 `set_theme` / `set_mode`——其中明暗切换实时生效，而 **CTk 颜色主题只对新建控件生效，所以主题切换会销毁并重建整个窗口**（示例把 UI 构建抽成可重入函数）；底部面板演示 `visible()` / `on_close()` / `center_window()`。
 
 ## example03 — 布局与容器（Layout & Containers）
 

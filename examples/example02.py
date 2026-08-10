@@ -2,7 +2,8 @@
 
 演示：全部 16 个控件、统一 print 事件反馈、Scroll、CTkImage + compound、
 运行时更新（app.config(类型).aim_id / app.read / visible）、
-窗口 API（on_close / center_window）、主题切换（set_theme / set_mode）。
+窗口 API（on_close / center_window）、主题/明暗切换。
+注意：CustomTkinter 的颜色主题只对新建控件生效，所以切换主题会**重建窗口**。
 Run: python examples/example02.py
 """
 
@@ -33,9 +34,8 @@ def _section(title: str, *children):
     )
 
 
-def main() -> None:
-    ltk.set_theme(ltk.Theme.Catppuccin)
-
+def _build_app(state: dict) -> ltk.Application:
+    """构建整个控件全览窗口；切换主题后由 main() 再次调用（真实重建）。"""
     app = ltk.Application()
 
     # ---- 窗口 API ----
@@ -47,22 +47,22 @@ def main() -> None:
 
     # ---- 顶部工具条：主题 / 明暗切换 ----
     def on_theme(value):
-        ltk.set_theme(value)
-        print(f"[Theme] {value}")
-
-    mode = {"current": "light"}
+        state["theme"] = value
+        state["rebuild"] = True
+        print(f"[Theme] {value} -> rebuild window")
+        app.destroy()  # 颜色主题只对新建控件生效，销毁后由 main() 用新主题重建
 
     def toggle_mode():
-        mode["current"] = "dark" if mode["current"] == "light" else "light"
-        ltk.set_mode(mode["current"])
-        print(f"[Mode] {mode['current']}")
+        state["mode"] = "dark" if state["mode"] == "light" else "light"
+        ltk.set_mode(state["mode"])  # 明暗切换是实时的，无需重建
+        print(f"[Mode] {state['mode']}")
 
     toolbar = ltk.Row().gap(10).padding(10).width().fill().add(
         ltk.Label().text("Theme:"),
         ltk.SegmentedButton()
         .id("theme_switch")
         .values([ltk.Theme.Catppuccin, ltk.Theme.Gruvbox, ltk.Theme.Dracula])
-        .set_value(ltk.Theme.Catppuccin)
+        .set_value(state["theme"])
         .event(on_theme),
         ltk.Space(),
         ltk.Button().text("Toggle mode").event(lambda _: toggle_mode()),
@@ -194,7 +194,19 @@ def main() -> None:
             )
         ),
     )
-    app.run()
+    return app
+
+
+def main() -> None:
+    state = {"theme": ltk.Theme.Catppuccin, "mode": "light", "rebuild": False}
+    while True:
+        state["rebuild"] = False
+        ltk.set_theme(state["theme"])
+        ltk.set_mode(state["mode"])
+        app = _build_app(state)
+        app.run()
+        if not state["rebuild"]:
+            break
 
 
 if __name__ == "__main__":
