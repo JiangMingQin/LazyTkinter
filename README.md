@@ -185,6 +185,8 @@ ltk.ZStack().add(bg, fg.align("top-right"))  # 重叠 + 锚点
 ltk.Space().weight(2)                     # 弹性弹簧（吃剩余空间）
 ltk.Scroll(ltk.Column().add(*items))      # 滚动包装（v1 仅垂直）
 ltk.Space().width(10)                     # 固定尺寸占位
+ltk.View(("home", ltk.Column(...)), ("settings", ...)).id("main")  # 命名页面容器
+app.get("main").show("settings")          # 外部控件驱动切换
 ltk.Canvas().width(400).height(300).fg_color("surface_alt").draw(
     lambda c: c.create_rectangle(10, 10, 100, 100, fill=ltk.color("primary"))
 )
@@ -227,6 +229,8 @@ ltk.color("primary")                        # 读取当前主题的 token 值
 ```
 
 > **常用色 token**：每个主题内置 `red / orange / yellow / green / cyan / blue / purple / black / white / gray` 及各自的 `*_hover`。深色主题的 hover 自动变浅、浅色主题自动变深（HSL 亮度 ±12%）；可直接用于 `fg_color("blue")`、`text_color("red")`、`ltk.color("blue")`、`ltk.Tokens.red`。注意：token 名（如 `red`/`blue`/`green`）会覆盖同名的 CSS 颜色字面量。
+
+> **View 说明**：纯内容切换容器（**无内置选择器**，区别于 Tabview）——命名页面共享同一区域、同一时刻只显示一个，用 `.show(name)` 由外部控件（侧边栏按钮 / SegmentedButton 等）驱动；`.get()` 返回当前页名，`.event(cb)` 回传页名；页面构建一次、切换间状态保留。
 
 **数据型控件 / Data Widgets**（大列表性能优先，原生控件 + 主题化调色板）：
 

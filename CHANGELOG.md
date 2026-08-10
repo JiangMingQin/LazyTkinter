@@ -2,6 +2,12 @@
 
 本项目所有重要变更都会记录在此文件中。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本遵循 [Semantic Versioning](https://semver.org/lang/zh-CN/)。
 
+## [0.12.0] - 2026-08-10
+
+### 新增 (Added)
+
+- `View`（视图容器）：命名页面共享同一区域、同一时刻只显示一个；`.show(name)` 切换（构建前设默认页、构建后实时切换）、`.get()` 返回当前页名、`.event(cb)` 回传页名；**无内置选择器**（区别于 Tabview），切换由外部控件（侧边栏按钮 / SegmentedButton）驱动；页面构建一次、状态保留。新增 `examples/example06.py`（侧边栏 + View）。
+
 ## [0.11.0] - 2026-08-10
 
 ### 新增 (Added)
