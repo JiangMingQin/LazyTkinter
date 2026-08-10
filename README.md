@@ -234,9 +234,3 @@ lazytkinter/
 ## 📄 许可证 / License
 
 本项目基于 [MIT License](https://opensource.org/licenses/MIT) 开源。底层依赖 CustomTkinter 遵循其原有协议。这意味着你可以自由使用、修改和分发本项目，但需保留原许可证声明。
-
----
-
-**Made with ❤️ by a foolish third-year university student.**
-
-（由一位普通的大三学生开发，希望你喜欢这个项目！）
