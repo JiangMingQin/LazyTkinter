@@ -216,6 +216,8 @@ ltk.Column().fg_color("#313244").radius(10)  # 背景色 + 圆角（默认主题
 ltk.Column().transparent()                  # 显式透明
 ltk.Label().font(family="Arial", size=20, weight="bold")  # 字体关键字形式
 ltk.Button().fg_color("primary")            # 颜色可用语义 token 名
+ltk.Button().padding(8)                     # 内边距（映射 CTk border_spacing）
+ltk.Button().width(100).height(30).fix_size()  # 锁定显式尺寸，防大字体撑大
 ltk.color("primary")                        # 读取当前主题的 token 值
 ```
 
@@ -233,6 +235,8 @@ ltk.Listbox().items(["a", "b"]).event(cb)
 ```python
 app.size("large").window_title("App").padding(10).gap(5).center().column(...)
 # size: "fill" / "large" / "medium" / "small" / (w, h)
+app.size((800, 600)).min_size(400, 300).max_size(1200, 900).resizable(False, False)
+app.fixed_size()                            # 固定窗口大小（等价 resizable(False, False)）
 ```
 
 ---

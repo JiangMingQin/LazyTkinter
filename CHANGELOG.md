@@ -2,6 +2,17 @@
 
 本项目所有重要变更都会记录在此文件中。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本遵循 [Semantic Versioning](https://semver.org/lang/zh-CN/)。
 
+## [0.8.1] - 2026-08-10
+
+### 新增 (Added)
+
+- `Application` 窗口尺寸控制：`resizable(width, height)`、`min_size(w, h)`、`max_size(w, h)`、`fixed_size()`（固定窗口大小）。
+- `Button.padding(n)`（映射 CTk `border_spacing` 内边距）与 `Button.fix_size()`（锁定显式尺寸）。
+
+### 修复 (Fixed)
+
+- 大字体撑大固定尺寸按钮：CTkButton 内部 grid 未关闭 propagate，文本请求尺寸覆盖显式宽高；`fix_size()` 在构建时关闭 `grid_propagate` 钉住尺寸。
+
 ## [0.8.0] - 2026-08-10
 
 ### 新增 (Added)
