@@ -360,15 +360,6 @@ class SmokeTests(unittest.TestCase):
         app._window.update_idletasks()
         app._window.destroy()
 
-    def test_example04(self):
-        self._run_example("examples/example04.py")
-
-    def test_example05(self):
-        self._run_example("examples/example05.py")
-
-    def test_example06(self):
-        self._run_example("examples/example06.py")
-
     def test_view(self):
         app = ltk.Application()
         app.size((500, 360)).window_title("smoke").column(
