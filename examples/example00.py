@@ -8,11 +8,11 @@ app = ltk.Application()
 # counter state
 count = 0
 
-# event: every click increments the counter label via app.get()
+# event: every click increments the counter label via the typed access channel
 def on_click(value=None):
     global count
     count += 1
-    app.get("count").config(ltk.Label).text(f"{count}")
+    app.config(ltk.Label).aim_id("count").text(f"{count}")
 
 # build UI
 app.size("small").window_title("Counter").center().gap(10).column(

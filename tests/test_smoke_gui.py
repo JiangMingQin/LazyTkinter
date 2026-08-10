@@ -255,7 +255,7 @@ class SmokeTests(unittest.TestCase):
         app.build()
         app._window.update_idletasks()
 
-        app.get("count").config(ltk.Label).text("5")
+        app.config(ltk.Label).aim_id("count").text("5")
         self.assertEqual(app.native("count").cget("text"), "5")
 
         tree = app.layout_tree()
@@ -380,11 +380,11 @@ class SmokeTests(unittest.TestCase):
         app._window.deiconify()
         app._window.update()
 
-        app.get("main").show("settings")
+        app.config(ltk.View).aim_id("main").show("settings")
         app._window.update()
-        self.assertEqual(app.get("main").get(), "settings")
-        self.assertFalse(app.get("main")._frames["home"].winfo_ismapped())
-        self.assertTrue(app.get("main")._frames["settings"].winfo_ismapped())
+        self.assertEqual(app.read("main"), "settings")
+        self.assertFalse(app.config(ltk.View).aim_id("main")._frames["home"].winfo_ismapped())
+        self.assertTrue(app.config(ltk.View).aim_id("main")._frames["settings"].winfo_ismapped())
         app._window.destroy()
 
     def test_window_size_constraints(self):
@@ -434,24 +434,24 @@ class SmokeTests(unittest.TestCase):
         app.build()
         app._window.update_idletasks()
 
-        app.get("entry").set("hello")
-        self.assertEqual(app.get("entry").get(), "hello")
-        app.get("entry").clear()
-        self.assertEqual(app.get("entry").get(), "")
+        app.config(ltk.Entry).aim_id("entry").set("hello")
+        self.assertEqual(app.read("entry"), "hello")
+        app.config(ltk.Entry).aim_id("entry").clear()
+        self.assertEqual(app.read("entry"), "")
 
-        app.get("slider").set(40)
-        self.assertEqual(app.get("slider").get(), 40)
+        app.config(ltk.Slider).aim_id("slider").set(40)
+        self.assertEqual(app.read("slider"), 40)
 
-        app.get("check").set(True)
-        self.assertTrue(app.get("check").get())
+        app.config(ltk.CheckBox).aim_id("check").set(True)
+        self.assertTrue(app.read("check"))
 
-        app.get("combo").set("b")
-        self.assertEqual(app.get("combo").get(), "b")
+        app.config(ltk.ComboBox).aim_id("combo").set("b")
+        self.assertEqual(app.read("combo"), "b")
 
-        app.get("text").set("line1\nline2")
-        self.assertEqual(app.get("text").get(), "line1\nline2")
+        app.config(ltk.Textbox).aim_id("text").set("line1\nline2")
+        self.assertEqual(app.read("text"), "line1\nline2")
 
-        app.get("tree").set([("3",), ("4",)])
+        app.config(ltk.Treeview).aim_id("tree").set([("3",), ("4",)])
         self.assertEqual(len(app.native("tree").get_children()), 2)
         app._window.destroy()
 
@@ -469,10 +469,10 @@ class SmokeTests(unittest.TestCase):
         self.assertLess(app._window.winfo_x(), screen_w)
         self.assertLess(app._window.winfo_y(), screen_h)
 
-        app.get("btn").visible(False)
+        app.config(ltk.Button).aim_id("btn").visible(False)
         app._window.update()
         self.assertFalse(app.native("btn").winfo_ismapped())
-        app.get("btn").visible(True)
+        app.config(ltk.Button).aim_id("btn").visible(True)
         app._window.update()
         self.assertTrue(app.native("btn").winfo_ismapped())
         app._window.destroy()

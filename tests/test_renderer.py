@@ -323,7 +323,7 @@ class RendererFlowTests(unittest.TestCase):
         try:
             wrapper = ltk.Label().id("label")
             built = wrapper.build(None)
-            wrapper.config(ltk.Label).text("hi")
+            wrapper.text("hi")
             self.assertEqual(built.configured.get("text"), "hi")
         finally:
             registry.clear()
@@ -456,15 +456,77 @@ class ApplicationLayoutTests(unittest.TestCase):
         self.assertEqual(space_kinds, 2)
         self.assertEqual(len(self.fake.widget_calls), 1)
 
-    def test_application_get_and_ids(self):
+    def test_application_config_and_ids(self):
         registry.clear()
         try:
             app = ltk.Application()
             app.column(ltk.Button().id("btn").text("x"))
             app.build()
             self.assertIn("btn", app.ids())
-            self.assertIsNotNone(app.get("btn"))
+            self.assertIsNotNone(app.config(ltk.Button).aim_id("btn"))
             self.assertIsNotNone(app.native("btn"))
+        finally:
+            registry.clear()
+
+
+class TypedAccessTests(unittest.TestCase):
+    def setUp(self):
+        self.fake = FakeRenderer()
+        set_renderer(self.fake)
+
+    def tearDown(self):
+        set_renderer(_real_renderer)
+
+    def test_aim_id_returns_typed_wrapper_and_setter_works(self):
+        registry.clear()
+        try:
+            app = ltk.Application()
+            entry = ltk.Entry().id("e")
+            app.column(entry)
+            app.build()
+            wrapper = app.config(ltk.Entry).aim_id("e")
+            self.assertIs(wrapper, entry)
+            wrapper.set("hi")
+            inserted = [args for args, _ in entry._built.inserted]
+            self.assertIn((0, "hi"), inserted)
+        finally:
+            registry.clear()
+
+    def test_aim_id_missing_raises_key_error(self):
+        app = ltk.Application()
+        with self.assertRaises(KeyError):
+            app.config(ltk.Entry).aim_id("nope")
+
+    def test_aim_id_type_mismatch_raises(self):
+        registry.clear()
+        try:
+            app = ltk.Application()
+            app.column(ltk.Button().id("b"))
+            app.build()
+            with self.assertRaises(TypeError):
+                app.config(ltk.Label).aim_id("b")
+        finally:
+            registry.clear()
+
+    def test_read_returns_value(self):
+        registry.clear()
+        try:
+            app = ltk.Application()
+            app.column(ltk.Entry().id("e"))
+            app.build()
+            app.native("e").value = "hi"
+            self.assertEqual(app.read("e"), "hi")
+        finally:
+            registry.clear()
+
+    def test_read_without_get_raises(self):
+        registry.clear()
+        try:
+            app = ltk.Application()
+            app.column(ltk.Button().id("b"))
+            app.build()
+            with self.assertRaises(TypeError):
+                app.read("b")
         finally:
             registry.clear()
 

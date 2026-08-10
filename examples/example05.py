@@ -25,8 +25,12 @@ def main() -> None:
     app.padding(12).gap(8).column(
         ltk.Label().text("This label is left-aligned (anchor='w').").anchor("w"),
         ltk.Label().id("toggle").text("I can be hidden at runtime."),
-        ltk.Button().text("hide label").event(lambda _: app.get("toggle").visible(False)),
-        ltk.Button().text("show label").event(lambda _: app.get("toggle").visible(True)),
+        ltk.Button().text("hide label").event(
+            lambda _: app.config(ltk.Label).aim_id("toggle").visible(False)
+        ),
+        ltk.Button().text("show label").event(
+            lambda _: app.config(ltk.Label).aim_id("toggle").visible(True)
+        ),
     )
     app.run()
 

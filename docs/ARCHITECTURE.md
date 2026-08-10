@@ -69,7 +69,7 @@ class Renderer:
 ## 后续路线图（不在本分支）
 
 1. 大列表性能：`ltk.Treeview` / `ltk.Listbox` 薄封装（数据型控件）。
-2. 控件引用：`.id("name")` + `app.get("name")`，支持运行时更新。
+2. 控件引用：`.id("name")` + `app.config(类型).aim_id("name")`，支持运行时更新。
 3. 语义化主题 token 层。
 4. 打包与工程化：`pyproject.toml`、CI。
 

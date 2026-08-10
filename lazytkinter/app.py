@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import tkinter as tk
 from tkinter import ttk
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Generic, TypeVar
 
 from .containers import (
     _COLUMN_ALIGN_STICKY,
@@ -18,6 +18,8 @@ from .tokens import set_theme as _set_token_theme
 
 if TYPE_CHECKING:
     from .base import BaseWidget
+
+T = TypeVar("T")
 
 _WINDOW_PRESETS = {"large": "1200x800", "medium": "900x600", "small": "600x400"}
 _WINDOW_ALIGNMENTS = ("left", "center", "right", "top", "bottom")
@@ -100,6 +102,27 @@ class Theme:
     Gruvbox = "gruvbox-theme"
     Dracula = "dracula-theme"
     EVA02 = "eva02"
+
+
+class ConfigSelector(Generic[T]):
+    """Typed access to a registered widget by id (see ``Application.config``)."""
+
+    def __init__(self, cls: type[T]) -> None:
+        self._cls = cls
+
+    def aim_id(self, name: str) -> T:
+        """Return the wrapper registered under ``name``, typed as the configured class.
+
+        Raises KeyError when the id is unknown and TypeError when the registered
+        widget is not an instance of the configured class.
+        """
+        wrapper = _registry_get(name)
+        if not isinstance(wrapper, self._cls):
+            raise TypeError(
+                f"widget {name!r} is {type(wrapper).__name__}, "
+                f"expected {self._cls.__name__}"
+            )
+        return wrapper  # type: ignore[return-value]
 
 
 class Application:
@@ -331,13 +354,24 @@ class Application:
         self.build()
         self._window.mainloop()
 
-    def get(self, name: str) -> "BaseWidget":
-        """Return the config wrapper registered under an id (see ``.id()``).
+    def config(self, cls: type[T]) -> ConfigSelector[T]:
+        """Start a typed access chain, e.g. ``app.config(ltk.Entry).aim_id("e").set("hi")``."""
+        return ConfigSelector(cls)
 
-        The wrapper keeps fluent setters working after build: they push
-        updates to the built native widget.
+    def read(self, name: str):
+        """Return the current value of the widget registered under ``name``.
+
+        Only value widgets with ``get()`` support this; for other widgets use
+        ``app.config(type).aim_id(name)``.
         """
-        return _registry_get(name)
+        wrapper = _registry_get(name)
+        get_value = getattr(wrapper, "get", None)
+        if get_value is None:
+            raise TypeError(
+                f"widget {name!r} has no get(); "
+                "use app.config(type).aim_id(name) for typed access"
+            )
+        return get_value()
 
     def native(self, name: str) -> tk.Widget:
         """Return the raw native widget registered under an id."""

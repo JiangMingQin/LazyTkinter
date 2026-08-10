@@ -111,26 +111,12 @@ class BaseWidget(Generic[T]):
         self._align = None  # per-widget override, resolved by the parent container
         self._pending_size_axis = None  # "width" / "height" / None
         self._weight = None  # fill(weight=...), None means the default 1
-        self._id = None  # registered via .id("name"), retrievable with app.get()
+        self._id = None  # registered via .id("name"), retrievable with app.config()
         self._built = None  # native widget after build(), enables live updates
 
     def id(self, name: str) -> T:
-        """Give this widget a name so its native widget is retrievable via app.get()."""
+        """Give this widget a name so it is retrievable via app.config()."""
         self._id = name
-        return self  # type: ignore
-
-    def config(self, cls: type[T]) -> T:
-        """Narrow this wrapper to a concrete widget type (runtime-checked).
-
-        ``app.get("name").config(ltk.Label).text("...")`` checks that the
-        registered widget is actually a ``Label`` and returns it typed, so
-        chainable setters type-check and autocomplete. A mismatch raises
-        ``TypeError`` with the widget id and the actual/expected types.
-        """
-        if not isinstance(self, cls):
-            raise TypeError(
-                f"widget {self._id!r} is {type(self).__name__}, expected {cls.__name__}"
-            )
         return self  # type: ignore
 
     def _create_widget(self, kind, parent, kwargs):
@@ -426,7 +412,7 @@ class BaseWidget(Generic[T]):
         """Show or hide the built widget (grid_remove/grid).
 
         Requires the widget to be built; call it after the layout is built,
-        e.g. ``app.get("id").visible(False)``. Declarative "hidden by
+        e.g. ``app.config(type).aim_id("id").visible(False)``. Declarative "hidden by
         default" is not supported yet.
         """
         if not isinstance(active, bool):
@@ -434,7 +420,8 @@ class BaseWidget(Generic[T]):
         if self._built is None:
             raise ValueError(
                 "visible() requires the widget to be built; "
-                "call it after the layout is built, e.g. app.get('id').visible(False)"
+                "call it after the layout is built, e.g. "
+                "app.config(type).aim_id('id').visible(False)"
             )
         if active:
             self._built.grid()

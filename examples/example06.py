@@ -13,7 +13,7 @@ def main() -> None:
     app = ltk.Application()
 
     def go(page):
-        return lambda _: app.get("main").show(page)
+        return lambda _: app.config(ltk.View).aim_id("main").show(page)
 
     app.size("large").window_title("View").padding(10).gap(10).row(
         ltk.Column().width(140).height().fill().gap(8).padding(8).add(

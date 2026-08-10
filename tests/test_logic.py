@@ -879,17 +879,6 @@ class ColorTokenTests(unittest.TestCase):
         )
 
 
-class ConfigNarrowingTests(unittest.TestCase):
-    def test_config_returns_same_wrapper(self):
-        label = ltk.Label()
-        self.assertIs(label.config(ltk.Label), label)
-
-    def test_config_mismatch_raises(self):
-        button = ltk.Button().id("btn")
-        with self.assertRaises(TypeError):
-            button.config(ltk.Label)
-
-
 class CanvasLogicTests(unittest.TestCase):
     def test_canvas_collects_draw_callbacks(self):
         def one(c):

@@ -619,7 +619,7 @@ class View(BaseWidget["View"]):
         ).id("main")
 
         ltk.Button().text("Settings").event(
-            lambda _: app.get("main").show("settings")
+            lambda _: app.config(ltk.View).aim_id("main").show("settings")
         )
     """
 
