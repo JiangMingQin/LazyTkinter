@@ -658,6 +658,32 @@ class WidgetDetailTests(unittest.TestCase):
             ltk.Button().visible("yes")
         with self.assertRaises(ValueError):
             ltk.Button().visible(False)
+
+
+class ViewLogicTests(unittest.TestCase):
+    def test_constructor_and_add(self):
+        view = ltk.View(("a", Column()), ("b", Column()))
+        self.assertEqual([name for name, _ in view._pages], ["a", "b"])
+        view.add("c", Column())
+        self.assertEqual(len(view._pages), 3)
+
+    def test_validation(self):
+        with self.assertRaises(TypeError):
+            ltk.View(("a",))
+        with self.assertRaises(ValueError):
+            ltk.View().add("", Column())
+        with self.assertRaises(ValueError):
+            ltk.View(("a", Column())).add("a", Column())
+        with self.assertRaises(TypeError):
+            ltk.View().add("a", object())
+
+    def test_show_and_get_before_build(self):
+        view = ltk.View(("a", Column()), ("b", Column()))
+        self.assertIsNone(view.get())
+        view.show("b")
+        self.assertEqual(view.get(), "b")
+        with self.assertRaises(ValueError):
+            view.show("nope")
         with self.assertRaises(ValueError):
             ltk.ProgressBar().value(-0.1)
         ltk.ProgressBar().value(0.7)

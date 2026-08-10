@@ -366,6 +366,27 @@ class SmokeTests(unittest.TestCase):
     def test_example05(self):
         self._run_example("examples/example05.py")
 
+    def test_example06(self):
+        self._run_example("examples/example06.py")
+
+    def test_view(self):
+        app = ltk.Application()
+        app.size((500, 360)).window_title("smoke").column(
+            ltk.View().id("main")
+            .add("home", ltk.Column().add(ltk.Label().text("home")))
+            .add("settings", ltk.Column().add(ltk.Label().text("settings"))),
+        )
+        app.build()
+        app._window.deiconify()
+        app._window.update()
+
+        app.get("main").show("settings")
+        app._window.update()
+        self.assertEqual(app.get("main").get(), "settings")
+        self.assertFalse(app.get("main")._frames["home"].winfo_ismapped())
+        self.assertTrue(app.get("main")._frames["settings"].winfo_ismapped())
+        app._window.destroy()
+
     def test_window_size_constraints(self):
         app = ltk.Application()
         app.size((400, 300)).min_size(300, 200).max_size(800, 600).resizable(False, False)

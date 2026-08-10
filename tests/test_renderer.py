@@ -750,3 +750,37 @@ class WindowDetailTests(unittest.TestCase):
         callback = lambda: None
         app.on_close(callback)
         self.assertIn(("WM_DELETE_WINDOW", callback), app._window.protocol_calls)
+
+
+class ViewFlowTests(unittest.TestCase):
+    def setUp(self):
+        self.fake = FakeRenderer()
+        set_renderer(self.fake)
+
+    def tearDown(self):
+        set_renderer(_real_renderer)
+
+    def test_view_builds_pages_and_shows_first(self):
+        view = ltk.View(("a", Column()), ("b", Column()))
+        view.build(None)
+        kinds = [kind for kind, _ in self.fake.container_calls]
+        self.assertEqual(kinds[0], "View")
+        self.assertEqual(kinds.count("Column"), 2)
+        self.assertTrue(view._frames["a"].grid_calls)
+        self.assertFalse(view._frames["b"].grid_calls)
+        self.assertEqual(view.get(), "a")
+
+    def test_view_runtime_switch(self):
+        view = ltk.View(("a", Column()), ("b", Column()))
+        view.build(None)
+        view.show("b")
+        self.assertTrue(view._frames["a"].grid_remove_calls)
+        self.assertTrue(view._frames["b"].grid_calls)
+        self.assertEqual(view.get(), "b")
+
+    def test_view_event_receives_name(self):
+        seen = []
+        view = ltk.View(("a", Column()), ("b", Column())).event(seen.append)
+        view.build(None)
+        view.show("b")
+        self.assertEqual(seen, ["b"])

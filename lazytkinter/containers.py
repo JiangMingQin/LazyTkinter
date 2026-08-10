@@ -605,6 +605,110 @@ class Scroll(BaseWidget["Scroll"]):
         return frame
 
 
+class View(BaseWidget["View"]):
+    """A container that shows one named page at a time in a shared area.
+
+    Unlike a Tabview, View carries no selector of its own: the caller drives
+    switching with any external control (sidebar buttons, SegmentedButton, ...).
+    Pages are built once and their state is preserved between switches.
+
+    Usage Example:
+        ltk.View(
+            ("home", ltk.Column().add(...)),
+            ("settings", ltk.Column().add(...)),
+        ).id("main")
+
+        ltk.Button().text("Settings").event(
+            lambda _: app.get("main").show("settings")
+        )
+    """
+
+    def __init__(self, *pages) -> None:
+        """Initialize the View container.
+
+        Args:
+            *pages: ``(name, page)`` pairs, equivalent to calling add().
+        """
+        super().__init__()
+        self._width_policy = "fill"
+        self._height_policy = "fill"
+        self._transparent = False
+        self._pages: list[tuple[str, Any]] = []
+        self._current: str | None = None
+        self._command = None
+        self._frames: dict[str, Any] = {}
+        for page in pages:
+            if not (isinstance(page, tuple) and len(page) == 2):
+                raise TypeError(
+                    "View expects (name, page) pairs, e.g. "
+                    f'View(("home", Column(...))), got {page!r}'
+                )
+            self.add(page[0], page[1])
+
+    def add(self, name: str, page) -> View:
+        """Append a named page."""
+        if not isinstance(name, str) or not name.strip():
+            raise ValueError("View page names must be non-empty strings")
+        if any(existing == name for existing, _ in self._pages):
+            raise ValueError(f"View page name {name!r} is already in use")
+        if not hasattr(page, "build"):
+            raise TypeError(
+                "View pages must be LazyTkinter widgets with build(), "
+                f"got {type(page).__name__}"
+            )
+        self._pages.append((name, page))
+        return self
+
+    def show(self, name: str) -> View:
+        """Show the named page (default before build, live switch after)."""
+        if not any(existing == name for existing, _ in self._pages):
+            raise ValueError(f"View has no page named {name!r}")
+        self._current = name
+        if self._built is not None:
+            self._switch_to(name)
+            if self._command is not None:
+                self._command(name)
+        return self
+
+    def get(self):
+        """Return the currently shown page name."""
+        return self._current
+
+    def event(self, command=lambda value: None) -> View:
+        """Set the page-change callback; receives the shown page name."""
+        self._command = command
+        return self
+
+    def transparent(self, val: bool = True) -> View:
+        """Opt into a transparent background (default is the theme color)."""
+        self._transparent = val
+        return self
+
+    def _switch_to(self, name: str) -> None:
+        for page_name, frame in self._frames.items():
+            if page_name == name:
+                frame.grid(row=0, column=0, sticky="nsew")
+            else:
+                frame.grid_remove()
+
+    def build(self, parent, *, width=None, height=None):
+        if not self._pages:
+            raise ValueError(
+                'View needs at least one page, e.g. View(("home", Column(...)))'
+            )
+        frame = self._create_container(
+            "View", parent, _frame_props(self, width=width, height=height)
+        )
+        frame.rowconfigure(0, weight=1)
+        frame.columnconfigure(0, weight=1)
+        self._frames = {}
+        for name, page in self._pages:
+            self._frames[name] = page.build(frame)
+        self._current = self._current or self._pages[0][0]
+        self._switch_to(self._current)
+        return frame
+
+
 _SPLIT_STYLE_SEQ = count(1)
 
 

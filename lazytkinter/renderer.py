@@ -84,6 +84,7 @@ class CTkRenderer(Renderer):
             "Row": ctk.CTkFrame,
             "ZStack": ctk.CTkFrame,
             "Scroll": ctk.CTkScrollableFrame,
+            "View": ctk.CTkFrame,
             "SplitPanel": ttk.Panedwindow,
             "SplitPanelPane": ctk.CTkFrame,
         }
