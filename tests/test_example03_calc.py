@@ -1,4 +1,4 @@
-"""计算器示例（examples/example01.py）的纯逻辑单测。
+"""计算器示例（examples/example03.py）的纯逻辑单测。
 
 通过 importlib 加载示例模块而不创建窗口：UI 全部在 ``main()`` 中。
 """
@@ -6,11 +6,11 @@
 import importlib.util
 import unittest
 
-_MODULE_PATH = "examples/example01.py"
+_MODULE_PATH = "examples/example03.py"
 
 
 def _load_example():
-    spec = importlib.util.spec_from_file_location("example01_calc", _MODULE_PATH)
+    spec = importlib.util.spec_from_file_location("example03_calc", _MODULE_PATH)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module

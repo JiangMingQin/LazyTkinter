@@ -1,212 +1,104 @@
-"""Example 02: 控件全览——全部控件与事件反馈写法 / Widget gallery.
+"""Example 02: 布局与容器 / Layout & containers.
 
-演示：全部 16 个控件、统一 print 事件反馈、Scroll、CTkImage + compound、
-运行时更新（app.config(类型).aim_id / app.read / visible）、
-窗口 API（on_close / center_window）、主题/明暗切换。
-注意：CustomTkinter 的颜色主题只对新建控件生效，所以切换主题会**重建窗口**。
+演示：Row / Column / ZStack / Scroll / Space / View / SplitPanel / Divider，
+以及 fit / fill / weight、gap / padding / align / justify。
 Run: python examples/example02.py
 """
 
 import lazytkinter as ltk
 
-try:  # Pillow 未安装时跳过 image()/compound() 演示（CTkImage 依赖它）
-    from PIL import Image as _PILImage
-    from PIL import ImageDraw as _PILDraw
-except ImportError:
-    _PILImage = None
-    _PILDraw = None
-
-
-def _dot_image(color: str, size: int = 16):
-    """生成一个纯色圆点 CTkImage，用于演示 image() / compound()；无 Pillow 时返回 None。"""
-    if _PILImage is None or _PILDraw is None:
-        return None
-    img = _PILImage.new("RGBA", (size, size), (0, 0, 0, 0))
-    _PILDraw.Draw(img).ellipse((1, 1, size - 2, size - 2), fill=color)
-    return ltk.Image(light_image=img, dark_image=img, size=(size, size))
-
-
-def _section(title: str, *children):
-    """每个分组：一个加粗标题 + 若干控件。"""
-    return ltk.Column().gap(8).padding(8).add(
-        ltk.Label().text(title).font(size=14, weight="bold"),
-        *children,
-    )
-
-
-def _build_app(state: dict) -> ltk.Application:
-    """构建整个控件全览窗口；切换主题后由 main() 再次调用（真实重建）。"""
-    app = ltk.Application()
-
-    # ---- 窗口 API ----
-    def on_close():
-        print("[Window] on_close: destroy")
-        app.destroy()
-
-    app.size("large").window_title("Widget Gallery").center_window().on_close(on_close)
-
-    # ---- 顶部工具条：主题 / 明暗切换 ----
-    def on_theme(value):
-        state["theme"] = value
-        state["rebuild"] = True
-        print(f"[Theme] {value} -> rebuild window")
-        app.destroy()  # 颜色主题只对新建控件生效，销毁后由 main() 用新主题重建
-
-    def toggle_mode():
-        state["mode"] = "dark" if state["mode"] == "light" else "light"
-        ltk.set_mode(state["mode"])  # 明暗切换是实时的，无需重建
-        print(f"[Mode] {state['mode']}")
-
-    toolbar = ltk.Row().gap(10).padding(10).width().fill().add(
-        ltk.Label().text("Theme:"),
-        ltk.SegmentedButton()
-        .id("theme_switch")
-        .values([ltk.Theme.Catppuccin, ltk.Theme.Gruvbox, ltk.Theme.Dracula])
-        .set_value(state["theme"])
-        .event(on_theme),
-        ltk.Space(),
-        ltk.Button().text("Toggle mode").event(lambda _: toggle_mode()),
-    )
-
-    # ---- 基础控件 ----
-    basic = _section(
-        "Basic: Label / Button / Entry / Textbox / Canvas",
-        ltk.Label().id("hello").text("Hello, LazyTkinter!"),
-        ltk.Row().gap(8).add(
-            ltk.Button().id("btn").text("Button").event(lambda _: print("[Button] clicked")),
-            ltk.Button().text("With icon").image(_dot_image("#cba6f7")).compound("left")
-            .event(lambda _: print("[Button] icon button clicked")),
-            ltk.Button().text("Disabled").state("disabled"),
-        ),
-        ltk.Row().gap(8).add(
-            ltk.Entry().id("entry").placeholder_text("type here...").width(220),
-            ltk.Textbox().id("textbox").width(220).height(72),
-        ),
-        ltk.Canvas()
-        .id("canvas")
-        .width(360)
-        .height(140)
-        .fg_color("surface_alt")
-        .draw(lambda c: c.create_rectangle(16, 16, 116, 88, fill="#f38ba8", outline=""))
-        .draw(lambda c: c.create_oval(150, 22, 230, 102, fill="#89b4fa", outline=""))
-        .draw(lambda c: c.create_text(240, 62, text="draw()", fill="#cdd6f4")),
-    )
-
-    # ---- 选择控件 ----
-    radio_var = ltk.StringVar(value="A")
-
-    choice = _section(
-        "Choice: Switch / CheckBox / RadioButton / SegmentedButton",
-        ltk.Row().gap(16).add(
-            ltk.Switch().id("switch").text("Switch").event(lambda v: print(f"[Switch] {v}")),
-            ltk.CheckBox().id("check").text("CheckBox").event(lambda v: print(f"[CheckBox] {v}")),
-        ),
-        ltk.Row().gap(16).add(
-            ltk.RadioButton().text("Option A").value("A").variable(radio_var)
-            .event(lambda v: print(f"[RadioButton] {v}")),
-            ltk.RadioButton().text("Option B").value("B").variable(radio_var)
-            .event(lambda v: print(f"[RadioButton] {v}")),
-        ),
-        ltk.SegmentedButton().id("seg").values(["one", "two", "three"])
-        .event(lambda v: print(f"[SegmentedButton] {v}")),
-    )
-
-    # ---- 下拉控件 ----
-    dropdown = _section(
-        "Dropdown: ComboBox / OptionMenu",
-        ltk.Row().gap(8).add(
-            ltk.ComboBox().id("combo").values(["python", "rust", "go"]).set_value("python")
-            .event(lambda v: print(f"[ComboBox] {v}")),
-            ltk.OptionMenu().id("menu").values(["light", "dark", "auto"]).set_value("auto")
-            .event(lambda v: print(f"[OptionMenu] {v}")),
-        ),
-    )
-
-    # ---- 数值控件：Slider 拖动实时驱动 ProgressBar ----
-    def on_slider(value):
-        app.config(ltk.ProgressBar).aim_id("progress").set(value)
-        print(f"[Slider] {value}")
-
-    numeric = _section(
-        "Numeric: Slider / ProgressBar",
-        ltk.Slider().id("slider").range(0, 1).steps(10).event(on_slider),
-        ltk.ProgressBar().id("progress").value(0.5),
-    )
-
-    # ---- 数据控件 ----
-    data = _section(
-        "Data: Treeview / Listbox",
-        ltk.Row().gap(8).width().fill().height(180).add(
-            ltk.Column().width().fill().height().fill().add(
-                ltk.Treeview()
-                .id("table")
-                .columns(["Task", "Priority"])
-                .rows([("Write docs", "high"), ("Fix bug", "high"), ("Review PR", "low")])
-                .width().fill().height().fill()
-                .event(lambda row: print(f"[Treeview] {row}")),
-            ),
-            ltk.Column().width().fill().height().fill().add(
-                ltk.Listbox()
-                .id("list")
-                .items(["python", "javascript", "rust", "go", "zig"])
-                .width().fill().height().fill()
-                .event(lambda item: print(f"[Listbox] {item}")),
-            ),
-        ),
-    )
-
-    # ---- 运行时更新：config(类型).aim_id / read / visible ----
-    runtime = _section(
-        "Runtime updates: config(类型).aim_id / read / visible",
-        ltk.Label().id("toggle").text("I can be hidden at runtime."),
-        ltk.Row().gap(8).add(
-            ltk.Button().text("Hide label").event(
-                lambda _: app.config(ltk.Label).aim_id("toggle").visible(False)
-            ),
-            ltk.Button().text("Show label").event(
-                lambda _: app.config(ltk.Label).aim_id("toggle").visible(True)
-            ),
-        ),
-        ltk.Row().gap(8).add(
-            ltk.Button().text("read('entry')").event(
-                lambda _: print(f"[app.read] entry={app.read('entry')!r}")
-            ),
-            ltk.Button().text("read('textbox')").event(
-                lambda _: print(f"[app.read] textbox={app.read('textbox')!r}")
-            ),
-            ltk.Button().text("set textbox").event(
-                lambda _: app.config(ltk.Textbox).aim_id("textbox").set("updated at runtime")
-            ),
-        ),
-    )
-
-    # ---- 根布局：顶部工具条 + 可滚动主体 ----
-    app.padding(10).gap(10).column(
-        toolbar,
-        ltk.Scroll(
-            ltk.Column().width().fill().gap(10).add(
-                basic,
-                choice,
-                dropdown,
-                numeric,
-                data,
-                runtime,
-            )
-        ),
-    )
-    return app
-
 
 def main() -> None:
-    state = {"theme": ltk.Theme.Catppuccin, "mode": "light", "rebuild": False}
-    while True:
-        state["rebuild"] = False
-        ltk.set_theme(state["theme"])
-        ltk.set_mode(state["mode"])
-        app = _build_app(state)
-        app.run()
-        if not state["rebuild"]:
-            break
+    ltk.set_theme(ltk.Theme.Catppuccin)
+
+    app = ltk.Application()
+    app.size("large").window_title("Layout & Containers").padding(10).gap(10)
+
+    def go(page):
+        return lambda _: app.config(ltk.View).aim_id("pages").show(page)
+
+    # ---- 页面 1：基础布局 ----
+    basic = ltk.Column().width().fill().height().fill().gap(10).padding(10).add(
+        ltk.Label().text("Row / Column · fit / fill / weight").font(size=14, weight="bold"),
+        ltk.Row().gap(8).width().fill().add(
+            ltk.Button().text("A").fill(weight=1),
+            ltk.Button().text("B").fill(weight=2),
+            ltk.Button().text("C").fill(weight=1),
+        ),
+        ltk.Label().text("justify / align / center").font(size=14, weight="bold"),
+        ltk.Row().gap(8).padding(8).width().fill().justify("center").add(
+            ltk.Button().text("center"),
+            ltk.Button().text("row"),
+        ),
+        ltk.Column().gap(8).padding(8).align("center").add(
+            ltk.Button().width(160).text("align center"),
+            ltk.Button().width(160).text("column"),
+        ),
+        ltk.Label().text("Space（弹性 / 固定）+ Divider").font(size=14, weight="bold"),
+        ltk.Row().gap(8).padding(8).width().fill().add(
+            ltk.Button().text("left"),
+            ltk.Space(),
+            ltk.Divider().vertical(),
+            ltk.Space().width(30),
+            ltk.Button().text("right"),
+        ),
+        ltk.Column().gap(8).padding(8).add(
+            ltk.Label().text("above"),
+            ltk.Divider(),
+            ltk.Label().text("below"),
+        ),
+    )
+
+    # ---- 页面 2：层叠与滚动 ----
+    overlay = ltk.Column().width().fill().height().fill().gap(10).padding(10).add(
+        ltk.Label().text("ZStack（重叠 + 九宫格锚点）").font(size=14, weight="bold"),
+        ltk.ZStack().width(380).height(180).add(
+            ltk.Button().width().fill().height().fill().text("base"),
+            ltk.Label().text("top-left").align("top-left"),
+            ltk.Label().text("center").align("center"),
+            ltk.Label().text("bottom-right").align("bottom-right"),
+        ),
+        ltk.Label().text("Scroll（v1 仅 vertical）").font(size=14, weight="bold"),
+        ltk.Scroll(
+            ltk.Column().width().fill().gap(6).add(
+                *[ltk.Button().width().fill().text(f"item {i:02d}") for i in range(20)],
+            ),
+        ),
+    )
+
+    # ---- 页面 3：分栏 ----
+    split = ltk.Column().width().fill().height().fill().gap(10).padding(10).add(
+        ltk.Label().text("SplitPanel.vertical()（左右分栏）").font(size=14, weight="bold"),
+        ltk.SplitPanel().id("split_v").vertical()
+        .add(ltk.Column().gap(8).padding(8).add(ltk.Label().text("left pane")))
+        .min_width(140).max_width(320)
+        .add(ltk.Column().gap(8).padding(8).add(ltk.Label().text("right pane")))
+        .min_width(140),
+        ltk.Label().text("SplitPanel.horizontal()（上下分栏）").font(size=14, weight="bold"),
+        ltk.SplitPanel().id("split_h").horizontal()
+        .add(ltk.Column().gap(8).padding(8).add(ltk.Label().text("top pane")))
+        .min_height(80).max_height(220)
+        .add(ltk.Column().gap(8).padding(8).add(ltk.Label().text("bottom pane")))
+        .min_height(80),
+    )
+
+    # ---- 根布局：侧边栏 + View 分页 ----
+    sidebar = ltk.Column().width(140).height().fill().gap(8).padding(8).add(
+        ltk.Label().text("Menu").font(size=14, weight="bold"),
+        ltk.Button().text("Basic layout").event(go("basic")),
+        ltk.Button().text("Overlay / Scroll").event(go("overlay")),
+        ltk.Button().text("SplitPanel").event(go("split")),
+    )
+
+    pages = (
+        ltk.View().id("pages").width().fill().height().fill()
+        .add("basic", basic)
+        .add("overlay", overlay)
+        .add("split", split)
+    )
+
+    app.row(sidebar, pages)
+    app.run()
 
 
 if __name__ == "__main__":
