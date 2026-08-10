@@ -231,6 +231,14 @@ lazytkinter/
 
 ---
 
+## 🙏 鸣谢 / Acknowledgments
+
+LazyTkinter 建立在 [CustomTkinter](https://github.com/TomSchimansky/CustomTkinter)（[MIT License](https://opensource.org/licenses/MIT)，Copyright (c) 2023 Tom Schimansky）之上，感谢 Tom Schimansky 的出色工作。内置主题的配色灵感来自 Catppuccin、Gruvbox、Dracula、EVA02 等开源主题项目。
+
+完整的第三方许可证声明见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+
+---
+
 ## 📄 许可证 / License
 
-本项目基于 [MIT License](https://opensource.org/licenses/MIT) 开源。底层依赖 CustomTkinter 遵循其原有协议。这意味着你可以自由使用、修改和分发本项目，但需保留原许可证声明。
+本项目基于 [MIT License](https://opensource.org/licenses/MIT) 开源。底层依赖 CustomTkinter 遵循其原有协议（完整声明见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)）。这意味着你可以自由使用、修改和分发本项目，但需保留原许可证声明。

@@ -22,6 +22,9 @@ Homepage = "https://github.com/JiangMingQin/LazyTkinter"
 [tool.setuptools.dynamic]
 version = { attr = "lazytkinter.__version__" }
 
+[tool.setuptools]
+license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md"]
+
 [tool.setuptools.packages.find]
 include = ["lazytkinter*"]
 
