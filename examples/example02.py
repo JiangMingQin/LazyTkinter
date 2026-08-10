@@ -36,6 +36,7 @@ class App:
         app.size("large").window_title("My first app").gap(10).padding(10).column(
             # Top Bar
             ltk.Row().gap(10).padding(10).radius(10).align("center").height(60).width().fill().add(
+                ltk.Space().width(10),
                 ltk.Label().text("LazyTkinter").font(family="Arial", size=16, weight="bold"),
                 ltk.Space().width(10),  # fixed placeholder
                 ltk.Entry().width().fill().height(35).radius(100).placeholder_text("entry..."),

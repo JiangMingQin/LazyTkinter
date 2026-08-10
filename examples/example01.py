@@ -286,7 +286,7 @@ def main() -> None:
         """按键后同步主显示、历史行与 AC/C 文案。"""
         expr_var.set(calc.current)
         last_var.set(calc.last)
-        app.get("ac").text(calc.ac_label)
+        app.get("ac").config(ltk.Button).text(calc.ac_label)
 
     def on_press(key: str) -> None:
         calc.press(key)
