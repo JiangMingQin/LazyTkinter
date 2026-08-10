@@ -107,22 +107,28 @@ pip install -e .          # 开发模式安装（含依赖）
 ```python
 import lazytkinter as ltk
 
-ltk.set_theme(ltk.Theme.Gruvbox)
 
-app = ltk.Application()
-count = 0
+def main() -> None:
+    ltk.set_theme(ltk.Theme.Gruvbox)  # set theme
 
-def on_click(value=None):
-    global count
-    count += 1
-    app.config(ltk.Label).aim_id("count").text(f"{count}")
+    app = ltk.Application()
+    count = 0
 
-app.size("small").window_title("Counter").center().gap(10).column(
-    ltk.Label().id("count").text("0").font(family="Arial", size=28, weight="bold"),
-    ltk.Button().text("add count").event(on_click),
-)
+    def on_click(value=None):
+        nonlocal count
+        count += 1
+        app.config(ltk.Label).aim_id("count").text(f"{count}")
 
-app.run()
+    app.size("small").window_title("Counter").center().gap(10).column(
+        ltk.Label().id("count").text("0").font(family="Arial", size=28, weight="bold"),
+        ltk.Button().text("add count").event(on_click),
+    )
+
+    app.run()
+
+
+if __name__ == "__main__":
+    main()
 ```
 
 运行后你会看到这样的窗口，点击按钮计数递增：

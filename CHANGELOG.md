@@ -6,7 +6,7 @@
 
 ### 修改 (Changed)
 
-- 示例重构：`examples/` 收敛为 4 个——`example00` 快速上手（计数器）、`example01` 完整应用（计算器）、`example02` 控件全览（全部控件 + 统一 print 事件反馈 + 运行时更新 + 主题切换）、`example03` 布局与容器（全部容器原语，View 分页演示）；删除 `example04/05/06`，其内容并入 02/03。`docs/EXAMPLES.md` 由占位改为正式示例索引。
+- 示例重构：`examples/` 收敛为 4 个并按教程顺序排列——`example00` 快速上手（计数器）、`example01` 控件全览（全部控件 + 统一 print 事件反馈 + 运行时更新 + 主题切换）、`example02` 布局与容器（全部容器原语，View 分页演示）、`example03` 完整应用（iOS 计算器，压轴，按钮配色改用语义 token）；删除 `example04/05/06`，其内容并入 01/02。`docs/EXAMPLES.md` 由占位改为正式示例索引。
 
 ### 修复 (Fixed)
 
