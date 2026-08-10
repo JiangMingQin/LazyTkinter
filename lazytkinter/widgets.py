@@ -166,6 +166,7 @@ class Entry(BaseWidget["Entry"]):
         self._border_width = None
         self._border_color = None
         self._variable = None
+        self._default_text = None
 
     def placeholder_text(self, text: str = "Entry") -> Entry:
         self._placeholder_text = text
@@ -190,6 +191,24 @@ class Entry(BaseWidget["Entry"]):
         self._variable = var
         return self
 
+    def get(self) -> str:
+        """Return the current entry text."""
+        if self._built is not None:
+            return self._built.get()
+        return self._default_text if self._default_text is not None else ""
+
+    def set(self, text: str) -> Entry:
+        """Set the entry text (default before build, live update after)."""
+        self._default_text = text
+        if self._built is not None:
+            self._built.delete(0, "end")
+            self._built.insert(0, text)
+        return self
+
+    def clear(self) -> Entry:
+        """Clear the entry text."""
+        return self.set("")
+
     def build(self, parent, *, width=None, height=None):
         kwargs: dict[str, Any] = {}
         if self._placeholder_text is not None: kwargs["placeholder_text"] = self._placeholder_text
@@ -199,7 +218,11 @@ class Entry(BaseWidget["Entry"]):
         if self._variable is not None: kwargs["textvariable"] = self._variable
 
         self._inject_base_args(kwargs, width=width, height=height)
-        return self._create_widget("Entry", parent, kwargs)
+        entry = self._create_widget("Entry", parent, kwargs)
+        if self._default_text is not None:
+            entry.delete(0, "end")
+            entry.insert(0, self._default_text)
+        return entry
 
 
 class Switch(BaseWidget["Switch"]):
@@ -211,6 +234,7 @@ class Switch(BaseWidget["Switch"]):
         self._off_value = None
         self._variable = None
         self._progress_color = None
+        self._selected = None
 
     def text(self, text: str = "") -> Switch:
         self._text = text
@@ -237,6 +261,22 @@ class Switch(BaseWidget["Switch"]):
         self._apply("progress_color", color)
         return self
 
+    def get(self):
+        """Return the current value (respects values(on, off) if set)."""
+        if self._built is not None:
+            return self._built.get()
+        return self._selected
+
+    def set(self, value) -> Switch:
+        """Select/deselect (default before build, live update after)."""
+        self._selected = value
+        if self._built is not None:
+            if value:
+                self._built.select()
+            else:
+                self._built.deselect()
+        return self
+
     def build(self, parent, *, width=None, height=None):
         kwargs: dict[str, Any] = {}
         if self._text is not None: kwargs["text"] = self._text
@@ -253,6 +293,11 @@ class Switch(BaseWidget["Switch"]):
             user_cmd = self._command
             switch.configure(command=lambda: user_cmd(switch.get()))
 
+        if self._selected is not None:
+            if self._selected:
+                switch.select()
+            else:
+                switch.deselect()
         return switch
 
 
@@ -264,6 +309,7 @@ class CheckBox(BaseWidget["CheckBox"]):
         self._variable = None
         self._on_value = None
         self._off_value = None
+        self._selected = None
 
     def text(self, text: str) -> CheckBox:
         self._text = text
@@ -285,6 +331,22 @@ class CheckBox(BaseWidget["CheckBox"]):
         self._apply("offvalue", off_val)
         return self
 
+    def get(self):
+        """Return the current value (respects values(on, off) if set)."""
+        if self._built is not None:
+            return self._built.get()
+        return self._selected
+
+    def set(self, value) -> CheckBox:
+        """Check/uncheck (default before build, live update after)."""
+        self._selected = value
+        if self._built is not None:
+            if value:
+                self._built.select()
+            else:
+                self._built.deselect()
+        return self
+
     def build(self, parent, *, width=None, height=None):
         kwargs: dict[str, Any] = {}
         if self._text is not None: kwargs["text"] = self._text
@@ -297,6 +359,11 @@ class CheckBox(BaseWidget["CheckBox"]):
         if self._command is not None:
             user_cmd = self._command
             check_box.configure(command=lambda: user_cmd(check_box.get()))
+        if self._selected is not None:
+            if self._selected:
+                check_box.select()
+            else:
+                check_box.deselect()
         return check_box
 
 
@@ -309,6 +376,7 @@ class RadioButton(BaseWidget["RadioButton"]):
         self._command = None
         self._radiobutton_width = None
         self._radiobutton_height = None
+        self._selected = None
 
     def text(self, text: str) -> RadioButton:
         self._text = text
@@ -338,6 +406,24 @@ class RadioButton(BaseWidget["RadioButton"]):
         self._apply("radiobutton_height", rh)
         return self
 
+    def get(self):
+        """Return the group's selected value when a variable is bound."""
+        if self._built is not None:
+            if self._variable is not None:
+                return self._variable.get()
+            return self._built.get()
+        return self._selected
+
+    def set(self, value) -> RadioButton:
+        """Select the radio whose value matches (via the shared variable)."""
+        self._selected = value
+        if self._built is not None:
+            if self._variable is not None:
+                self._variable.set(value)
+            elif value == self._value:
+                self._built.select()
+        return self
+
     def build(self, parent, *, width=None, height=None):
         kwargs: dict[str, Any] = {}
         if self._text is not None: kwargs["text"] = self._text
@@ -351,6 +437,11 @@ class RadioButton(BaseWidget["RadioButton"]):
         if self._command is not None:
             user_cmd = self._command
             radio_button.configure(command=lambda: user_cmd(radio_button.get()))
+        if self._selected is not None:
+            if self._variable is not None:
+                self._variable.set(self._selected)
+            elif self._selected == self._value:
+                radio_button.select()
         return radio_button
 
 
@@ -361,6 +452,7 @@ class Textbox(BaseWidget["Textbox"]):
         self._border_spacing = None
         self._wrap = None  # "char", "word", "none"
         self._activate_scrollbars = True
+        self._default_text = None
 
     def border(self, width: int, spacing: int | None = None) -> Textbox:
         self._border_width = width
@@ -379,6 +471,24 @@ class Textbox(BaseWidget["Textbox"]):
         self._activate_scrollbars = active
         return self
 
+    def get(self) -> str:
+        """Return the full textbox content (trailing newline stripped)."""
+        if self._built is not None:
+            return self._built.get("0.0", "end").rstrip("\n")
+        return self._default_text if self._default_text is not None else ""
+
+    def set(self, text: str) -> Textbox:
+        """Set the textbox content (default before build, live update after)."""
+        self._default_text = text
+        if self._built is not None:
+            self._built.delete("0.0", "end")
+            self._built.insert("0.0", text)
+        return self
+
+    def clear(self) -> Textbox:
+        """Clear the textbox content."""
+        return self.set("")
+
     def build(self, parent, *, width=None, height=None):
         kwargs: dict[str, Any] = {}
         if self._border_width is not None: kwargs["border_width"] = self._border_width
@@ -387,7 +497,11 @@ class Textbox(BaseWidget["Textbox"]):
         kwargs["activate_scrollbars"] = self._activate_scrollbars
 
         self._inject_base_args(kwargs, width=width, height=height)
-        return self._create_widget("Textbox", parent, kwargs)
+        textbox = self._create_widget("Textbox", parent, kwargs)
+        if self._default_text is not None:
+            textbox.delete("0.0", "end")
+            textbox.insert("0.0", self._default_text)
+        return textbox
 
 
 class Slider(BaseWidget["Slider"]):
@@ -404,6 +518,7 @@ class Slider(BaseWidget["Slider"]):
         self._button_color = None
         self._progress_color = None
         self._button_hover_color = None
+        self._default_value = None
 
     def range(self, start: float, end: float) -> Slider:
         """set the range of the slider, default is 0 to 1"""
@@ -450,6 +565,19 @@ class Slider(BaseWidget["Slider"]):
         self._apply("button_hover_color", color)
         return self
 
+    def get(self):
+        """Return the current slider value."""
+        if self._built is not None:
+            return self._built.get()
+        return self._default_value
+
+    def set(self, value) -> Slider:
+        """Set the slider value (initial value before build, live update after)."""
+        self._default_value = value
+        if self._built is not None:
+            self._built.set(value)
+        return self
+
     def build(self, parent, *, width=None, height=None):
         kwargs: dict[str, Any] = {}
 
@@ -468,7 +596,10 @@ class Slider(BaseWidget["Slider"]):
         if self._button_hover_color is not None: kwargs["button_hover_color"] = _resolve_token(self._button_hover_color)
 
         self._inject_base_args(kwargs, width=width, height=height)
-        return self._create_widget("Slider", parent, kwargs)
+        slider = self._create_widget("Slider", parent, kwargs)
+        if self._default_value is not None:
+            slider.set(self._default_value)
+        return slider
 
 
 class ProgressBar(BaseWidget["ProgressBar"]):
@@ -495,6 +626,16 @@ class ProgressBar(BaseWidget["ProgressBar"]):
         if self._built is not None:
             self._built.set(val)
         return self
+
+    def get(self):
+        """Return the current progress value (0..1)."""
+        if self._built is not None:
+            return self._built.get()
+        return self._value
+
+    def set(self, val: float) -> ProgressBar:
+        """Set the progress value (alias of value())."""
+        return self.value(val)
 
     def build(self, parent, *, width=None, height=None):
         kwargs: dict[str, Any] = {}
@@ -526,6 +667,16 @@ class SegmentedButton(BaseWidget["SegmentedButton"]):
         if self._built is not None:
             self._built.set(val)
         return self
+
+    def get(self):
+        """Return the currently selected value."""
+        if self._built is not None:
+            return self._built.get()
+        return self._default_value
+
+    def set(self, val: str) -> SegmentedButton:
+        """Set the selected value (alias of set_value)."""
+        return self.set_value(val)
 
     def event(self, command=lambda value: None) -> SegmentedButton:
         self._command = command
@@ -565,6 +716,16 @@ class ComboBox(BaseWidget["ComboBox"]):
             self._built.set(val)
         return self
 
+    def get(self):
+        """Return the currently selected value."""
+        if self._built is not None:
+            return self._built.get()
+        return self._default_value
+
+    def set(self, val: str) -> ComboBox:
+        """Set the selected value (alias of set_value)."""
+        return self.set_value(val)
+
     def event(self, command=lambda value: None) -> ComboBox:
         self._command = command
         return self
@@ -599,6 +760,16 @@ class OptionMenu(BaseWidget["OptionMenu"]):
         if self._built is not None:
             self._built.set(val)
         return self
+
+    def get(self):
+        """Return the currently selected value."""
+        if self._built is not None:
+            return self._built.get()
+        return self._default_value
+
+    def set(self, val: str) -> OptionMenu:
+        """Set the selected value (alias of set_value)."""
+        return self.set_value(val)
 
     def event(self, command=lambda value: None) -> OptionMenu:
         self._command = command

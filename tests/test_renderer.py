@@ -20,6 +20,9 @@ class Stub:
         self.inserted = []
         self.added = []
         self.propagate_calls = []
+        self.select_calls = []
+        self.deselect_calls = []
+        self.deleted = []
         self.value = 1
 
     def get(self):
@@ -41,6 +44,21 @@ class Stub:
 
     def grid_propagate(self, *args):
         self.propagate_calls.append(args)
+
+    def select(self, *args):
+        self.select_calls.append(args)
+
+    def deselect(self, *args):
+        self.deselect_calls.append(args)
+
+    def delete(self, *args):
+        self.deleted.append(args)
+
+    def get_children(self):
+        return []
+
+    def curselection(self):
+        return []
 
     def __getattr__(self, name):
         def _noop(*args, **kwargs):
@@ -124,6 +142,42 @@ class RendererFlowTests(unittest.TestCase):
     def test_button_fix_size_requires_size(self):
         with self.assertRaises(ValueError):
             ltk.Button().fix_size().build(None)
+
+    def test_entry_set_applied_at_build(self):
+        ltk.Entry().set("hi").build(None)
+        stub = self.fake.created_widgets[0]
+        self.assertIn((0, "hi"), [args for args, _ in stub.inserted])
+
+    def test_switch_set_applied_at_build(self):
+        ltk.Switch().set(True).build(None)
+        self.assertTrue(self.fake.created_widgets[0].select_calls)
+
+    def test_checkbox_set_applied_at_build(self):
+        ltk.CheckBox().set(False).build(None)
+        self.assertTrue(self.fake.created_widgets[0].deselect_calls)
+
+    def test_slider_set_applied_at_build(self):
+        ltk.Slider().set(0.5).build(None)
+        self.assertEqual(self.fake.created_widgets[0].set_calls, [0.5])
+
+    def test_treeview_set_rebuilds_rows_live(self):
+        tree = ltk.Treeview().columns(["A"]).rows([("1",)])
+        tree.build(None)
+        stub = self.fake.created_widgets[-1]
+        stub.inserted.clear()
+        tree.set([("2",), ("3",)])
+        self.assertTrue(stub.deleted)
+        values = [kwargs["values"] for _, kwargs in stub.inserted]
+        self.assertEqual(values, [("2",), ("3",)])
+
+    def test_listbox_set_rebuilds_items_live(self):
+        box = ltk.Listbox().items(["a"])
+        box.build(None)
+        stub = self.fake.created_widgets[-1]
+        stub.inserted.clear()
+        box.set(["x", "y"])
+        self.assertTrue(stub.deleted)
+        self.assertEqual([args[1] for args, _ in stub.inserted], ["x", "y"])
 
     def test_fg_color_token_resolved_at_build(self):
         token_mod.set_theme("catppuccin-mocha")

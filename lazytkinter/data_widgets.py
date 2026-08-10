@@ -115,6 +115,31 @@ class Treeview(BaseWidget["Treeview"]):
         self._command = command
         return self
 
+    def get(self):
+        """Return the currently selected row values (or None)."""
+        if self._built is not None:
+            selection = self._built.selection()
+            if selection:
+                return self._built.item(selection[0], "values")
+        return None
+
+    def set(self, rows: list) -> Treeview:
+        """Replace the rows (rebuilt live after build)."""
+        self._rows = list(rows)
+        if self._built is not None:
+            self._rebuild_rows()
+        return self
+
+    def clear(self) -> Treeview:
+        """Remove all rows."""
+        return self.set([])
+
+    def _rebuild_rows(self) -> None:
+        tree = self._built
+        tree.delete(*tree.get_children())
+        for row in self._rows:
+            tree.insert("", "end", values=tuple(row))
+
     def build(self, parent, *, width=None, height=None):
         props: dict[str, Any] = {}
         self._inject_base_args(props, width=width, height=height)
@@ -141,8 +166,7 @@ class Treeview(BaseWidget["Treeview"]):
         for column in columns:
             tree.heading(column, text=str(column))
 
-        for row in self._rows:
-            tree.insert("", "end", values=tuple(row))
+        self._rebuild_rows()
 
         if self._command is not None:
             user_cmd = self._command
@@ -177,6 +201,31 @@ class Listbox(BaseWidget["Listbox"]):
         self._command = command
         return self
 
+    def get(self):
+        """Return the currently selected item (or None)."""
+        if self._built is not None:
+            selection = self._built.curselection()
+            if selection:
+                return self._built.get(selection[0])
+        return None
+
+    def set(self, items: list) -> Listbox:
+        """Replace the items (rebuilt live after build)."""
+        self._items = list(items)
+        if self._built is not None:
+            self._rebuild_items()
+        return self
+
+    def clear(self) -> Listbox:
+        """Remove all items."""
+        return self.set([])
+
+    def _rebuild_items(self) -> None:
+        listbox = self._built
+        listbox.delete(0, "end")
+        for item in self._items:
+            listbox.insert("end", item)
+
     def build(self, parent, *, width=None, height=None):
         props: dict[str, Any] = {}
         self._inject_base_args(props, width=width, height=height)
@@ -203,8 +252,7 @@ class Listbox(BaseWidget["Listbox"]):
         )
         listbox = self._create_widget("Listbox", frame, props)
 
-        for item in self._items:
-            listbox.insert("end", item)
+        self._rebuild_items()
 
         if self._command is not None:
             user_cmd = self._command

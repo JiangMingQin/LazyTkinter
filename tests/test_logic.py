@@ -594,6 +594,54 @@ class ButtonPaddingFixSizeTests(unittest.TestCase):
     def test_fix_size_validation(self):
         with self.assertRaises(ValueError):
             ltk.Button().fix_size("yes")
+
+
+class ValueApiTests(unittest.TestCase):
+    def test_entry_set_get_before_build(self):
+        entry = ltk.Entry().set("hi")
+        self.assertEqual(entry._default_text, "hi")
+        self.assertEqual(entry.get(), "hi")
+        entry.clear()
+        self.assertEqual(entry.get(), "")
+
+    def test_textbox_set_get_before_build(self):
+        text = ltk.Textbox().set("line")
+        self.assertEqual(text._default_text, "line")
+        self.assertEqual(text.get(), "line")
+        text.clear()
+        self.assertEqual(text.get(), "")
+
+    def test_slider_set_get_before_build(self):
+        slider = ltk.Slider().range(0, 100).set(40)
+        self.assertEqual(slider._default_value, 40)
+        self.assertEqual(slider.get(), 40)
+
+    def test_switch_checkbox_set_before_build(self):
+        self.assertTrue(ltk.Switch().set(True)._selected)
+        self.assertFalse(ltk.CheckBox().set(False)._selected)
+
+    def test_radio_set_before_build(self):
+        radio = ltk.RadioButton().value("A").set("A")
+        self.assertEqual(radio._selected, "A")
+
+    def test_selection_widgets_set_aliases_set_value(self):
+        self.assertEqual(ltk.ComboBox().set("B")._default_value, "B")
+        self.assertEqual(ltk.OptionMenu().set("x")._default_value, "x")
+        self.assertEqual(ltk.SegmentedButton().set("y")._default_value, "y")
+
+    def test_progressbar_set_aliases_value(self):
+        bar = ltk.ProgressBar().set(0.7)
+        self.assertEqual(bar._value, 0.7)
+        with self.assertRaises(ValueError):
+            ltk.ProgressBar().set(1.5)
+
+    def test_data_widgets_set_before_build(self):
+        tree = ltk.Treeview().set([("a", 1)])
+        self.assertEqual(tree._rows, [("a", 1)])
+        self.assertIsNone(tree.get())
+        box = ltk.Listbox().set(["x"])
+        self.assertEqual(box._items, ["x"])
+        self.assertIsNone(box.get())
         with self.assertRaises(ValueError):
             ltk.ProgressBar().value(-0.1)
         ltk.ProgressBar().value(0.7)

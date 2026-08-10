@@ -396,3 +396,37 @@ class SmokeTests(unittest.TestCase):
         self.assertEqual(app.native("fixed").winfo_width(), 100)
         self.assertGreater(app.native("free").winfo_width(), 100)
         app._window.destroy()
+
+    def test_value_api(self):
+        app = ltk.Application()
+        app.size((600, 480)).window_title("smoke").column(
+            ltk.Entry().id("entry"),
+            ltk.Slider().range(0, 100).id("slider"),
+            ltk.CheckBox().id("check"),
+            ltk.ComboBox().values(["a", "b", "c"]).id("combo"),
+            ltk.Textbox().height(60).id("text"),
+            ltk.Treeview().columns(["A"]).rows([("1",), ("2",)]).id("tree"),
+        )
+        app.build()
+        app._window.update_idletasks()
+
+        app.get("entry").set("hello")
+        self.assertEqual(app.get("entry").get(), "hello")
+        app.get("entry").clear()
+        self.assertEqual(app.get("entry").get(), "")
+
+        app.get("slider").set(40)
+        self.assertEqual(app.get("slider").get(), 40)
+
+        app.get("check").set(True)
+        self.assertTrue(app.get("check").get())
+
+        app.get("combo").set("b")
+        self.assertEqual(app.get("combo").get(), "b")
+
+        app.get("text").set("line1\nline2")
+        self.assertEqual(app.get("text").get(), "line1\nline2")
+
+        app.get("tree").set([("3",), ("4",)])
+        self.assertEqual(len(app.native("tree").get_children()), 2)
+        app._window.destroy()
