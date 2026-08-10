@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import tkinter as tk
 from tkinter import ttk
 from typing import TYPE_CHECKING
@@ -112,6 +113,7 @@ class Application:
         """Initializes the application."""
         self._window = get_renderer().create_window()
         _enable_clam_theme(self._window)
+        self._window_size = None
         self._ipadx = 0
         self._ipady = 0
         self._layout_set = False
@@ -149,8 +151,10 @@ class Application:
         action, value = _resolve_window_size(size)
         if action == "zoom":
             self._window.state("zoomed")
+            self._window_size = None
         else:
             self._window.geometry(value)
+            self._window_size = tuple(int(v) for v in value.split("x"))
         return self
 
     def resizable(self, width: bool = True, height: bool = True) -> Application:
@@ -177,6 +181,32 @@ class Application:
     def fixed_size(self) -> Application:
         """Make the window non-resizable (equivalent to resizable(False, False))."""
         return self.resizable(False, False)
+
+    def center_window(self) -> Application:
+        """Center the window on screen (call after size())."""
+        if self._window_size is None:
+            return self
+        width, height = self._window_size
+        x = max(0, (self._window.winfo_screenwidth() - width) // 2)
+        y = max(0, (self._window.winfo_screenheight() - height) // 2)
+        self._window.geometry(f"{width}x{height}+{x}+{y}")
+        return self
+
+    def icon(self, path: str) -> Application:
+        """Set the window icon (Windows: ``.ico`` via iconbitmap)."""
+        if not isinstance(path, str) or not os.path.isfile(path):
+            raise ValueError(
+                f"Application.icon() expects an existing file path, got {path!r}"
+            )
+        self._window.iconbitmap(path)
+        return self
+
+    def on_close(self, callback) -> Application:
+        """Set the close (WM_DELETE_WINDOW) callback; call destroy() inside to close."""
+        if not callable(callback):
+            raise ValueError("Application.on_close() expects a callable")
+        self._window.protocol("WM_DELETE_WINDOW", callback)
+        return self
 
     @staticmethod
     def _check_window_size(value, name: str) -> None:

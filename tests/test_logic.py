@@ -642,6 +642,22 @@ class ValueApiTests(unittest.TestCase):
         box = ltk.Listbox().set(["x"])
         self.assertEqual(box._items, ["x"])
         self.assertIsNone(box.get())
+
+
+class WidgetDetailTests(unittest.TestCase):
+    def test_label_anchor_validation(self):
+        with self.assertRaises(ValueError):
+            ltk.Label().anchor("diagonal")
+
+    def test_button_compound_validation(self):
+        with self.assertRaises(ValueError):
+            ltk.Button().compound("diagonal")
+
+    def test_visible_validation(self):
+        with self.assertRaises(ValueError):
+            ltk.Button().visible("yes")
+        with self.assertRaises(ValueError):
+            ltk.Button().visible(False)
         with self.assertRaises(ValueError):
             ltk.ProgressBar().value(-0.1)
         ltk.ProgressBar().value(0.7)

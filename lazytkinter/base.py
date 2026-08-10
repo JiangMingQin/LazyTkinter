@@ -422,6 +422,26 @@ class BaseWidget(Generic[T]):
         self._apply("cursor", cursor)
         return self  # type: ignore
 
+    def visible(self, active: bool = True) -> T:
+        """Show or hide the built widget (grid_remove/grid).
+
+        Requires the widget to be built; call it after the layout is built,
+        e.g. ``app.get("id").visible(False)``. Declarative "hidden by
+        default" is not supported yet.
+        """
+        if not isinstance(active, bool):
+            raise ValueError("visible() expects a bool")
+        if self._built is None:
+            raise ValueError(
+                "visible() requires the widget to be built; "
+                "call it after the layout is built, e.g. app.get('id').visible(False)"
+            )
+        if active:
+            self._built.grid()
+        else:
+            self._built.grid_remove()
+        return self  # type: ignore
+
     # Layout
     def align(self, a: str) -> T:
         """Set per-widget alignment override used by the parent container.

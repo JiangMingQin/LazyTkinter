@@ -23,6 +23,10 @@ class Stub:
         self.select_calls = []
         self.deselect_calls = []
         self.deleted = []
+        self.protocol_calls = []
+        self.grid_calls = []
+        self.grid_remove_calls = []
+        self.iconbitmap_calls = []
         self.value = 1
 
     def get(self):
@@ -59,6 +63,18 @@ class Stub:
 
     def curselection(self):
         return []
+
+    def protocol(self, *args):
+        self.protocol_calls.append(args)
+
+    def grid(self, *args, **kwargs):
+        self.grid_calls.append((args, kwargs))
+
+    def grid_remove(self, *args, **kwargs):
+        self.grid_remove_calls.append((args, kwargs))
+
+    def iconbitmap(self, *args):
+        self.iconbitmap_calls.append(args)
 
     def __getattr__(self, name):
         def _noop(*args, **kwargs):
@@ -178,6 +194,25 @@ class RendererFlowTests(unittest.TestCase):
         box.set(["x", "y"])
         self.assertTrue(stub.deleted)
         self.assertEqual([args[1] for args, _ in stub.inserted], ["x", "y"])
+
+    def test_label_anchor_prop(self):
+        ltk.Label().anchor("w").build(None)
+        _, props = self.fake.widget_calls[0]
+        self.assertEqual(props["anchor"], "w")
+
+    def test_button_compound_prop(self):
+        ltk.Button().compound("left").build(None)
+        _, props = self.fake.widget_calls[0]
+        self.assertEqual(props["compound"], "left")
+
+    def test_visible_after_build(self):
+        button = ltk.Button()
+        button.build(None)
+        stub = self.fake.created_widgets[0]
+        button.visible(False)
+        self.assertTrue(stub.grid_remove_calls)
+        button.visible(True)
+        self.assertTrue(stub.grid_calls)
 
     def test_fg_color_token_resolved_at_build(self):
         token_mod.set_theme("catppuccin-mocha")
@@ -688,3 +723,30 @@ class WindowConstraintTests(unittest.TestCase):
         self.assertIs(app.min_size(300, 200), app)
         self.assertIs(app.max_size(800, 600), app)
         self.assertIs(app.fixed_size(), app)
+
+
+class WindowDetailTests(unittest.TestCase):
+    def setUp(self):
+        self.fake = FakeRenderer()
+        set_renderer(self.fake)
+
+    def tearDown(self):
+        set_renderer(_real_renderer)
+
+    def test_icon_missing_path_raises(self):
+        app = ltk.Application()
+        with self.assertRaises(ValueError):
+            app.icon("no-such-file.ico")
+
+    def test_icon_valid_path(self):
+        app = ltk.Application()
+        app.icon(__file__)
+        self.assertTrue(app._window.iconbitmap_calls)
+
+    def test_on_close_validation_and_protocol(self):
+        app = ltk.Application()
+        with self.assertRaises(ValueError):
+            app.on_close("not callable")
+        callback = lambda: None
+        app.on_close(callback)
+        self.assertIn(("WM_DELETE_WINDOW", callback), app._window.protocol_calls)

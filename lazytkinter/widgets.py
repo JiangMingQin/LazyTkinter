@@ -5,6 +5,9 @@ from .base import BaseWidget
 from .renderer import get_renderer
 from .tokens import resolve as _resolve_token
 
+_ANCHORS = ("center", "n", "ne", "e", "se", "s", "sw", "w", "nw")
+_BUTTON_COMPOUNDS = ("top", "bottom", "left", "right", "center")
+
 
 class Button(BaseWidget["Button"]):
     """
@@ -35,6 +38,7 @@ class Button(BaseWidget["Button"]):
         self._image = None
         self._padding = None
         self._fix_size = False
+        self._compound = None
 
     def text(self, text: str = "Button") -> Button:
         # [Design Pattern - Fluent Interface]:
@@ -79,6 +83,16 @@ class Button(BaseWidget["Button"]):
         self._fix_size = active
         return self
 
+    def compound(self, mode: str) -> Button:
+        """Set image/text placement (use with image())."""
+        if mode not in _BUTTON_COMPOUNDS:
+            raise ValueError(
+                f"Button.compound() expects one of {_BUTTON_COMPOUNDS}, got {mode!r}"
+            )
+        self._compound = mode
+        self._apply("compound", mode)
+        return self
+
     def build(self, parent, *, width=None, height=None):
         """
         [Internal Method] Build the underlying native button through the renderer.
@@ -94,6 +108,7 @@ class Button(BaseWidget["Button"]):
         if self._border_color is not None: kwargs["border_color"] = _resolve_token(self._border_color)
         if self._image is not None: kwargs["image"] = self._image
         if self._padding is not None: kwargs["border_spacing"] = self._padding
+        if self._compound is not None: kwargs["compound"] = self._compound
 
         # [Code Reuse]:
         # The handling logic for generic properties like width, height, font, fg_color
@@ -121,6 +136,7 @@ class Label(BaseWidget["Label"]):
         self._wraplength = None
         self._image = None
         self._variable = None
+        self._anchor = None
 
     def text(self, text: str = "Label") -> Label:
         self._text = text
@@ -146,6 +162,14 @@ class Label(BaseWidget["Label"]):
         self._image = img
         return self
 
+    def anchor(self, mode: str) -> Label:
+        """Set text alignment within the label (tk anchors)."""
+        if mode not in _ANCHORS:
+            raise ValueError(f"Label.anchor() expects one of {_ANCHORS}, got {mode!r}")
+        self._anchor = mode
+        self._apply("anchor", mode)
+        return self
+
     def build(self, parent, *, width=None, height=None):
         kwargs: dict[str, Any] = {}
         if self._text is not None: kwargs["text"] = self._text
@@ -153,6 +177,7 @@ class Label(BaseWidget["Label"]):
         if self._wraplength is not None: kwargs["wraplength"] = self._wraplength
         if self._image is not None: kwargs["image"] = self._image  # Label supports images
         if self._variable is not None: kwargs["textvariable"] = self._variable
+        if self._anchor is not None: kwargs["anchor"] = self._anchor
 
         self._inject_base_args(kwargs, width=width, height=height)
         return self._create_widget("Label", parent, kwargs)
