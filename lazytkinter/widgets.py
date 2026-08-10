@@ -436,7 +436,7 @@ class RadioButton(BaseWidget["RadioButton"]):
         if self._built is not None:
             if self._variable is not None:
                 return self._variable.get()
-            return self._built.get()
+            return self._value
         return self._selected
 
     def set(self, value) -> RadioButton:
@@ -461,7 +461,7 @@ class RadioButton(BaseWidget["RadioButton"]):
         radio_button = self._create_widget("RadioButton", parent, kwargs)
         if self._command is not None:
             user_cmd = self._command
-            radio_button.configure(command=lambda: user_cmd(radio_button.get()))
+            radio_button.configure(command=lambda: user_cmd(self.get()))
         if self._selected is not None:
             if self._variable is not None:
                 self._variable.set(self._selected)

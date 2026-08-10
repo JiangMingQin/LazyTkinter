@@ -299,9 +299,14 @@ class RendererFlowTests(unittest.TestCase):
 
     def test_radiobutton_event_receives_value(self):
         received = []
-        widget = ltk.RadioButton().event(received.append).build(None)
+        widget = ltk.RadioButton().value("A").event(received.append).build(None)
         widget.configured["command"]()
-        self.assertEqual(received, [widget.value])
+        self.assertEqual(received, ["A"])
+
+    def test_radiobutton_get_after_build_without_variable(self):
+        radio = ltk.RadioButton().value("A")
+        radio.build(None)
+        self.assertEqual(radio.get(), "A")
 
     def test_empty_default_value_is_set(self):
         widget = ltk.ComboBox().values(["a", "b"]).set_value("").build(None)
