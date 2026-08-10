@@ -35,13 +35,13 @@
 
 | 项目 | 说明 |
 | --- | --- |
-| 当前版本 | 0.12.0（变更记录见 [CHANGELOG.md](CHANGELOG.md)） |
+| 当前版本 | 0.13.0（变更记录见 [CHANGELOG.md](CHANGELOG.md)） |
 | 项目状态 | 实验性（Experimental），不建议生产环境使用 |
 | Python | >= 3.10 |
 | 平台 | Windows / Linux（GitHub Actions 全矩阵 CI） |
 | 依赖 | `customtkinter>=5.2.0`（安装时自动拉取） |
 | 试验功能 | `Treeview` / `Listbox`（原生控件渲染，可能与 CTk 主题风格不完全统一；切换主题或明暗后需重建窗口生效） |
-| 已实现 | 声明式布局 v2、`.id()` + `app.config()` 类型化访问、统一值 API、语义化主题 token、数据控件、`View` / `SplitPanel` / `Scroll` 等 |
+| 已实现 | 声明式布局 v2、`.id()` + `app.config(类型).aim_id(名字)` 类型化访问、`app.read()` 快速读值、统一值 API、语义化主题 token、数据控件、`View` / `SplitPanel` / `Scroll` 等 |
 
 ---
 
@@ -210,7 +210,7 @@ lazytkinter/
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) —— 架构设计与布局引擎说明
 - [docs/API_REFERENCE.md](docs/API_REFERENCE.md) —— 全部公开组件 API 速查
 - [docs/LAYOUT.md](docs/LAYOUT.md) —— Row / Column 布局规则专题
-- [docs/EXAMPLES.md](docs/EXAMPLES.md) —— 示例文档规划（内容待补充）
+- [docs/EXAMPLES.md](docs/EXAMPLES.md) —— 可运行示例索引（4 个示例覆盖全部 API）
 
 ---
 
