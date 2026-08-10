@@ -363,6 +363,9 @@ class SmokeTests(unittest.TestCase):
     def test_example04(self):
         self._run_example("examples/example04.py")
 
+    def test_example05(self):
+        self._run_example("examples/example05.py")
+
     def test_window_size_constraints(self):
         app = ltk.Application()
         app.size((400, 300)).min_size(300, 200).max_size(800, 600).resizable(False, False)
