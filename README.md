@@ -218,8 +218,12 @@ ltk.Label().font(family="Arial", size=20, weight="bold")  # 字体关键字形�
 ltk.Button().fg_color("primary")            # 颜色可用语义 token 名
 ltk.Button().padding(8)                     # 内边距（映射 CTk border_spacing）
 ltk.Button().width(100).height(30).fix_size()  # 锁定显式尺寸，防大字体撑大
+ltk.Button().fg_color("blue")               # 常用色 token（red/orange/yellow/...）
+ltk.Button().hover_color("blue_hover")      # hover 自动按主题明暗生成
 ltk.color("primary")                        # 读取当前主题的 token 值
 ```
+
+> **常用色 token**：每个主题内置 `red / orange / yellow / green / cyan / blue / purple / black / white / gray` 及各自的 `*_hover`。深色主题的 hover 自动变浅、浅色主题自动变深（HSL 亮度 ±12%）；可直接用于 `fg_color("blue")`、`text_color("red")`、`ltk.color("blue")`、`ltk.Tokens.red`。注意：token 名（如 `red`/`blue`/`green`）会覆盖同名的 CSS 颜色字面量。
 
 **数据型控件 / Data Widgets**（大列表性能优先，原生控件 + 主题化调色板）：
 

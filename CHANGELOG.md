@@ -2,6 +2,18 @@
 
 本项目所有重要变更都会记录在此文件中。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本遵循 [Semantic Versioning](https://semver.org/lang/zh-CN/)。
 
+## [Unreleased]
+
+### 修改 (Changed)
+
+- example01 重写为可用的 iOS 手感计算器示例：整体表达式求值（标准数学优先级）、iOS 语境 `%`、`±`、AC/C 切换、Del/AC、结果续算、10 位有效数字显示。
+
+## [0.9.0] - 2026-08-10
+
+### 新增 (Added)
+
+- 语义 token 新增常用色：每个主题内置 `red / orange / yellow / green / cyan / blue / purple / black / white / gray`，并规则化生成 `*_hover`（深色主题变浅、浅色主题变深，HSL 亮度 ±12%）；`fg_color("blue")`、`ltk.color("red")`、`Tokens.green` 等直接可用。注意：token 名会覆盖同名 CSS 颜色字面量（如 `red`、`blue`）。
+
 ## [0.8.1] - 2026-08-10
 
 ### 新增 (Added)
