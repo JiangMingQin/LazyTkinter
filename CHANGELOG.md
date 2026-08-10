@@ -2,6 +2,14 @@
 
 本项目所有重要变更都会记录在此文件中。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本遵循 [Semantic Versioning](https://semver.org/lang/zh-CN/)。
 
+## [0.11.0] - 2026-08-10
+
+### 新增 (Added)
+
+- 窗口：`center_window()`（窗口在屏幕居中，`size()` 后调用）、`icon(path)`（Windows `iconbitmap`）、`on_close(callback)`（`WM_DELETE_WINDOW` 钩子，回调内需自行 `destroy()`）。
+- `Label.anchor(mode)`（文字在标签内对齐）与 `Button.compound(mode)`（图标+文字排布，配合 `.image()`）。
+- `BaseWidget.visible(active)`：构建后运行时显隐（`grid`/`grid_remove`），所有控件与容器统一可用。
+
 ## [0.10.0] - 2026-08-10
 
 ### 新增 (Added)

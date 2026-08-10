@@ -196,6 +196,7 @@ ltk.Divider().vertical().line_width(2)            # 垂直分隔线（line_width
 ltk.Button().id("btn")                    # 注册 id，app.get("btn") 可继续链式设置
 app.get("btn").config(ltk.Label).text("新文本")  # .config(类型) 收窄类型 + 运行时校验
 app.native("btn")                         # 需要时获取原生控件
+app.get("btn").visible(False)             # 构建后运行时显隐（grid/grid_remove）
 ```
 
 > **Canvas 说明**：基于 `CTkCanvas`（即 `tk.Canvas` 子类，绘图性能一致）；`.draw(func)` 在构建后把原生画布交给回调绘制（可多次注册、按序执行），`.fg_color()` 设置画布背景，交互通过 `.id()` + `app.native(id).bind(...)`。
@@ -220,6 +221,8 @@ ltk.Button().padding(8)                     # 内边距（映射 CTk border_spac
 ltk.Button().width(100).height(30).fix_size()  # 锁定显式尺寸，防大字体撑大
 ltk.Button().fg_color("blue")               # 常用色 token（red/orange/yellow/...）
 ltk.Button().hover_color("blue_hover")      # hover 自动按主题明暗生成
+ltk.Label().anchor("w")                     # 文字在标签内左对齐（tk 锚点）
+ltk.Button().image(img).compound("left")    # 图标+文字 左右排布
 ltk.color("primary")                        # 读取当前主题的 token 值
 ```
 
@@ -255,6 +258,9 @@ app.size("large").window_title("App").padding(10).gap(5).center().column(...)
 # size: "fill" / "large" / "medium" / "small" / (w, h)
 app.size((800, 600)).min_size(400, 300).max_size(1200, 900).resizable(False, False)
 app.fixed_size()                            # 固定窗口大小（等价 resizable(False, False)）
+app.center_window()                         # 窗口在屏幕居中（size() 后调用）
+app.icon("app.ico")                         # 设置窗口图标（Windows 用 .ico）
+app.on_close(on_quit)                       # 关闭回调（回调内需自行 destroy()）
 ```
 
 ---
