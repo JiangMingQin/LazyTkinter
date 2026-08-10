@@ -362,3 +362,37 @@ class SmokeTests(unittest.TestCase):
 
     def test_example04(self):
         self._run_example("examples/example04.py")
+
+    def test_window_size_constraints(self):
+        app = ltk.Application()
+        app.size((400, 300)).min_size(300, 200).max_size(800, 600).resizable(False, False)
+        # CTk overrides minsize/maxsize/resizable without supporting the no-arg
+        # getter form, so query through the underlying wm_* methods.
+        self.assertEqual(app._window.wm_minsize(), (300, 200))
+        self.assertEqual(app._window.wm_maxsize(), (800, 600))
+        self.assertEqual(app._window.wm_resizable(), (0, 0))
+        app._window.destroy()
+
+    def test_button_fix_size(self):
+        app = ltk.Application()
+        app.size((400, 200)).column(
+            ltk.Row().gap(8).padding(8).add(
+                ltk.Button()
+                .text("hello world")
+                .width(100).height(30)
+                .font(family="Arial", size=28)
+                .fix_size()
+                .id("fixed"),
+                ltk.Button()
+                .text("hello world")
+                .width(100).height(30)
+                .font(family="Arial", size=28)
+                .id("free"),
+            ),
+        )
+        app.build()
+        app._window.deiconify()
+        app._window.update()
+        self.assertEqual(app.native("fixed").winfo_width(), 100)
+        self.assertGreater(app.native("free").winfo_width(), 100)
+        app._window.destroy()

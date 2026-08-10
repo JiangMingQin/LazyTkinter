@@ -153,6 +153,36 @@ class Application:
             self._window.geometry(value)
         return self
 
+    def resizable(self, width: bool = True, height: bool = True) -> Application:
+        """Set whether the user can resize the window (fixed size with False)."""
+        if not isinstance(width, bool) or not isinstance(height, bool):
+            raise ValueError("Application.resizable() expects booleans")
+        self._window.resizable(width, height)
+        return self
+
+    def min_size(self, width: int, height: int) -> Application:
+        """Set the window's minimum size in pixels."""
+        self._check_window_size(width, "min_size")
+        self._check_window_size(height, "min_size")
+        self._window.minsize(width, height)
+        return self
+
+    def max_size(self, width: int, height: int) -> Application:
+        """Set the window's maximum size in pixels."""
+        self._check_window_size(width, "max_size")
+        self._check_window_size(height, "max_size")
+        self._window.maxsize(width, height)
+        return self
+
+    def fixed_size(self) -> Application:
+        """Make the window non-resizable (equivalent to resizable(False, False))."""
+        return self.resizable(False, False)
+
+    @staticmethod
+    def _check_window_size(value, name: str) -> None:
+        if not isinstance(value, int) or isinstance(value, bool) or value < 1:
+            raise ValueError(f"Application.{name}() expects positive integers")
+
     def padding(self, pad: int) -> Application:
         """Sets the window inner padding (integer pixels).
 

@@ -33,6 +33,8 @@ class Button(BaseWidget["Button"]):
         self._border_width = None
         self._border_color = None
         self._image = None
+        self._padding = None
+        self._fix_size = False
 
     def text(self, text: str = "Button") -> Button:
         # [Design Pattern - Fluent Interface]:
@@ -63,6 +65,20 @@ class Button(BaseWidget["Button"]):
         self._image = img
         return self
 
+    def padding(self, n: int) -> Button:
+        """Set the inner spacing around the label (maps to CTk border_spacing)."""
+        if not isinstance(n, int) or isinstance(n, bool) or n < 0:
+            raise ValueError("Button.padding() expects a non-negative integer")
+        self._padding = n
+        return self
+
+    def fix_size(self, active: bool = True) -> Button:
+        """Pin the button to its explicit size so a large font cannot stretch it."""
+        if not isinstance(active, bool):
+            raise ValueError("Button.fix_size() expects a bool")
+        self._fix_size = active
+        return self
+
     def build(self, parent, *, width=None, height=None):
         """
         [Internal Method] Build the underlying native button through the renderer.
@@ -77,13 +93,20 @@ class Button(BaseWidget["Button"]):
         if self._border_width is not None: kwargs["border_width"] = self._border_width
         if self._border_color is not None: kwargs["border_color"] = _resolve_token(self._border_color)
         if self._image is not None: kwargs["image"] = self._image
+        if self._padding is not None: kwargs["border_spacing"] = self._padding
 
         # [Code Reuse]:
         # The handling logic for generic properties like width, height, font, fg_color
         # is extracted to the _inject_base_args method in BaseWidget.
         self._inject_base_args(kwargs, width=width, height=height)
+        if self._fix_size and "width" not in kwargs and "height" not in kwargs:
+            raise ValueError("Button.fix_size() requires explicit width()/height()")
 
         btn = self._create_widget("Button", parent, kwargs)
+        if self._fix_size:
+            # CTkButton's internal grid propagates the text label's requested
+            # size; disabling propagation pins the button to its explicit size.
+            btn.grid_propagate(False)
         if self._command is not None:
             user_cmd = self._command
             btn.configure(command=lambda: user_cmd(None))

@@ -19,6 +19,7 @@ class Stub:
         self.set_calls = []
         self.inserted = []
         self.added = []
+        self.propagate_calls = []
         self.value = 1
 
     def get(self):
@@ -37,6 +38,9 @@ class Stub:
         """Mimic ttk.Panedwindow.add(): return a pane stub."""
         self.added.append((args, kwargs))
         return Stub()
+
+    def grid_propagate(self, *args):
+        self.propagate_calls.append(args)
 
     def __getattr__(self, name):
         def _noop(*args, **kwargs):
@@ -104,6 +108,22 @@ class RendererFlowTests(unittest.TestCase):
         self.assertEqual(props["height"], 30)
         self.assertEqual(props["fg_color"], "red")
         self.assertNotIn("font", props)
+
+    def test_button_padding_maps_to_border_spacing(self):
+        ltk.Button().padding(8).build(None)
+        _, props = self.fake.widget_calls[0]
+        self.assertEqual(props["border_spacing"], 8)
+
+    def test_button_fix_size_disables_propagate(self):
+        ltk.Button().width(100).height(30).fix_size().build(None)
+        stub = self.fake.created_widgets[0]
+        self.assertEqual(stub.propagate_calls, [(False,)])
+        _, props = self.fake.widget_calls[0]
+        self.assertEqual(props["width"], 100)
+
+    def test_button_fix_size_requires_size(self):
+        with self.assertRaises(ValueError):
+            ltk.Button().fix_size().build(None)
 
     def test_fg_color_token_resolved_at_build(self):
         token_mod.set_theme("catppuccin-mocha")
@@ -575,3 +595,33 @@ class DividerFlowTests(unittest.TestCase):
             ltk.Divider().width().fit().build(None)
         with self.assertRaises(ValueError):
             ltk.Divider().orientation("vertical").height().fit().build(None)
+
+
+class WindowConstraintTests(unittest.TestCase):
+    def setUp(self):
+        self.fake = FakeRenderer()
+        set_renderer(self.fake)
+
+    def tearDown(self):
+        set_renderer(_real_renderer)
+
+    def test_resizable_validation(self):
+        app = ltk.Application()
+        with self.assertRaises(ValueError):
+            app.resizable(1, True)
+
+    def test_min_max_size_validation(self):
+        app = ltk.Application()
+        with self.assertRaises(ValueError):
+            app.min_size(0, 100)
+        with self.assertRaises(ValueError):
+            app.max_size(100, 2.5)
+        with self.assertRaises(ValueError):
+            app.max_size(True, 100)
+
+    def test_constraint_methods_chainable(self):
+        app = ltk.Application()
+        self.assertIs(app.resizable(False, False), app)
+        self.assertIs(app.min_size(300, 200), app)
+        self.assertIs(app.max_size(800, 600), app)
+        self.assertIs(app.fixed_size(), app)

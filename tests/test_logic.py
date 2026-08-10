@@ -580,6 +580,20 @@ class ComponentConsistencyTests(unittest.TestCase):
     def test_progressbar_value_validation(self):
         with self.assertRaises(ValueError):
             ltk.ProgressBar().value(1.5)
+
+
+class ButtonPaddingFixSizeTests(unittest.TestCase):
+    def test_padding_validation(self):
+        with self.assertRaises(ValueError):
+            ltk.Button().padding(-1)
+        with self.assertRaises(ValueError):
+            ltk.Button().padding(2.5)
+        with self.assertRaises(ValueError):
+            ltk.Button().padding(True)
+
+    def test_fix_size_validation(self):
+        with self.assertRaises(ValueError):
+            ltk.Button().fix_size("yes")
         with self.assertRaises(ValueError):
             ltk.ProgressBar().value(-0.1)
         ltk.ProgressBar().value(0.7)
