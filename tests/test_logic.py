@@ -631,8 +631,8 @@ class FramePropsTests(unittest.TestCase):
         self.assertNotIn("fg_color", props)  # theme default is used
 
     def test_explicit_fg_color_wins(self):
-        props = _frame_props(Column().fg_color("blue"))
-        self.assertEqual(props["fg_color"], "blue")
+        props = _frame_props(Column().fg_color("#0000ff"))
+        self.assertEqual(props["fg_color"], "#0000ff")
 
     def test_transparent_opt_in(self):
         props = _frame_props(Column().transparent())
@@ -716,6 +716,77 @@ class TokenTests(unittest.TestCase):
         ltk.set_theme("gruvbox-theme")
         self.assertEqual(token_mod._current, "gruvbox-theme")
         ltk.set_theme("catppuccin-mocha")
+
+
+def _luminance(hex_color: str) -> float:
+    hex_color = hex_color.lstrip("#")
+    r, g, b = (int(hex_color[i : i + 2], 16) for i in (0, 2, 4))
+    return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255.0
+
+
+class ColorTokenTests(unittest.TestCase):
+    TOKENS = (
+        "red",
+        "orange",
+        "yellow",
+        "green",
+        "cyan",
+        "blue",
+        "purple",
+        "black",
+        "white",
+        "gray",
+    )
+
+    def setUp(self):
+        self._saved = token_mod._current
+        token_mod.set_theme("catppuccin-mocha")
+
+    def tearDown(self):
+        token_mod._current = self._saved
+
+    def test_common_colors_present_in_every_theme(self):
+        for theme_name, theme in token_mod._THEMES.items():
+            for name in self.TOKENS:
+                self.assertIn(name, theme)
+                self.assertIn(f"{name}_hover", theme)
+                self.assertRegex(theme[name], r"^#[0-9a-fA-F]{6}$")
+                self.assertRegex(theme[f"{name}_hover"], r"^#[0-9a-fA-F]{6}$")
+
+    def test_hover_differs_from_base(self):
+        for theme_name, theme in token_mod._THEMES.items():
+            for name in ("red", "orange", "yellow", "green", "cyan", "blue", "purple", "gray"):
+                self.assertNotEqual(theme[name], theme[f"{name}_hover"])
+
+    def test_white_hover_clamps_on_dark_themes(self):
+        for theme_name in ("catppuccin-mocha", "gruvbox-theme", "dracula-theme", "eva02", "dark-blue"):
+            theme = token_mod._THEMES[theme_name]
+            # dark themes lighten white; a pure-white base stays pure white
+            self.assertGreaterEqual(
+                _luminance(theme["white_hover"]), _luminance(theme["white"])
+            )
+        self.assertEqual(
+            token_mod._THEMES["catppuccin-mocha"]["white_hover"],
+            token_mod._THEMES["catppuccin-mocha"]["white"],
+        )
+
+    def test_accessors(self):
+        self.assertTrue(token_mod.color("red").startswith("#"))
+        self.assertEqual(ltk.color("red"), token_mod.color("red"))
+        self.assertEqual(ltk.Tokens.blue, token_mod.color("blue"))
+        self.assertEqual(token_mod.resolve("green"), token_mod.color("green"))
+
+    def test_hover_direction(self):
+        token_mod.set_theme("catppuccin-mocha")
+        self.assertGreater(
+            _luminance(token_mod.color("red_hover")),
+            _luminance(token_mod.color("red")),
+        )
+        token_mod.set_theme("blue")
+        self.assertLess(
+            _luminance(token_mod.color("red_hover")),
+            _luminance(token_mod.color("red")),
+        )
 
 
 class ConfigNarrowingTests(unittest.TestCase):

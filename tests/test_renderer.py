@@ -100,13 +100,13 @@ class RendererFlowTests(unittest.TestCase):
         set_renderer(_real_renderer)
 
     def test_button_collects_configured_props_only(self):
-        ltk.Button().text("Login").width(100).height(30).fg_color("red").build(None)
+        ltk.Button().text("Login").width(100).height(30).fg_color("#ff0000").build(None)
         kind, props = self.fake.widget_calls[0]
         self.assertEqual(kind, "Button")
         self.assertEqual(props["text"], "Login")
         self.assertEqual(props["width"], 100)
         self.assertEqual(props["height"], 30)
-        self.assertEqual(props["fg_color"], "red")
+        self.assertEqual(props["fg_color"], "#ff0000")
         self.assertNotIn("font", props)
 
     def test_button_padding_maps_to_border_spacing(self):
@@ -132,6 +132,15 @@ class RendererFlowTests(unittest.TestCase):
             self.assertEqual(
                 self.fake.widget_calls[0][1]["fg_color"], token_mod.color("primary")
             )
+        finally:
+            token_mod.set_theme("catppuccin-mocha")
+
+    def test_fg_color_common_color_token_resolved(self):
+        token_mod.set_theme("catppuccin-mocha")
+        try:
+            ltk.Button().fg_color("red").build(None)
+            _, props = self.fake.widget_calls[0]
+            self.assertEqual(props["fg_color"], token_mod.color("red"))
         finally:
             token_mod.set_theme("catppuccin-mocha")
 
