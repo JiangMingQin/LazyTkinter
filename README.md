@@ -234,6 +234,20 @@ ltk.Listbox().items(["a", "b"]).event(cb)
 
 > **Treeview / Listbox（试验功能）**：使用系统控件（`ttk.Treeview` / `tk.Listbox`）渲染，性能优先，但**可能与 CTk 主题风格不完全统一**。构建时用 `native_theme_colors()` 调色板为每个实例生成唯一的 ttk style（`LTkData<N>.Treeview` 等）：表面/文字/边框/选中色跟随当前 CTk 主题；Listbox 为 tk 控件，同一调色板通过控件选项上色。应用每次创建时会自动把全局 ttk 主题切到 `clam`（Windows 默认 `vista` 主题忽略 Treeview/滚动条颜色，且 CustomTkinter 每次建窗都会重置 ttk 主题），因此所有 ttk 控件外观更扁平；切换主题或明暗后需重建窗口生效。
 
+**值 API / Value API**：
+
+```python
+ltk.Entry().set("默认值")                 # 构建前 = 默认值
+app.get("entry").set("hello")             # 构建后 = 实时更新
+app.get("entry").get()                    # 读当前值
+app.get("entry").clear()                  # 清空（Entry/Textbox/Treeview/Listbox）
+ltk.Slider().range(0, 100).set(40)        # 滑块初始值
+ltk.CheckBox().set(True)                  # 默认勾选
+app.get("tree").set([("a", 1)])           # 数据控件运行时换数据
+```
+
+> **值 API 约定**：`get()` 读当前值、`set(v)` 写值（构建前=默认值，构建后=实时生效）、`clear()` 清空（仅文本/数据类）。覆盖 Entry / Textbox / Switch / CheckBox / RadioButton / Slider / ProgressBar / ComboBox / OptionMenu / SegmentedButton / Treeview / Listbox；`ComboBox().set_value("x")` 与 `ProgressBar().value(0.5)` 保留为等价写法。布局属性（`width`/`align` 等）需在构建前设置。
+
 **窗口 / Window**：
 
 ```python

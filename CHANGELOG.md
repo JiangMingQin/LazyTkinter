@@ -2,6 +2,12 @@
 
 本项目所有重要变更都会记录在此文件中。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本遵循 [Semantic Versioning](https://semver.org/lang/zh-CN/)。
 
+## [0.10.0] - 2026-08-10
+
+### 新增 (Added)
+
+- 统一值 API：所有值类控件新增 `get()` / `set()`（构建前=默认值、构建后=实时更新），Entry/Textbox/Treeview/Listbox 另提供 `clear()`；`Slider().set(v)` 补上初始值缺口，Treeview/Listbox 的 `set()` 支持运行时换数据；`set_value` / `value` 保留为等价写法。
+
 ## [0.9.1] - 2026-08-10
 
 ### 修改 (Changed)
