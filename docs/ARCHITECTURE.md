@@ -1,6 +1,6 @@
 # LazyTkinter 架构设计文档
 
-> 分支：`refactor/three-layer-architecture`（尚未合并到 `main`）
+> 本文档记录历史演进：`refactor/three-layer-architecture`（三层架构）与 `feat/layout-v2`（布局引擎 v2）的设计过程，相关分支均已合并进 `main`。文中早期名称（如 `ScrollableColumn`、`Spacer`、`Empty`）已被后续版本替换，仅保留在历史语境中。
 
 ## 背景与目标
 
@@ -64,9 +64,11 @@ class Renderer:
 
 - `tests/test_logic.py`：纯逻辑单测（尺寸策略解析、align 校验与 sticky 映射、布局槽解析、ZStack 锚点、Window size 预设、Spacer/Scroll 校验），不创建窗口。
 - `tests/test_renderer.py`：用 FakeRenderer 注入验证 build 流程与参数收集，不创建窗口。
-- `tests/test_smoke_gui.py`：隐藏窗口冒烟用例（三个示例 + ZStack/Spacer/Scroll 场景），无显示环境自动跳过。
+- `tests/test_smoke_gui.py`：隐藏窗口冒烟用例（示例 00–03 + 布局/容器场景），无显示环境自动跳过。
 
-## 后续路线图（不在本分支）
+## 后续路线图（已全部实现）
+
+> 以下 4 项已在 0.8.0–0.13.0 中全部实现，本节保留作为历史记录。
 
 1. 大列表性能：`ltk.Treeview` / `ltk.Listbox` 薄封装（数据型控件）。
 2. 控件引用：`.id("name")` + `app.config(类型).aim_id("name")`，支持运行时更新。
@@ -74,6 +76,8 @@ class Renderer:
 4. 打包与工程化：`pyproject.toml`、CI。
 
 ## 布局引擎 v2（破坏性重构）
+
+> 注：`Spacer` / `Empty` 在 0.8.0 中合并为 `Space`，本节沿用 v2 初稿名称。
 
 布局 v2 在 `feat/layout-v2` 分支上把公开布局 API 从 grid 概念（`weight` / `sticky` / `row_span` / `col_span` / `margin` / `spacing` / `ScrollableColumn`）替换为声明式原语，`main` 上的旧 API 不再保留。
 
@@ -103,4 +107,4 @@ class Renderer:
 ## 分支流程
 
 - 从 `main` 拉出 `refactor/three-layer-architecture`，分三次提交：文档 → 重构 → 测试。
-- 未 push、未合并；确认稳定后由仓库 owner 决定合并。
+- 已合并进 `main`（连同后续布局 v2、示例收敛等）；本节保留作为历史记录。
