@@ -1,6 +1,6 @@
 # 🦥 LazyTkinter
 
-![Status](https://img.shields.io/badge/Status-Experimental-orange)
+![Status](https://img.shields.io/badge/Status-Active-green)
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
@@ -16,16 +16,13 @@
 
 ---
 
-## ⚠️ 免责声明 / Disclaimer
+## ⚠️ 项目定位与维护说明 / Positioning & Maintenance
 
-**这是一个实验性项目。**
-**This is an experimental project.**
+LazyTkinter 定位为**快速开发简单 GUI 工具的轻量库**，适合内部工具、个人项目、原型和小型应用；不适合需要高可用、强 SLA 或复杂业务逻辑的对外服务。
 
-这是我个人开发的第一个开源项目，LazyTkinter 主要用于探索声明式 UI 在 Python 中的实现。
-
-- ❌ **不保证**长期维护或更新；日常更新随缘，仅在出现严重 bug 且收到实际反馈时才会投入维护。
-- ❌ **不建议**在生产环境中使用。
-- ✅ **欢迎**学习、Fork 或作为灵感参考。
+- ✅ **API 已基本稳定**：核心布局 DSL 与统一值 API 已定型，后续以新增能力为主。
+- ❌ **维护由社区反馈驱动**：作为个人开源项目，不承诺 SLA；遇到严重 bug 请提 issue，我会尽力修复。
+- ⚠️ **已知限制**：`Treeview` / `Listbox` 为试验功能（原生控件渲染，与 CTk 主题不完全统一，切换主题或明暗后需重建窗口）；`Scroll` v1 仅支持垂直方向；UI 更新需在主线程进行（tkinter 单线程约束）。
 
 如果你对项目感兴趣，可以关注后续更新~
 
@@ -36,7 +33,7 @@
 | 项目 | 说明 |
 | --- | --- |
 | 当前版本 | 0.13.0（变更记录见 [CHANGELOG.md](CHANGELOG.md)） |
-| 项目状态 | 实验性（Experimental），不建议生产环境使用 |
+| 项目状态 | 可用（API 已基本稳定）；适合轻量 GUI 工具，详见上方定位说明 |
 | Python | >= 3.10 |
 | 平台 | Windows / Linux（GitHub Actions 全矩阵 CI） |
 | 依赖 | `customtkinter>=5.2.0`（安装时自动拉取） |
